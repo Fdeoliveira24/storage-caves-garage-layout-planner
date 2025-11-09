@@ -1,147 +1,109 @@
-/* Sidebar Styles */
-.sidebar {
+/* Modern Sidebar - Clean & Minimal */
+
+/* Floor Plan List */
+#floorplan-list {
   display: flex;
   flex-direction: column;
-}
-
-.sidebar-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.sidebar-tab {
-  flex: 1;
-  padding: var(--spacing-md);
-  text-align: center;
-  cursor: pointer;
-  background-color: var(--color-bg-secondary);
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-
-.sidebar-tab:hover {
-  background-color: var(--color-bg-tertiary);
-}
-
-.sidebar-tab.active {
-  background-color: var(--color-bg);
-  border-bottom-color: var(--color-primary);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-md);
+  gap: 8px;
 }
 
 .floorplan-item {
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border: 2px solid var(--color-border);
+  padding: 14px;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
 }
 
 .floorplan-item:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
-  transform: translateY(-2px);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .floorplan-item.selected {
   border-color: var(--color-primary);
-  background-color: #e3f2fd;
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-  transform: none;
+  background: var(--color-primary-light);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .floorplan-name {
   font-weight: 600;
-  font-size: var(--font-size-lg);
+  font-size: 14px;
   color: var(--color-text);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 4px;
 }
 
 .floorplan-info {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 6px;
 }
 
 .floorplan-area {
-  font-size: var(--font-size-sm);
+  font-size: 13px;
   color: var(--color-primary);
   font-weight: 500;
 }
 
-.item-category {
-  margin-bottom: var(--spacing-lg);
+/* Item Palette */
+#item-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.category-name {
+.item-category {
+  margin-bottom: 16px;
+}
+
+.category-title {
+  font-size: 11px;
   font-weight: 600;
-  font-size: var(--font-size-lg);
-  color: var(--color-text);
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
 .category-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--spacing-sm);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
 
 .palette-item {
-  padding: var(--spacing-md);
-  border: 2px solid;
-  border-radius: var(--radius-lg);
+  padding: 12px;
+  border: 1.5px solid;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
+  transition: all var(--transition-base);
   position: relative;
-  overflow: hidden;
-}
-
-.palette-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  opacity: 0;
-  transition: opacity 0.3s;
+  background: var(--color-bg-panel);
 }
 
 .palette-item:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-width: 3px;
-}
-
-.palette-item:hover::before {
-  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-width: 2px;
 }
 
 .palette-item:active {
-  transform: translateY(-2px) scale(1.01);
+  transform: translateY(0);
 }
 
 .palette-item .item-label {
   font-weight: 600;
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-xs);
-  color: #333;
+  font-size: 12px;
+  color: #18181B;
+  margin-bottom: 4px;
+  line-height: 1.3;
 }
 
 .palette-item .item-size {
   font-size: 11px;
-  color: #666;
+  color: #71717A;
   font-weight: 500;
 }
