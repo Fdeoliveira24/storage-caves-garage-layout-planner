@@ -1,0 +1,31 @@
+/* Main CSS - Imports all component styles */
+@import url('reset.css');
+@import url('variables.css');
+@import url('layout.css');
+@import url('components/toolbar.css');
+@import url('components/sidebar.css');
+@import url('components/canvas.css');
+@import url('components/info-panel.css');
+@import url('components/modal.css');
+
+/* Additional global styles */
+.hidden {
+  display: none !important;
+}
+
+.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  z-index: var(--z-tooltip);
+  white-space: nowrap;
+  pointer-events: none;
+}

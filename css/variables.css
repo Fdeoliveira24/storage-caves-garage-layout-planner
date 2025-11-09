@@ -1,0 +1,54 @@
+/* CSS Variables */
+:root {
+  /* Colors */
+  --color-primary: #2196F3;
+  --color-primary-dark: #1976D2;
+  --color-primary-light: #BBDEFB;
+  
+  --color-secondary: #FF5722;
+  --color-secondary-dark: #E64A19;
+  
+  --color-success: #4CAF50;
+  --color-warning: #FFC107;
+  --color-danger: #F44336;
+  
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-tertiary: #e0e0e0;
+  
+  --color-text: #212121;
+  --color-text-secondary: #757575;
+  --color-text-tertiary: #9E9E9E;
+  
+  --color-border: #e0e0e0;
+  --color-border-dark: #bdbdbd;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Typography */
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 2px 6px rgba(0,0,0,0.16);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.2);
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  
+  /* Z-index */
+  --z-toolbar: 100;
+  --z-sidebar: 90;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+}
