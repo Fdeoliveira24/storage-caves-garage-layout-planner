@@ -412,7 +412,24 @@ class App {
     if (floorPlan) {
       this.canvasManager.clear();
       this.canvasManager.drawFloorPlan(floorPlan);
-      // TODO: Re-add items from state
+      
+      // Re-add items from state
+      const items = this.state.get('items') || [];
+      items.forEach(item => {
+        if (item.itemId && item.x !== undefined && item.y !== undefined) {
+          const canvasGroup = this.canvasManager.addItem(item, item.x, item.y);
+          
+          // Restore rotation if exists
+          if (item.angle && canvasGroup) {
+            canvasGroup.rotate(item.angle);
+          }
+          
+          // Update item reference
+          item.canvasObject = canvasGroup;
+        }
+      });
+      
+      this.canvasManager.getCanvas().renderAll();
     }
     this.updateInfoPanel();
   }
@@ -444,6 +461,24 @@ class App {
       this.state.loadState(savedState);
       if (savedState.floorPlan) {
         this.floorPlanManager.setFloorPlan(savedState.floorPlan.id);
+        
+        // Restore items
+        const items = savedState.items || [];
+        items.forEach(item => {
+          if (item.itemId && item.x !== undefined && item.y !== undefined) {
+            const canvasGroup = this.canvasManager.addItem(item, item.x, item.y);
+            
+            // Restore rotation if exists
+            if (item.angle && canvasGroup) {
+              canvasGroup.rotate(item.angle);
+            }
+            
+            // Update item reference
+            item.canvasObject = canvasGroup;
+          }
+        });
+        
+        this.canvasManager.getCanvas().renderAll();
       }
     }
   }

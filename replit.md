@@ -4,6 +4,19 @@
 
 A professional, browser-based garage and storage layout planning tool built entirely with vanilla HTML5, CSS3, and JavaScript ES6. The application allows users to select from pre-defined floor plans (ranging from 500-1200 sq ft), add and manipulate realistic items (vehicles, RVs, boats, storage units), and export layouts as JSON, PNG, or PDF. This is a premium product designed for Envato marketplace with enterprise-grade architecture and zero build dependencies - it runs by simply opening index.html in any modern browser.
 
+## Recent Changes (Nov 9, 2025)
+
+**Critical Bug Fixes:**
+- **Fixed Undo/Redo** - Now properly restores items instead of clearing canvas (was missing item restoration in refreshCanvas())
+- **Fixed Item Text Labels** - Converted to Fabric.js Groups so text moves with items during drag/rotate
+- **Fixed Autosave Loading** - Items now properly restore from saved state
+- **Entry Zone Improvements** - Reduced from 20% to 12% height, changed to red color scheme
+- **Boundary Constraints** - Items cannot be dragged outside floor plan bounds
+- **Export Dropdown** - Consolidated 3 export buttons into single dropdown (JSON, PNG, PDF)
+- **Modal System** - Added professional Modal/Toast UI to replace browser alerts/prompts
+- **Duplicate Function** - Now properly copies position and rotation
+- **UI Cleanup** - Removed duplicate zoom icons
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
