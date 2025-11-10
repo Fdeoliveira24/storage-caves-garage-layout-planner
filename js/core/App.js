@@ -13,6 +13,10 @@ class App {
     this.exportManager = null;
     this.historyManager = null;
     this.autosaveInterval = null;
+    
+    // Cached DOM references for performance
+    this.entryZoneWarningBadge = null;
+    this.entryZoneCheckDebounce = null;
   }
 
   /**
@@ -62,6 +66,9 @@ class App {
     // Sync project name from state to UI
     this.updateProjectName(this.state.get('metadata.projectName'));
 
+    // Check entry zone violations after load
+    this.checkEntryZoneViolations();
+
     // Save initial state to history
     this.historyManager.save();
 
@@ -80,17 +87,22 @@ class App {
         this.updateItemPosition(obj.customData.id, obj.left, obj.top, obj.angle || 0);
       }
       this.historyManager.save();
+      
+      // Check entry zone violations (debounced to avoid thrashing during drags)
+      this.debouncedCheckEntryZone();
     });
 
     // Item events
     this.eventBus.on('item:added', () => {
       this.historyManager.save();
       this.updateInfoPanel();
+      this.checkEntryZoneViolations();
     });
 
     this.eventBus.on('item:removed', () => {
       this.historyManager.save();
       this.updateInfoPanel();
+      this.checkEntryZoneViolations();
     });
 
     this.eventBus.on('item:delete:requested', (itemId) => {
@@ -99,6 +111,7 @@ class App {
 
     this.eventBus.on('item:duplicate:requested', (itemId) => {
       this.itemManager.duplicateItem(itemId);
+      this.checkEntryZoneViolations();
     });
 
     this.eventBus.on('item:paste:requested', (itemData) => {
@@ -108,12 +121,14 @@ class App {
         newItem.canvasObject.rotate(itemData.angle);
         this.canvasManager.getCanvas().renderAll();
       }
+      this.checkEntryZoneViolations();
     });
 
     // Floor plan events
     this.eventBus.on('floorplan:changed', () => {
       this.historyManager.save();
       this.updateInfoPanel();
+      this.checkEntryZoneViolations();
     });
 
     // Selection events
@@ -718,6 +733,59 @@ class App {
     // Update state if different
     if (this.state.get('metadata.projectName') !== name) {
       this.state.set('metadata.projectName', name);
+    }
+  }
+
+  /**
+   * Check for entry zone violations
+   * Returns true if any items are blocking the entry zone
+   */
+  checkEntryZoneViolations() {
+    const floorPlan = this.state.get('floorPlan');
+    if (!floorPlan) {
+      this.updateEntryZoneWarning(false);
+      return false;
+    }
+
+    const items = this.itemManager.getItems();
+    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+    
+    // Check if any item is in the entry zone
+    const hasViolation = items.some(item => {
+      if (!item.canvasObject) return false;
+      return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition);
+    });
+
+    // Update state and UI
+    this.state.set('ui.entryZoneViolation', hasViolation);
+    this.updateEntryZoneWarning(hasViolation);
+    
+    return hasViolation;
+  }
+
+  /**
+   * Debounced entry zone check (16ms to avoid thrashing during drags)
+   */
+  debouncedCheckEntryZone() {
+    if (this.entryZoneCheckDebounce) {
+      clearTimeout(this.entryZoneCheckDebounce);
+    }
+    this.entryZoneCheckDebounce = setTimeout(() => {
+      this.checkEntryZoneViolations();
+    }, 16);
+  }
+
+  /**
+   * Update entry zone warning badge visibility
+   */
+  updateEntryZoneWarning(show) {
+    // Cache badge reference if not already cached
+    if (!this.entryZoneWarningBadge) {
+      this.entryZoneWarningBadge = document.getElementById('entry-zone-warning');
+    }
+    
+    if (this.entryZoneWarningBadge) {
+      this.entryZoneWarningBadge.style.display = show ? 'flex' : 'none';
     }
   }
 

@@ -7,6 +7,7 @@
 @import url('components/canvas.css');
 @import url('components/info-panel.css');
 @import url('components/modal.css');
+@import url('responsive.css');
 
 /* Additional global styles */
 .hidden {
