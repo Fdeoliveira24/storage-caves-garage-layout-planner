@@ -4,18 +4,34 @@
 
 A professional, browser-based garage and storage layout planning tool built entirely with vanilla HTML5, CSS3, and JavaScript ES6. The application allows users to select from pre-defined floor plans (ranging from 500-1200 sq ft), add and manipulate realistic items (vehicles, RVs, boats, storage units), and export layouts as JSON, PNG, or PDF. This is a premium product designed for Envato marketplace with enterprise-grade architecture and zero build dependencies - it runs by simply opening index.html in any modern browser.
 
-## Recent Changes (Nov 9, 2025)
+## Recent Changes (Nov 10, 2025)
 
-**Critical Bug Fixes:**
-- **Fixed Undo/Redo** - Now properly restores items instead of clearing canvas (was missing item restoration in refreshCanvas())
-- **Fixed Item Text Labels** - Converted to Fabric.js Groups so text moves with items during drag/rotate
-- **Fixed Autosave Loading** - Items now properly restore from saved state
-- **Entry Zone Improvements** - Reduced from 20% to 12% height, changed to red color scheme
-- **Boundary Constraints** - Items cannot be dragged outside floor plan bounds
-- **Export Dropdown** - Consolidated 3 export buttons into single dropdown (JSON, PNG, PDF)
-- **Modal System** - Added professional Modal/Toast UI to replace browser alerts/prompts
-- **Duplicate Function** - Now properly copies position and rotation
-- **UI Cleanup** - Removed duplicate zoom icons
+**PDF Export - Print-Ready (300 DPI):**
+- **Professional Output** - Generates print-ready PDFs with 300 DPI resolution (3x multiplier)
+- **Smart Paper Selection** - Auto-selects paper size based on floor plan physical dimensions:
+  - Garages ≥40ft → Tabloid (11" × 17")
+  - Garages ≥30ft → Legal (8.5" × 14")
+  - Garages <30ft → Letter (8.5" × 11")
+- **Auto Orientation** - Detects landscape vs portrait based on canvas aspect ratio
+- **Full jsPDF Compatibility** - Supports ALL jsPDF format/orientation options (strings, arrays, shorthands)
+- **Proper Margins** - 0.5 inch (12.7mm) margins on all sides
+- **Future-Ready Structure** - 25mm header area reserved for logo/branding customization
+- **Metadata** - Includes title, subject, author, keywords for professional output
+- **Validation** - Guards against zero canvas dimensions, invalid scales, and negative content areas
+
+**UI Improvements:**
+- **New Button** - Added "+ New" button to toolbar for starting fresh layouts with confirmation
+- **Export Debugging** - PNG/PDF exports include console logging and validation checks
+- **Empty State** - Prominent canvas center message when no floor plan selected
+- **Z-Index Fixes** - Dropdown menus properly appear above canvas
+- **Tooltips Removed** - All tooltips completely removed as requested
+
+**Previous Fixes (Nov 9, 2025):**
+- Undo/Redo properly restores items
+- Item text labels move with items during drag/rotate
+- Autosave loading works correctly
+- Boundary constraints prevent dragging items outside floor plan
+- Modal/Toast UI replaced browser alerts
 
 ## User Preferences
 
