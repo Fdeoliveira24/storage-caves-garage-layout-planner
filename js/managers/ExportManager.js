@@ -65,7 +65,10 @@ class ExportManager {
       return;
     }
 
-    const filename = `${this.state.get('metadata.projectName') || 'layout'}-${resolution}x.png`;
+    // Format: "Project Name_YYYY-MM-DD_2x.png"
+    const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `${projectName}_${date}_${resolution}x.png`;
     
     const link = document.createElement('a');
     link.href = dataURL;
@@ -222,7 +225,10 @@ class ExportManager {
     });
 
     // Save
-    const filename = `${this.state.get('metadata.projectName') || 'garage_layout'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    // Format: "Project Name_YYYY-MM-DD.pdf"
+    const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+    const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const filename = `${projectName}_${date}.pdf`;
     pdf.save(filename);
 
     console.log(`PDF exported: ${pdfOptions.format}, ${pdfOptions.orientation}, 300 DPI`);

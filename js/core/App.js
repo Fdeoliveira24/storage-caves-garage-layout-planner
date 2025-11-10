@@ -680,17 +680,11 @@ class App {
 
     this.state.loadState(layout.state);
     
-    if (layout.state.floorPlan) {
-      this.floorPlanManager.setFloorPlan(layout.state.floorPlan.id);
-      
-      const items = layout.state.items || [];
-      items.forEach(item => {
-        this.itemManager.addItemFromState(item);
-      });
-    }
-
+    this.refreshCanvas();
     this.renderFloorPlanList();
+    this.renderSavedLayouts();
     this.updateInfoPanel();
+    
     Modal.showSuccess('Layout loaded successfully!');
   }
 

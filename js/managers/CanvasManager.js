@@ -177,10 +177,10 @@ class CanvasManager {
    * Show empty state message
    */
   showEmptyState() {
+    // Remove existing empty state if any
     if (this.emptyStateGroup) {
-      this.canvas.add(this.emptyStateGroup);
-      this.canvas.renderAll();
-      return;
+      this.canvas.remove(this.emptyStateGroup);
+      this.emptyStateGroup = null;
     }
 
     const canvasWidth = this.canvas.getWidth();
@@ -537,9 +537,15 @@ class CanvasManager {
    * Zoom in
    */
   zoomIn() {
-    let zoom = this.canvas.getZoom();
+    const canvas = this.canvas;
+    let zoom = canvas.getZoom();
     zoom = Math.min(zoom * 1.1, 20);
-    this.canvas.setZoom(zoom);
+    
+    canvas.zoomToPoint(
+      new fabric.Point(canvas.width / 2, canvas.height / 2),
+      zoom
+    );
+    
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
@@ -547,9 +553,15 @@ class CanvasManager {
    * Zoom out
    */
   zoomOut() {
-    let zoom = this.canvas.getZoom();
+    const canvas = this.canvas;
+    let zoom = canvas.getZoom();
     zoom = Math.max(zoom / 1.1, 0.1);
-    this.canvas.setZoom(zoom);
+    
+    canvas.zoomToPoint(
+      new fabric.Point(canvas.width / 2, canvas.height / 2),
+      zoom
+    );
+    
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 

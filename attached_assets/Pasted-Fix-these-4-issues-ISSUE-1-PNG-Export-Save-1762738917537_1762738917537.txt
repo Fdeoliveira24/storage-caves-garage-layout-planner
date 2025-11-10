@@ -1,0 +1,266 @@
+Fix these 4 issues:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ISSUE #1: PNG Export Saves as .pdf Instead of .png
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In ExportManager.js, the exportPNG method is using the wrong filename format.
+
+FIND this code in exportPNG():
+```javascript
+const filename = `${this.state.get('metadata.projectName') || 'layout'}-${resolution}x.png`;
+```
+
+REPLACE with:
+```javascript
+// Format: "Project Name_YYYY-MM-DD_2x.png"
+const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+const filename = `${projectName}_${date}_${resolution}x.png`;
+```
+
+This ensures PNG files download as .png, not .pdf.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ISSUE #2: PDF Export Has Wrong Filename Format
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In ExportManager.js, the exportPDF method should match the PNG format.
+
+FIND this code in exportPDF():
+```javascript
+const filename = `${this.state.get('metadata.projectName') || 'layout'}.pdf`;
+pdf.save(filename);
+```
+
+REPLACE with:
+```javascript
+// Format: "Project Name_YYYY-MM-DD.pdf"
+const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+const filename = `${projectName}_${date}.pdf`;
+pdf.save(filename);
+```
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ISSUE #3: Load Button Doesn't Work
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The Load button in the current UI is still broken.
+
+STEP 1: Fix Load button to index.html toolbar (in the File Operations group):
+Proposed fix.
+
+FIND:
+```html
+<div class="toolbar-group">
+  <button id="btn-new" class="btn">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+    </svg>
+    New
+  </button>
+  <button id="btn-save" class="btn btn-icon">
+```
+
+ADD this button between New and Save:
+```html
+<button id="btn-load" class="btn">
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+  </svg>
+  Load
+</button>
+```
+
+STEP 2: Add handler in App.js setupToolbarHandlers():
+
+ADD this after the Save button handler:
+```javascript
+// Load layout
+const loadBtn = document.getElementById('btn-load');
+if (loadBtn) {
+  loadBtn.addEventListener('click', () => this.loadLayout());
+}
+```
+
+STEP 3: Add loadLayout method to App.js (add this new method):
+
+```javascript
+/**
+ * Load saved layout
+ */
+async loadLayout() {
+  const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+  
+  if (layouts.length === 0) {
+    Modal.showInfo('No saved layouts found');
+    return;
+  }
+
+  // Create simple selection dialog
+  const layoutNames = layouts.map((l, i) => `${i + 1}. ${l.name} (${new Date(l.created).toLocaleDateString()})`).join('\n');
+  const selection = await Modal.showPrompt(
+    'Load Layout',
+    `Enter the number of the layout to load:\n\n${layoutNames}`,
+    '1'
+  );
+
+  if (!selection) return;
+
+  const index = parseInt(selection) - 1;
+  if (index < 0 || index >= layouts.length) {
+    Modal.showError('Invalid selection');
+    return;
+  }
+
+  const layout = layouts[index];
+  
+  // Load the state
+  this.state.loadState(layout.state);
+  
+  // Refresh canvas
+  this.refreshCanvas();
+  
+  Modal.showSuccess(`Loaded: ${layout.name}`);
+}
+```
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ISSUE #4: Empty State Text Not Centered After +New
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In CanvasManager.js, the showEmptyState() method doesn't account for canvas size changes.
+
+FIND the showEmptyState() method and REPLACE it with:
+
+```javascript
+/**
+ * Show empty state message
+ */
+showEmptyState() {
+  // Remove existing empty state if any
+  if (this.emptyStateGroup) {
+    this.canvas.remove(this.emptyStateGroup);
+    this.emptyStateGroup = null;
+  }
+
+  const canvasWidth = this.canvas.getWidth();
+  const canvasHeight = this.canvas.getHeight();
+
+  // Create grid icon using basic shapes
+  const gridSize = 80;
+  const gridSpacing = 28;
+  const gridColor = '#D1D5DB';
+  
+  const gridSquares = [];
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      const square = new fabric.Rect({
+        left: col * gridSpacing - gridSize / 2,
+        top: row * gridSpacing - gridSize / 2,
+        width: 20,
+        height: 20,
+        fill: gridColor,
+        rx: 3,
+        ry: 3
+      });
+      gridSquares.push(square);
+    }
+  }
+
+  // Create title text
+  const title = new fabric.Text('Start Planning Your Space', {
+    left: 0,
+    top: gridSize / 2 + 20,
+    fontSize: 24,
+    fontWeight: '600',
+    fill: '#18181B',
+    originX: 'center',
+    originY: 'center',
+    fontFamily: 'system-ui, -apple-system, sans-serif'
+  });
+
+  // Create subtitle text
+  const subtitle = new fabric.Text('Select a floor plan from the sidebar to begin', {
+    left: 0,
+    top: gridSize / 2 + 55,
+    fontSize: 15,
+    fill: '#71717A',
+    originX: 'center',
+    originY: 'center',
+    fontFamily: 'system-ui, -apple-system, sans-serif'
+  });
+
+  // Group all elements
+  this.emptyStateGroup = new fabric.Group([...gridSquares, title, subtitle], {
+    left: canvasWidth / 2,
+    top: canvasHeight / 2,
+    originX: 'center',
+    originY: 'center',
+    selectable: false,
+    evented: false
+  });
+
+  this.canvas.add(this.emptyStateGroup);
+  this.canvas.renderAll();
+}
+```
+
+The key change: Remove existing empty state before creating a new one, and recalculate 
+canvas dimensions each time.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ISSUE #5: Zoom In Zooms to Right Instead of Center
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In CanvasManager.js, the zoomIn() and zoomOut() methods need to zoom toward the center.
+
+FIND the zoomIn() method and REPLACE with:
+
+```javascript
+/**
+ * Zoom in
+ */
+zoomIn() {
+  const canvas = this.canvas;
+  const center = canvas.getCenter();
+  let zoom = canvas.getZoom();
+  zoom = Math.min(zoom * 1.1, 20);
+  
+  canvas.zoomToPoint(
+    new fabric.Point(center.left, center.top),
+    zoom
+  );
+  
+  this.eventBus.emit('canvas:zoomed', zoom);
+}
+```
+
+FIND the zoomOut() method and REPLACE with:
+
+```javascript
+/**
+ * Zoom out
+ */
+zoomOut() {
+  const canvas = this.canvas;
+  const center = canvas.getCenter();
+  let zoom = canvas.getZoom();
+  zoom = Math.max(zoom / 1.1, 0.1);
+  
+  canvas.zoomToPoint(
+    new fabric.Point(center.left, center.top),
+    zoom
+  );
+  
+  this.eventBus.emit('canvas:zoomed', zoom);
+}
+```
+
+The key change: Use canvas.getCenter() to find the center point, then zoom toward that 
+point instead of using the viewport transform.
