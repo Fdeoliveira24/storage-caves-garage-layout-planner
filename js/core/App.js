@@ -238,14 +238,32 @@ class App {
     const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
     const entryZoneTopBtn = document.getElementById('btn-entry-zone-top');
     const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
-    if (entryZoneTopBtn && entryZoneBottomBtn) {
-      if (entryZonePosition === 'top') {
-        entryZoneTopBtn.style.display = 'none';
-        entryZoneBottomBtn.style.display = 'block';
-      } else {
-        entryZoneTopBtn.style.display = 'block';
-        entryZoneBottomBtn.style.display = 'none';
-      }
+    const entryZoneLeftBtn = document.getElementById('btn-entry-zone-left');
+    const entryZoneRightBtn = document.getElementById('btn-entry-zone-right');
+    
+    // Hide all position buttons first
+    if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'none';
+    if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'none';
+    if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'none';
+    if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'none';
+    
+    // Show only the buttons for OTHER positions
+    if (entryZonePosition === 'top') {
+      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
+      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
+      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
+    } else if (entryZonePosition === 'bottom') {
+      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
+      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
+      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
+    } else if (entryZonePosition === 'left') {
+      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
+      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
+      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
+    } else if (entryZonePosition === 'right') {
+      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
+      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
+      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
     }
 
     // Update entry label toggle text
@@ -253,6 +271,13 @@ class App {
     const entryLabelToggleText = document.getElementById('entry-label-toggle-text');
     if (entryLabelToggleText) {
       entryLabelToggleText.textContent = showEntryLabel ? 'Hide Entry Label' : 'Show Entry Label';
+    }
+
+    // Update entry border toggle text
+    const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
+    const entryBorderToggleText = document.getElementById('entry-border-toggle-text');
+    if (entryBorderToggleText) {
+      entryBorderToggleText.textContent = showEntryBorder ? 'Hide Entry Border' : 'Show Entry Border';
     }
   }
 
@@ -478,22 +503,41 @@ class App {
       });
     }
 
+    // Entry zone position handlers
     const entryZoneTopBtn = document.getElementById('btn-entry-zone-top');
     const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
+    const entryZoneLeftBtn = document.getElementById('btn-entry-zone-left');
+    const entryZoneRightBtn = document.getElementById('btn-entry-zone-right');
     
-    if (entryZoneTopBtn && entryZoneBottomBtn) {
+    if (entryZoneTopBtn) {
       entryZoneTopBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'top');
         this.canvasManager.redrawFloorPlan();
-        entryZoneTopBtn.style.display = 'none';
-        entryZoneBottomBtn.style.display = 'block';
+        this.syncViewDropdownUI();
       });
-      
+    }
+    
+    if (entryZoneBottomBtn) {
       entryZoneBottomBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'bottom');
         this.canvasManager.redrawFloorPlan();
-        entryZoneBottomBtn.style.display = 'none';
-        entryZoneTopBtn.style.display = 'block';
+        this.syncViewDropdownUI();
+      });
+    }
+    
+    if (entryZoneLeftBtn) {
+      entryZoneLeftBtn.addEventListener('click', () => {
+        this.state.set('settings.entryZonePosition', 'left');
+        this.canvasManager.redrawFloorPlan();
+        this.syncViewDropdownUI();
+      });
+    }
+    
+    if (entryZoneRightBtn) {
+      entryZoneRightBtn.addEventListener('click', () => {
+        this.state.set('settings.entryZonePosition', 'right');
+        this.canvasManager.redrawFloorPlan();
+        this.syncViewDropdownUI();
       });
     }
 
@@ -504,6 +548,16 @@ class App {
         this.state.set('settings.showEntryZoneLabel', !showLabel);
         this.canvasManager.redrawFloorPlan();
         document.getElementById('entry-label-toggle-text').textContent = showLabel ? 'Show Entry Label' : 'Hide Entry Label';
+      });
+    }
+
+    const toggleEntryBorderBtn = document.getElementById('btn-toggle-entry-border');
+    if (toggleEntryBorderBtn) {
+      toggleEntryBorderBtn.addEventListener('click', () => {
+        const showBorder = this.state.get('settings.showEntryZoneBorder') !== false;
+        this.state.set('settings.showEntryZoneBorder', !showBorder);
+        this.canvasManager.redrawFloorPlan();
+        document.getElementById('entry-border-toggle-text').textContent = showBorder ? 'Show Entry Border' : 'Hide Entry Border';
       });
     }
   }

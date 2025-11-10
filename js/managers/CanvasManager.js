@@ -298,28 +298,48 @@ class CanvasManager {
     });
 
     // Create entry zone
-    const entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
     const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
-    const entryZoneTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
+    const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
+    const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
+    
+    let entryLeft, entryTop, entryWidth, entryHeight, labelLeft, labelTop;
+    
+    if (entryZonePosition === 'left' || entryZonePosition === 'right') {
+      // Vertical entry zone (left or right side)
+      entryWidth = width * Config.ENTRY_ZONE_PERCENTAGE;
+      entryHeight = height;
+      entryLeft = entryZonePosition === 'left' ? 0 : width - entryWidth;
+      entryTop = 0;
+      labelLeft = entryLeft + entryWidth / 2;
+      labelTop = height / 2;
+    } else {
+      // Horizontal entry zone (top or bottom)
+      entryWidth = width;
+      entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
+      entryLeft = 0;
+      entryTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
+      labelLeft = width / 2;
+      labelTop = entryTop + entryHeight / 2;
+    }
     
     this.entryZoneRect = new fabric.Rect({
-      left: 0,
-      top: entryZoneTop,
-      width: width,
+      left: entryLeft,
+      top: entryTop,
+      width: entryWidth,
       height: entryHeight,
       fill: Config.COLORS.entryZone,
       stroke: '#D32F2F',
       strokeWidth: 2,
       strokeDashArray: [8, 4],
       selectable: false,
-      evented: false
+      evented: false,
+      opacity: showEntryBorder ? 1 : 0
     });
     
     // Add entry zone label
-    const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
     this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
-      left: width / 2,
-      top: entryZoneTop + entryHeight / 2,
+      left: labelLeft,
+      top: labelTop,
       fontSize: 12,
       fill: '#D32F2F',
       fontWeight: 'bold',
@@ -334,15 +354,19 @@ class CanvasManager {
     this.canvas.add(this.entryZoneRect);
     this.canvas.add(this.entryZoneLabel);
     
-    // Send floor plan elements to back
-    this.floorPlanRect.sendToBack();
-    this.entryZoneRect.moveTo(1);
-    this.entryZoneLabel.moveTo(2);
-
     // Draw grid if enabled
     if (this.state.get('settings.showGrid')) {
       this.drawGrid(width, height);
     }
+
+    // Set z-order: floor plan at back, then grid, then entry zone/label
+    // First send all grid lines to back
+    this.gridLines.forEach(line => line.sendToBack());
+    // Then send floor plan to back (this puts it below the grid)
+    this.floorPlanRect.sendToBack();
+    // Bring entry zone elements to front (but still behind items)
+    this.entryZoneRect.bringForward();
+    this.entryZoneLabel.bringForward();
 
     // Center and fit
     this.centerAndFit(width, height);
@@ -370,7 +394,6 @@ class CanvasManager {
       });
       this.gridLines.push(line);
       this.canvas.add(line);
-      line.moveTo(3); // Keep grid at layer 3 (above floor plan/entry zone)
     }
 
     // Horizontal lines
@@ -383,8 +406,9 @@ class CanvasManager {
       });
       this.gridLines.push(line);
       this.canvas.add(line);
-      line.moveTo(3); // Keep grid at layer 3 (above floor plan/entry zone)
     }
+    
+    // Note: z-order is set in drawFloorPlan() after grid is drawn
   }
 
   /**
@@ -433,6 +457,7 @@ class CanvasManager {
       top: 0,
       fontSize: 11,
       fill: '#ffffff',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
       fontWeight: 'bold',
       originX: 'center',
       originY: 'center',

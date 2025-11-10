@@ -17,7 +17,8 @@ class State {
         showDimensions: true,
         showRuler: false,
         entryZonePosition: 'bottom',
-        showEntryZoneLabel: true
+        showEntryZoneLabel: true,
+        showEntryZoneBorder: true
       },
       ui: {
         sidebarOpen: true,
