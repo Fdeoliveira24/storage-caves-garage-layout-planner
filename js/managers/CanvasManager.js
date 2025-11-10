@@ -14,6 +14,8 @@ class CanvasManager {
     this.gridLines = [];
     this.alignmentGuides = [];
     this.emptyStateGroup = null;
+    this.floorPlanWidth = null;  // Store floor plan dimensions for re-centering
+    this.floorPlanHeight = null;
   }
 
   /**
@@ -38,17 +40,16 @@ class CanvasManager {
     // Listen to window resize
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    // Ensure canvas is properly sized after DOM is fully laid out
-    // NOTE: Don't auto-show empty state here - let App.js control it after loadAutosave()
-    setTimeout(() => {
-      this.resizeCanvas();
-    }, 100);
+    // CRITICAL: Resize canvas synchronously BEFORE any viewport operations
+    // This ensures centerAndFit() uses the correct canvas dimensions, not the default 300x150
+    this.resizeCanvas();
 
     return this.canvas;
   }
 
   /**
    * Resize canvas to fit container
+   * Re-centers floor plan if one exists to maintain proper zoom/pan
    */
   resizeCanvas() {
     if (!this.canvas) return;
@@ -58,6 +59,11 @@ class CanvasManager {
     const height = container.clientHeight || 600;
 
     this.canvas.setDimensions({ width, height });
+    
+    // Re-center floor plan if one exists (prevents zoom/pan issues)
+    if (this.floorPlanWidth && this.floorPlanHeight) {
+      this.centerAndFit(this.floorPlanWidth, this.floorPlanHeight);
+    }
     
     // Re-center empty state if it exists
     if (this.emptyStateGroup) {
@@ -334,6 +340,10 @@ class CanvasManager {
 
     const width = Helpers.feetToPx(floorPlan.widthFt);
     const height = Helpers.feetToPx(floorPlan.heightFt);
+    
+    // Store dimensions for re-centering on resize
+    this.floorPlanWidth = width;
+    this.floorPlanHeight = height;
 
     // Create floor plan rectangle
     this.floorPlanRect = new fabric.Rect({
@@ -625,6 +635,8 @@ class CanvasManager {
     this.entryZoneLabel = null;
     this.gridLines = [];
     this.emptyStateGroup = null;
+    this.floorPlanWidth = null;
+    this.floorPlanHeight = null;
   }
 
   /**
