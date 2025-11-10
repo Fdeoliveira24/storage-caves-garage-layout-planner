@@ -49,20 +49,32 @@ class ExportManager {
    * Export as PNG
    */
   exportPNG(resolution = 1) {
+    console.log('Attempting PNG export at', resolution, 'x resolution');
+    
     const dataURL = this.canvasManager.toDataURL({
       multiplier: resolution,
       format: 'png',
       quality: 1
     });
 
+    console.log('Data URL length:', dataURL.length);
+    
+    if (!dataURL || dataURL.length < 100) {
+      console.error('Failed to generate canvas image');
+      Modal.showError('Failed to export PNG');
+      return;
+    }
+
     const filename = `${this.state.get('metadata.projectName') || 'layout'}-${resolution}x.png`;
     
-    // Download
     const link = document.createElement('a');
     link.href = dataURL;
     link.download = filename;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
 
+    Modal.showSuccess('PNG exported successfully!');
     this.eventBus.emit('export:png:complete', { filename, resolution });
     
     return dataURL;
