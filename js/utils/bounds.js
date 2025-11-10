@@ -57,17 +57,33 @@ const Bounds = {
   },
 
   /**
-   * Check if item is in entry zone (bottom 20%)
+   * Check if item is in entry zone
+   * Supports all 4 entry zone positions (top, bottom, left, right)
    */
-  isInEntryZone(item, floorPlan) {
+  isInEntryZone(item, floorPlan, entryZonePosition) {
     if (!floorPlan) return false;
 
     const itemBounds = item.getBoundingRect();
+    const floorPlanWidth = Helpers.feetToPx(floorPlan.widthFt);
     const floorPlanHeight = Helpers.feetToPx(floorPlan.heightFt);
-    const entryZoneStart = floorPlanHeight * (1 - Config.ENTRY_ZONE_PERCENTAGE);
+    const position = entryZonePosition || 'bottom';
 
-    // Check if any part of item is in entry zone
-    return itemBounds.top + itemBounds.height > entryZoneStart;
+    // Calculate entry zone bounds based on position
+    if (position === 'bottom') {
+      const entryZoneStart = floorPlanHeight * (1 - Config.ENTRY_ZONE_PERCENTAGE);
+      return itemBounds.top + itemBounds.height > entryZoneStart;
+    } else if (position === 'top') {
+      const entryZoneEnd = floorPlanHeight * Config.ENTRY_ZONE_PERCENTAGE;
+      return itemBounds.top < entryZoneEnd;
+    } else if (position === 'left') {
+      const entryZoneEnd = floorPlanWidth * Config.ENTRY_ZONE_PERCENTAGE;
+      return itemBounds.left < entryZoneEnd;
+    } else if (position === 'right') {
+      const entryZoneStart = floorPlanWidth * (1 - Config.ENTRY_ZONE_PERCENTAGE);
+      return itemBounds.left + itemBounds.width > entryZoneStart;
+    }
+
+    return false;
   },
 
   /**

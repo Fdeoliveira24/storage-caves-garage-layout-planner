@@ -36,6 +36,41 @@ body {
   letter-spacing: -0.01em;
 }
 
+.project-name-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-name {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.btn-rename {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.btn-rename svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-rename:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
 /* Main Content */
 .main-content {
   display: flex;

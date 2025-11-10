@@ -59,6 +59,9 @@ class App {
       this.canvasManager.showEmptyState();
     }
 
+    // Sync project name from state to UI
+    this.updateProjectName(this.state.get('metadata.projectName'));
+
     // Save initial state to history
     this.historyManager.save();
 
@@ -406,6 +409,21 @@ class App {
    * Setup toolbar handlers
    */
   setupToolbarHandlers() {
+    // Rename project
+    const renameBtn = document.getElementById('btn-rename-project');
+    if (renameBtn) {
+      renameBtn.addEventListener('click', async () => {
+        const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
+        const newName = await Modal.showPrompt('Rename Project', 'Enter project name:', currentName);
+        
+        if (newName && newName.trim() !== '') {
+          // Delegate to updateProjectName helper to keep behavior consistent
+          this.updateProjectName(newName.trim());
+          Modal.showSuccess('Project renamed successfully');
+        }
+      });
+    }
+    
     // New layout
     const newBtn = document.getElementById('btn-new');
     if (newBtn) {
@@ -430,6 +448,9 @@ class App {
           
           // Show empty state
           this.canvasManager.showEmptyState();
+          
+          // Reset project name in DOM and document title
+          this.updateProjectName('Untitled Layout');
           
           this.renderFloorPlanList();
           this.updateInfoPanel();
@@ -680,6 +701,27 @@ class App {
   }
 
   /**
+   * Update project name in DOM and document title
+   */
+  updateProjectName(projectName) {
+    const name = projectName || 'Untitled Layout';
+    
+    // Update DOM
+    const projectNameEl = document.getElementById('project-name');
+    if (projectNameEl) {
+      projectNameEl.textContent = name;
+    }
+    
+    // Update document title
+    document.title = `${name} - Garage Layout Planner`;
+    
+    // Update state if different
+    if (this.state.get('metadata.projectName') !== name) {
+      this.state.set('metadata.projectName', name);
+    }
+  }
+
+  /**
    * Refresh canvas after undo/redo
    */
   /**
@@ -840,6 +882,9 @@ class App {
       
       // Render canvas
       this.canvasManager.getCanvas().renderAll();
+      
+      // Sync project name from loaded state to UI
+      this.updateProjectName(savedState.metadata?.projectName);
       
       console.log('[App] Autosave loaded successfully: floor plan + ' + items.length + ' items');
       return true;
