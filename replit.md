@@ -6,6 +6,19 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
+**Critical Bug Fixes (v2.9.0):**
+- **BUG FIX: Empty State After Refresh** - Fixed empty state message appearing over items after page refresh
+  - Root cause: loadAutosave() didn't hide empty state after loading items
+  - Solution: Added hideEmptyState() call after items are restored
+  - Test: Refresh page with saved layout - empty state no longer appears
+- **BUG FIX: Inconsistent Boundary Constraints** - Fixed items escaping canvas bounds during multi-select
+  - Root cause: constrainToFloorPlan() only handled single items with customData, not ActiveSelection objects
+  - Design decision: Items should NOT be allowed outside floor plan (garage planner use case)
+  - Solution: Enhanced constrainToFloorPlan() to handle both single items and multi-select
+  - Single items: Uses customData dimensions with rotation-aware bounding box
+  - Multi-select: Uses getBoundingRect() to constrain entire selection as a unit
+  - Test: Multi-select drag now properly constrains all items within bounds
+
 **Zoom Slider Implementation (v2.8.0):**
 - **Slider-Based Zoom Control** - Replaced Zoom In/Out buttons with modern range slider
   - Range: 10% minimum, 200% maximum, 5% steps, default 100%
