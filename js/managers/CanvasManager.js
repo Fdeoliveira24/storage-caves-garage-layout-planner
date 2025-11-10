@@ -16,6 +16,7 @@ class CanvasManager {
     this.emptyStateGroup = null;
     this.floorPlanWidth = null;  // Store floor plan dimensions for re-centering
     this.floorPlanHeight = null;
+    this.isAutoFitMode = true;  // Track if zoom is auto-fit vs manual
   }
 
   /**
@@ -49,7 +50,7 @@ class CanvasManager {
 
   /**
    * Resize canvas to fit container
-   * Re-centers floor plan if one exists to maintain proper zoom/pan
+   * Re-centers floor plan ONLY if in auto-fit mode (preserves manual zoom)
    */
   resizeCanvas() {
     if (!this.canvas) return;
@@ -60,8 +61,9 @@ class CanvasManager {
 
     this.canvas.setDimensions({ width, height });
     
-    // Re-center floor plan if one exists (prevents zoom/pan issues)
-    if (this.floorPlanWidth && this.floorPlanHeight) {
+    // Re-center floor plan ONLY if in auto-fit mode
+    // This preserves user's manual zoom level when resizing window
+    if (this.isAutoFitMode && this.floorPlanWidth && this.floorPlanHeight) {
       this.centerAndFit(this.floorPlanWidth, this.floorPlanHeight);
     }
     
@@ -232,6 +234,9 @@ class CanvasManager {
       { x: opt.e.offsetX, y: opt.e.offsetY },
       zoom
     );
+    
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
     
     opt.e.preventDefault();
     opt.e.stopPropagation();
@@ -477,6 +482,7 @@ class CanvasManager {
 
   /**
    * Center and fit floor plan in viewport
+   * Sets auto-fit mode flag
    */
   centerAndFit(width, height) {
     const canvasWidth = this.canvas.getWidth();
@@ -493,6 +499,9 @@ class CanvasManager {
     const offsetY = (canvasHeight - height * scale) / 2;
 
     this.canvas.absolutePan({ x: -offsetX / scale, y: -offsetY / scale });
+    
+    // Mark as auto-fit mode (will be preserved during window resize)
+    this.isAutoFitMode = true;
     
     // Emit zoom event to update UI
     this.eventBus.emit('canvas:zoomed', scale);
@@ -689,6 +698,9 @@ class CanvasManager {
       zoom
     );
     
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+    
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
@@ -704,6 +716,9 @@ class CanvasManager {
       new fabric.Point(canvas.width / 2, canvas.height / 2),
       zoom
     );
+    
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
     
     this.eventBus.emit('canvas:zoomed', zoom);
   }
@@ -730,17 +745,21 @@ class CanvasManager {
     canvas.setViewportTransform(newVpt);
     canvas.requestRenderAll();
     
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+    
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
   /**
-   * Reset zoom
+   * Reset zoom to auto-fit
    */
   resetZoom() {
     const floorPlan = this.state.get('floorPlan');
     if (floorPlan) {
       const width = Helpers.feetToPx(floorPlan.widthFt);
       const height = Helpers.feetToPx(floorPlan.heightFt);
+      // centerAndFit() will set isAutoFitMode = true
       this.centerAndFit(width, height);
     }
   }
