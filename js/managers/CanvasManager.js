@@ -38,10 +38,10 @@ class CanvasManager {
     // Listen to window resize
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    // Ensure canvas is properly sized and show empty state after DOM is fully laid out
+    // Ensure canvas is properly sized after DOM is fully laid out
+    // NOTE: Don't auto-show empty state here - let App.js control it after loadAutosave()
     setTimeout(() => {
       this.resizeCanvas();
-      this.showEmptyState();
     }, 100);
 
     return this.canvas;

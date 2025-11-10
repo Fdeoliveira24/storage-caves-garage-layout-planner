@@ -52,7 +52,12 @@ class App {
     this.setupAutosave();
 
     // Load last autosave if exists
-    this.loadAutosave();
+    const autosaveLoaded = this.loadAutosave();
+    
+    // Show empty state only if no autosave was loaded
+    if (!autosaveLoaded) {
+      this.canvasManager.showEmptyState();
+    }
 
     // Save initial state to history
     this.historyManager.save();
@@ -410,11 +415,15 @@ class App {
           'Any unsaved changes will be lost. Are you sure?'
         );
         if (confirmed) {
-          // [App] Starting new layout
+          console.log('[App] Starting new layout');
           
           // Clear everything
           this.state.reset();
           this.canvasManager.clear();
+          
+          // CRITICAL: Clear autosave from localStorage immediately
+          Storage.remove(Config.STORAGE_KEYS.autosave);
+          console.log('[App] Cleared autosave from localStorage');
           
           // Ensure viewport is reset (clear() already does this, but be explicit)
           this.canvasManager.resetViewport();
@@ -766,16 +775,16 @@ class App {
       const savedData = Storage.load(Config.STORAGE_KEYS.autosave);
       
       if (!savedData) {
-        // [App] No autosave found
-        return;
+        console.log('[App] No autosave found');
+        return false;
       }
       
       // Validate version
       const APP_VERSION = '2.1';
       if (savedData.version !== APP_VERSION) {
-        // [App] Incompatible autosave version
+        console.log('[App] Incompatible autosave version:', savedData.version, 'expected:', APP_VERSION);
         Storage.remove(Config.STORAGE_KEYS.autosave);
-        return;
+        return false;
       }
       
       // Validate timestamp (ignore if > 7 days old)
@@ -784,36 +793,33 @@ class App {
         const daysSinceAutosave = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
         
         if (daysSinceAutosave > 7) {
-          // [App] Autosave expired (>7 days old), clearing...
+          console.log('[App] Autosave expired (>7 days old), clearing...');
           Storage.remove(Config.STORAGE_KEYS.autosave);
-          return;
+          return false;
         }
       }
       
       // Validate required data
       if (!savedData.state) {
-        // [App] Invalid autosave structure, missing state
+        console.log('[App] Invalid autosave structure, missing state');
         Storage.remove(Config.STORAGE_KEYS.autosave);
-        return;
+        return false;
       }
       
       const savedState = savedData.state;
       
       // Must have a floor plan to restore
       if (!savedState.floorPlan) {
-        // [App] No floor plan in autosave, skipping
-        return;
+        console.log('[App] No floor plan in autosave, skipping');
+        return false;
       }
       
-      // [App] Loading autosave from timestamp
+      console.log('[App] Loading autosave from', savedData.timestamp);
       
       // Load state
       this.state.loadState(savedState);
       
-      // CRITICAL: Reset viewport BEFORE drawing anything
-      this.canvasManager.resetViewport();
-      
-      // Set floor plan
+      // Set floor plan (this internally calls centerAndFit)
       this.floorPlanManager.setFloorPlan(savedState.floorPlan.id);
       
       // Restore items
@@ -832,21 +838,17 @@ class App {
         }
       });
       
-      // Final viewport reset to ensure clean state
-      this.canvasManager.resetViewport();
-      
-      // Hide empty state since we have a floor plan and items
-      this.canvasManager.hideEmptyState();
-      
       // Render canvas
       this.canvasManager.getCanvas().renderAll();
       
-      // [App] Autosave loaded successfully
+      console.log('[App] Autosave loaded successfully: floor plan + ' + items.length + ' items');
+      return true;
       
     } catch (error) {
       console.error('[App] Failed to load autosave:', error);
-      // [App] Clearing corrupted autosave data
+      console.log('[App] Clearing corrupted autosave data');
       Storage.remove(Config.STORAGE_KEYS.autosave);
+      return false;
     }
   }
 
