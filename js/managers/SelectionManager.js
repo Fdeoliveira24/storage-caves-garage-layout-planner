@@ -262,15 +262,26 @@ class SelectionManager {
    */
   sendToBack() {
     const selected = this.getSelection();
-    selected.forEach(item => item.sendToBack());
     
-    // Ensure floor plan stays at back
+    // Send items to layer 4 (above grid at 3, but below other items)
+    // Layers: 0=floor, 1=entry zone, 2=entry label, 3=grid, 4+=items
+    selected.forEach(item => {
+      item.moveTo(4);
+    });
+    
+    // Ensure floor plan elements stay in correct order
     if (this.canvasManager.floorPlanRect) {
-      this.canvasManager.floorPlanRect.sendToBack();
+      this.canvasManager.floorPlanRect.moveTo(0);
     }
     if (this.canvasManager.entryZoneRect) {
-      this.canvasManager.entryZoneRect.sendToBack();
+      this.canvasManager.entryZoneRect.moveTo(1);
     }
+    if (this.canvasManager.entryZoneLabel) {
+      this.canvasManager.entryZoneLabel.moveTo(2);
+    }
+    
+    // Keep grid above floor plan but below items
+    this.canvasManager.gridLines.forEach(line => line.moveTo(3));
     
     this.canvas.renderAll();
   }

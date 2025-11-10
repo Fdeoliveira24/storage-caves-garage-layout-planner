@@ -268,7 +268,7 @@ class CanvasManager {
       });
       this.gridLines.push(line);
       this.canvas.add(line);
-      line.moveTo(1);
+      line.moveTo(3); // Keep grid at layer 3 (above floor plan/entry zone)
     }
 
     // Horizontal lines
@@ -281,7 +281,7 @@ class CanvasManager {
       });
       this.gridLines.push(line);
       this.canvas.add(line);
-      line.moveTo(1);
+      line.moveTo(3); // Keep grid at layer 3 (above floor plan/entry zone)
     }
   }
 

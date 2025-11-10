@@ -115,7 +115,7 @@ body {
   min-height: 48px;
   flex-shrink: 0;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible; /* Allow tooltips to show below toolbar */
 }
 
 .toolbar::-webkit-scrollbar {
