@@ -83,8 +83,8 @@ class App {
     });
 
     this.eventBus.on('item:paste:requested', (itemData) => {
-      // Add pasted item with offset
-      const newItem = this.itemManager.addItem(itemData.itemId, itemData.left + 20, itemData.top + 20);
+      // Add pasted item with offset (x,y are already center coordinates from copySelected)
+      const newItem = this.itemManager.addItem(itemData.itemId, itemData.x + 20, itemData.y + 20);
       if (newItem && newItem.canvasObject) {
         newItem.canvasObject.rotate(itemData.angle);
         this.canvasManager.getCanvas().renderAll();
@@ -362,14 +362,6 @@ class App {
     if (zoomResetBtn) {
       zoomResetBtn.addEventListener('click', () => this.canvasManager.resetZoom());
     }
-
-    // Alignment
-    ['left', 'right', 'center', 'top', 'bottom', 'middle'].forEach(align => {
-      const btn = document.getElementById(`btn-align-${align}`);
-      if (btn) {
-        btn.addEventListener('click', () => this.selectionManager.alignSelected(align));
-      }
-    });
 
     // Z-order
     const bringFrontBtn = document.getElementById('btn-bring-front');

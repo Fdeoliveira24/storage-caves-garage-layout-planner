@@ -117,12 +117,14 @@ class ItemManager {
     let angle = item.angle || 0;
 
     if (item.canvasObject) {
-      x = item.canvasObject.left + 20;
-      y = item.canvasObject.top + 20;
+      // Use Fabric's getCenterPoint() for accurate center even when rotated
+      const center = item.canvasObject.getCenterPoint();
+      x = center.x + 20;
+      y = center.y + 20;
       angle = item.canvasObject.angle || 0;
     }
 
-    // Create duplicate with offset
+    // Create duplicate with offset (addItem expects center coordinates)
     const newItem = this.addItem(item.itemId, x, y);
     
     // Copy rotation

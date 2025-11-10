@@ -303,23 +303,21 @@ class CanvasManager {
 
     // Create rectangle
     const rect = new fabric.Rect({
-      left: -width / 2,
-      top: -height / 2,
+      left: 0,
+      top: 0,
       width: width,
       height: height,
       fill: itemData.color || '#2196F3',
       stroke: '#333',
       strokeWidth: 2,
       rx: 4,
-      ry: 4,
-      originX: 'left',
-      originY: 'top'
+      ry: 4
     });
 
     // Create label
     const label = new fabric.Text(itemData.label, {
-      left: 0,
-      top: 0,
+      left: width / 2,
+      top: height / 2,
       fontSize: 11,
       fill: '#ffffff',
       fontWeight: 'bold',
@@ -333,10 +331,8 @@ class CanvasManager {
 
     // Group rectangle and label together
     const group = new fabric.Group([rect, label], {
-      left: x,
-      top: y,
-      originX: 'center',
-      originY: 'center',
+      left: x - width / 2,
+      top: y - height / 2,
       selectable: true,
       evented: true,
       hasControls: false,

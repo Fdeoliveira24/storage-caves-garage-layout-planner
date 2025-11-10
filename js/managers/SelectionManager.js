@@ -120,6 +120,9 @@ class SelectionManager {
 
     this.clipboard = selected.map(item => {
       if (item.customData) {
+        // Use Fabric's getCenterPoint() for accurate center even when rotated
+        const center = item.getCenterPoint();
+        
         return {
           itemId: item.customData.itemId,
           id: item.customData.id,
@@ -127,8 +130,8 @@ class SelectionManager {
           widthFt: item.customData.widthFt,
           lengthFt: item.customData.lengthFt,
           category: item.customData.category,
-          left: item.left,
-          top: item.top,
+          x: center.x,
+          y: center.y,
           angle: item.angle || 0
         };
       }
