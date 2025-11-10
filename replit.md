@@ -6,11 +6,15 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
-**Info Panel Repositioned & Empty State Fixed (v2.3.1):**
+**Empty State & UX Fixes (v2.3.2):**
+- **Empty State Centering** - Fixed "Start Planning Your Space" positioning with 100ms setTimeout and auto-recentering on resize
+- **Canvas Dimensions** - Added fallback 800x600 dimensions to prevent zero-sized container issues
+- **Browser Alerts Removed** - Replaced browser alert() with Modal.showInfo() for consistent UX
+- **Toast Position** - Moved toast notifications from top-right to bottom-right corner with reverse stacking
+
+**Info Panel Repositioned (v2.3.1):**
 - **Info Bar Below Canvas** - Moved info bar to appear below the canvas area (not below toolbar as initially implemented)
-- **Empty State Centering** - Fixed "Start Planning Your Space" text positioning with requestAnimationFrame delay for proper DOM layout
 - **Canvas Clear Bug** - Fixed emptyStateGroup reference not being nulled in clear() method, preventing stale object issues
-- **Text Cutoff Fix** - Empty state text no longer gets cut off on first load or after clicking +New
 
 **Info Panel Redesign (v2.3.0):**
 - **Inline Horizontal Layout** - Moved info panel from disruptive right sidebar to compact horizontal bar
