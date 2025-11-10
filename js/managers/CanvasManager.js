@@ -111,11 +111,53 @@ class CanvasManager {
    * Constrain object to floor plan bounds
    * Objects use center origin, so left/top represent center coordinates
    * Uses actual item rectangle dimensions (not group bounding box with label)
+   * Handles both single items and multi-select (ActiveSelection)
    */
   constrainToFloorPlan(obj) {
-    if (!obj || !obj.customData || !this.floorPlanRect) return;
+    if (!obj || !this.floorPlanRect) return;
 
     const floorPlan = this.floorPlanRect;
+    
+    // Handle multi-select (ActiveSelection) differently
+    if (obj.type === 'activeSelection') {
+      // Use the entire selection's bounding box
+      const boundingRect = obj.getBoundingRect(true);
+      let isOutOfBounds = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // Check bounds and calculate needed offset
+      if (boundingRect.left < floorPlan.left) {
+        offsetX = floorPlan.left - boundingRect.left;
+        isOutOfBounds = true;
+      }
+      if (boundingRect.left + boundingRect.width > floorPlan.left + floorPlan.width) {
+        offsetX = (floorPlan.left + floorPlan.width) - (boundingRect.left + boundingRect.width);
+        isOutOfBounds = true;
+      }
+      if (boundingRect.top < floorPlan.top) {
+        offsetY = floorPlan.top - boundingRect.top;
+        isOutOfBounds = true;
+      }
+      if (boundingRect.top + boundingRect.height > floorPlan.top + floorPlan.height) {
+        offsetY = (floorPlan.top + floorPlan.height) - (boundingRect.top + boundingRect.height);
+        isOutOfBounds = true;
+      }
+
+      if (isOutOfBounds) {
+        obj.set({
+          left: obj.left + offsetX,
+          top: obj.top + offsetY
+        });
+        obj.setCoords();
+        this.canvas.renderAll();
+      }
+      return;
+    }
+
+    // Handle single items with customData
+    if (!obj.customData) return;
+
     let isOutOfBounds = false;
 
     // Get center position (obj.left/top are already center due to originX/Y: 'center')

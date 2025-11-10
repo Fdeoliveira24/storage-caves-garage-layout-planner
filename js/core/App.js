@@ -838,6 +838,9 @@ class App {
       // Final viewport reset to ensure clean state
       this.canvasManager.resetViewport();
       
+      // Hide empty state since we have a floor plan and items
+      this.canvasManager.hideEmptyState();
+      
       // Render canvas
       this.canvasManager.getCanvas().renderAll();
       
