@@ -6,13 +6,23 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
+**Enhanced Entry Zone Controls (v2.5.0):**
+- **Entry Zone Border Toggle** - Show/hide the red dotted border around entry zone (visible by default)
+- **4-Position Entry Zone** - Position entry zone on any side: top, bottom, left, or right (defaults to bottom)
+  - Horizontal zones (top/bottom): 20% of height, full width
+  - Vertical zones (left/right): 20% of width, full height
+  - Entry zone label automatically repositions for each orientation
+- **Entry Zone Label Toggle** - Show/hide "ENTRY ZONE" text label (visible by default)
+- **Grid Z-Index Fix** - Grid now properly renders behind entry zone border and label as requested
+- **Modern Item Labels** - Item labels now use clean sans-serif font (system-ui) instead of default serif
+- **View Dropdown UI** - Shows 3 entry zone position buttons at a time (excluding current position)
+- **Export Compatibility** - All new settings (border visibility, position) included in JSON exports and rendered in PNG/PDF exports
+- **Smart Defaults** - Legacy saved states default to: border visible, entry at bottom, label visible
+
 **View Controls Dropdown (v2.4.0):**
 - **Grid Toggle** - Show/hide grid overlay for alignment assistance (persists across sessions)
-- **Entry Zone Position** - Flip entry zone between bottom (default) and top positions
-- **Entry Label Toggle** - Show/hide "ENTRY ZONE" label overlay (visible by default)
-- **Smart Defaults** - Legacy saved states without these settings default to: grid visible, entry bottom, label visible
 - **UI Synchronization** - View dropdown buttons always reflect current state on page load, preventing mismatched UI
-- **Consistent Fallbacks** - All three features use `!== false` check for robust undefined handling
+- **Consistent Fallbacks** - All features use `!== false` check for robust undefined handling
 
 **Modal Keyboard Fix (v2.3.3):**
 - **Enter Key Handler** - Added Enter key support to confirm modals (was missing, causing Enter to bubble up and create duplicate overlays)
