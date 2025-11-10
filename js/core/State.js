@@ -132,15 +132,41 @@ class State {
    * Load state from object
    * @param {object} savedState - Previously saved state
    */
+  /**
+   * Load saved state
+   * Validates and merges saved state into current state
+   * @param {object} savedState - Previously saved state object
+   */
   loadState(savedState) {
+    if (!savedState) {
+      console.warn('[State] Attempted to load null/undefined state');
+      return;
+    }
+    
+    // Validate state structure
+    if (typeof savedState !== 'object') {
+      console.error('[State] Invalid state type:', typeof savedState);
+      return;
+    }
+    
+    // [State] Loading state
+    
+    // Merge saved state, preserving structure
     this.state = {
       ...this.state,
-      ...savedState,
+      floorPlan: savedState.floorPlan || null,
+      items: Array.isArray(savedState.items) ? savedState.items : [],
+      settings: {
+        ...this.state.settings,
+        ...(savedState.settings || {})
+      },
       metadata: {
-        ...savedState.metadata,
+        ...this.state.metadata,
+        ...(savedState.metadata || {}),
         modified: new Date().toISOString()
       }
     };
+    
     this._notifyObservers();
   }
 

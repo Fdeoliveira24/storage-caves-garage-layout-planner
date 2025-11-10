@@ -27,8 +27,13 @@ class FloorPlanManager {
       return false;
     }
 
+    // [FloorPlanManager] Setting floor plan: id
+
     // Update state
     this.state.setState({ floorPlan });
+
+    // Reset viewport before drawing new floor plan
+    this.canvasManager.resetViewport();
 
     // Draw on canvas
     this.canvasManager.drawFloorPlan(floorPlan);

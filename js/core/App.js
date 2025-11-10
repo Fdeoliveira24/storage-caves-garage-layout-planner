@@ -19,7 +19,7 @@ class App {
    * Initialize application
    */
   async init() {
-    console.log('Initializing Garage Layout Planner...');
+    // Initializing Garage Layout Planner...
 
     // Initialize core
     this.state = new State();
@@ -28,6 +28,9 @@ class App {
     // Initialize canvas manager
     this.canvasManager = new CanvasManager('canvas', this.state, this.eventBus);
     this.canvasManager.init();
+    
+    // Ensure viewport starts at default state
+    this.canvasManager.resetViewport();
 
     // Initialize managers
     this.floorPlanManager = new FloorPlanManager(this.state, this.eventBus, this.canvasManager);
@@ -42,6 +45,9 @@ class App {
     // Setup keyboard shortcuts
     this.setupKeyboardShortcuts();
 
+    // Setup dropdown menus
+    this.setupDropdowns();
+
     // Initialize UI
     this.initializeUI();
 
@@ -54,7 +60,7 @@ class App {
     // Save initial state to history
     this.historyManager.save();
 
-    console.log('Application initialized successfully');
+    // Application initialized successfully
   }
 
   /**
@@ -407,9 +413,18 @@ class App {
           'Any unsaved changes will be lost. Are you sure?'
         );
         if (confirmed) {
+          // [App] Starting new layout
+          
+          // Clear everything
           this.state.reset();
           this.canvasManager.clear();
+          
+          // Ensure viewport is reset (clear() already does this, but be explicit)
+          this.canvasManager.resetViewport();
+          
+          // Show empty state
           this.canvasManager.showEmptyState();
+          
           this.renderFloorPlanList();
           this.updateInfoPanel();
           Modal.showSuccess('New layout started');
@@ -661,10 +676,22 @@ class App {
   /**
    * Refresh canvas after undo/redo
    */
+  /**
+   * Refresh canvas - redraw everything from state
+   * Used after undo/redo operations
+   */
   refreshCanvas() {
+    // [App] Refreshing canvas from state
+    
     const floorPlan = this.state.get('floorPlan');
     if (floorPlan) {
+      // Clear canvas (this resets viewport)
       this.canvasManager.clear();
+      
+      // Ensure viewport is at default state
+      this.canvasManager.resetViewport();
+      
+      // Draw floor plan
       this.canvasManager.drawFloorPlan(floorPlan);
       
       // Re-add items from state
@@ -683,69 +710,143 @@ class App {
         }
       });
       
+      // Final render
       this.canvasManager.getCanvas().renderAll();
     }
+    
     this.updateInfoPanel();
   }
 
   /**
    * Setup autosave
    */
+  /**
+   * Setup autosave timer
+   * Saves application state every 30 seconds
+   */
   setupAutosave() {
+    // [App] Setting up autosave (interval: 30s)
     this.autosaveInterval = setInterval(() => {
       this.autosave();
     }, Config.AUTOSAVE_INTERVAL);
   }
 
   /**
-   * Autosave
+   * Autosave current state
+   * Saves only application data (floor plan, items, settings)
+   * Does NOT save canvas viewport (zoom/pan)
    */
   autosave() {
-    const state = this.state.getState();
-    state.version = '2.1'; // Mark version for compatibility check - center-based coordinates
-    Storage.save(Config.STORAGE_KEYS.autosave, state);
+    try {
+      const state = this.state.getState();
+      
+      // Prepare autosave data with metadata
+      const autosaveData = {
+        version: '2.1', // Center-based coordinate system
+        timestamp: new Date().toISOString(),
+        state: {
+          floorPlan: state.floorPlan,
+          items: state.items,
+          settings: state.settings,
+          metadata: state.metadata
+        }
+        // NOTE: Viewport (zoom/pan) is intentionally NOT saved
+      };
+      
+      Storage.save(Config.STORAGE_KEYS.autosave, autosaveData);
+      // [App] Autosave completed + timestamp
+    } catch (error) {
+      console.error('[App] Autosave failed:', error);
+    }
   }
 
   /**
-   * Load autosave
+   * Load autosave if exists
+   * Validates data and resets viewport after loading
    */
   loadAutosave() {
-    const savedState = Storage.load(Config.STORAGE_KEYS.autosave);
-    
-    // Check version and clear if incompatible
-    const APP_VERSION = '2.1'; // Center-based coordinate system
-    console.log('Saved version:', savedState ? savedState.version : 'none', 'Current version:', APP_VERSION);
-    
-    if (savedState && savedState.version !== APP_VERSION) {
-      console.log('Incompatible version detected, clearing autosave...');
-      Storage.remove(Config.STORAGE_KEYS.autosave);
-      return;
-    }
-    
-    if (savedState && savedState.floorPlan) {
-      console.log('Autosave found, loading...');
-      this.state.loadState(savedState);
-      if (savedState.floorPlan) {
-        this.floorPlanManager.setFloorPlan(savedState.floorPlan.id);
-        
-        // Restore items
-        const items = savedState.items || [];
-        items.forEach(item => {
-          if (item.itemId && item.x !== undefined && item.y !== undefined) {
-            const canvasGroup = this.canvasManager.addItem(item, item.x, item.y);
-            
-            // Restore rotation if exists
-            if (item.angle && canvasGroup) {
-              canvasGroup.rotate(item.angle);
-            }
-            
-            // Update item reference
-            item.canvasObject = canvasGroup;
-          }
-        });
-        
-        this.canvasManager.getCanvas().renderAll();
+    try {
+      const savedData = Storage.load(Config.STORAGE_KEYS.autosave);
+      
+      if (!savedData) {
+        // [App] No autosave found
+        return;
       }
+      
+      // Validate version
+      const APP_VERSION = '2.1';
+      if (savedData.version !== APP_VERSION) {
+        // [App] Incompatible autosave version
+        Storage.remove(Config.STORAGE_KEYS.autosave);
+        return;
+      }
+      
+      // Validate timestamp (ignore if > 7 days old)
+      if (savedData.timestamp) {
+        const savedDate = new Date(savedData.timestamp);
+        const daysSinceAutosave = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (daysSinceAutosave > 7) {
+          // [App] Autosave expired (>7 days old), clearing...
+          Storage.remove(Config.STORAGE_KEYS.autosave);
+          return;
+        }
+      }
+      
+      // Validate required data
+      if (!savedData.state) {
+        // [App] Invalid autosave structure, missing state
+        Storage.remove(Config.STORAGE_KEYS.autosave);
+        return;
+      }
+      
+      const savedState = savedData.state;
+      
+      // Must have a floor plan to restore
+      if (!savedState.floorPlan) {
+        // [App] No floor plan in autosave, skipping
+        return;
+      }
+      
+      // [App] Loading autosave from timestamp
+      
+      // Load state
+      this.state.loadState(savedState);
+      
+      // CRITICAL: Reset viewport BEFORE drawing anything
+      this.canvasManager.resetViewport();
+      
+      // Set floor plan
+      this.floorPlanManager.setFloorPlan(savedState.floorPlan.id);
+      
+      // Restore items
+      const items = savedState.items || [];
+      items.forEach(item => {
+        if (item.itemId && item.x !== undefined && item.y !== undefined) {
+          const canvasGroup = this.canvasManager.addItem(item, item.x, item.y);
+          
+          // Restore rotation if exists
+          if (item.angle && canvasGroup) {
+            canvasGroup.rotate(item.angle);
+          }
+          
+          // Update item reference
+          item.canvasObject = canvasGroup;
+        }
+      });
+      
+      // Final viewport reset to ensure clean state
+      this.canvasManager.resetViewport();
+      
+      // Render canvas
+      this.canvasManager.getCanvas().renderAll();
+      
+      // [App] Autosave loaded successfully
+      
+    } catch (error) {
+      console.error('[App] Failed to load autosave:', error);
+      // [App] Clearing corrupted autosave data
+      Storage.remove(Config.STORAGE_KEYS.autosave);
     }
   }
 
@@ -843,30 +944,55 @@ class App {
   /**
    * Load a saved layout
    */
+  /**
+   * Load a saved layout
+   * Validates data and resets viewport
+   */
   async loadLayout(layoutId) {
-    const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
-    const layout = layouts.find(l => l.id === layoutId);
-    
-    if (!layout) {
-      Modal.showError('Layout not found');
-      return;
+    try {
+      const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+      const layout = layouts.find(l => l.id === layoutId);
+      
+      if (!layout) {
+        Modal.showError('Layout not found');
+        return;
+      }
+
+      const confirmed = await Modal.showConfirm(
+        'Load Layout?',
+        'This will replace your current layout. Any unsaved changes will be lost.'
+      );
+      
+      if (!confirmed) return;
+
+      // [App] Loading layout: id
+      
+      // Validate layout data
+      if (!layout.state || !layout.state.floorPlan) {
+        Modal.showError('Invalid layout data');
+        return;
+      }
+
+      // Load state
+      this.state.loadState(layout.state);
+      
+      // Reset viewport BEFORE refreshing canvas
+      this.canvasManager.resetViewport();
+      
+      // Refresh canvas with new state
+      this.refreshCanvas();
+      
+      // Update UI
+      this.renderFloorPlanList();
+      this.renderSavedLayouts();
+      this.updateInfoPanel();
+      
+      Modal.showSuccess('Layout loaded successfully!');
+      
+    } catch (error) {
+      console.error('[App] Failed to load layout:', error);
+      Modal.showError('Failed to load layout');
     }
-
-    const confirmed = await Modal.showConfirm(
-      'Load Layout?',
-      'This will replace your current layout. Any unsaved changes will be lost.'
-    );
-    
-    if (!confirmed) return;
-
-    this.state.loadState(layout.state);
-    
-    this.refreshCanvas();
-    this.renderFloorPlanList();
-    this.renderSavedLayouts();
-    this.updateInfoPanel();
-    
-    Modal.showSuccess('Layout loaded successfully!');
   }
 
   /**

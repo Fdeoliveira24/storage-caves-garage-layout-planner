@@ -238,7 +238,7 @@ class CanvasManager {
     });
 
     // Create subtitle text
-    const subtitle = new fabric.Text('Select a floor plan from the sidebar to begin', {
+    const subtitle = new fabric.Text('Select a floor plan from the sidebar', {
       left: 0,
       top: gridSize / 2 + 55,
       fontSize: 15,
@@ -574,11 +574,45 @@ class CanvasManager {
    */
   clear() {
     this.canvas.clear();
+    
+    // RESET VIEWPORT TRANSFORM (zoom and pan)
+    this.resetViewport();
+    
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
     this.gridLines = [];
     this.emptyStateGroup = null;
+  }
+
+  /**
+   * Reset viewport to default (1:1 zoom, no pan)
+   * Ensures canvas is at 100% zoom and centered
+   */
+  resetViewport() {
+    // [CanvasManager] Resetting viewport to default state
+    
+    // Reset viewport transform to identity matrix
+    this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    this.canvas.setZoom(1);
+    this.canvas.requestRenderAll();
+    
+    // Update zoom UI elements
+    this.eventBus.emit('canvas:zoomed', 1);
+    
+    const zoomPercentage = document.getElementById('zoom-percentage');
+    if (zoomPercentage) {
+      zoomPercentage.textContent = '100%';
+    }
+    
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomSliderValue = document.getElementById('zoom-slider-value');
+    if (zoomSlider) {
+      zoomSlider.value = 100;
+    }
+    if (zoomSliderValue) {
+      zoomSliderValue.textContent = '100%';
+    }
   }
 
   /**
@@ -629,10 +663,18 @@ class CanvasManager {
     const clampedPercent = Math.max(10, Math.min(200, percent));
     const zoom = clampedPercent / 100;
     
-    canvas.zoomToPoint(
-      new fabric.Point(canvas.width / 2, canvas.height / 2),
-      zoom
-    );
+    // Get current viewport center
+    const vpt = canvas.viewportTransform;
+    const centerX = (canvas.width / 2 - vpt[4]) / vpt[0];
+    const centerY = (canvas.height / 2 - vpt[5]) / vpt[3];
+    
+    // Calculate new viewport transform to keep the same center point
+    const newVpt = [zoom, 0, 0, zoom, 0, 0];
+    newVpt[4] = canvas.width / 2 - centerX * zoom;
+    newVpt[5] = canvas.height / 2 - centerY * zoom;
+    
+    canvas.setViewportTransform(newVpt);
+    canvas.requestRenderAll();
     
     this.eventBus.emit('canvas:zoomed', zoom);
   }
