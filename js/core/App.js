@@ -45,9 +45,6 @@ class App {
     // Setup keyboard shortcuts
     this.setupKeyboardShortcuts();
 
-    // Setup dropdown menus
-    this.setupDropdowns();
-
     // Initialize UI
     this.initializeUI();
 
