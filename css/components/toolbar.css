@@ -60,48 +60,6 @@
   border-color: var(--color-primary-hover);
 }
 
-/* Tooltip */
-.btn[title]:hover::after {
-  content: attr(title);
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 10px;
-  background: #18181B;
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: var(--z-tooltip);
-  box-shadow: var(--shadow-lg);
-  animation: tooltipFadeIn 150ms ease-out;
-}
-
-.btn[title]:hover::before {
-  content: '';
-  position: absolute;
-  top: calc(100% + 2px);
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-bottom-color: #18181B;
-  pointer-events: none;
-  z-index: var(--z-tooltip);
-}
-
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
 
 /* Dropdown - Clean & Modern */
 .dropdown {

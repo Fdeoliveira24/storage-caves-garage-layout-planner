@@ -17,15 +17,3 @@
   opacity: 0.5;
   pointer-events: none;
 }
-
-.tooltip {
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  z-index: var(--z-tooltip);
-  white-space: nowrap;
-  pointer-events: none;
-}

@@ -10,8 +10,10 @@ class CanvasManager {
     this.canvasId = canvasId;
     this.floorPlanRect = null;
     this.entryZoneRect = null;
+    this.entryZoneLabel = null;
     this.gridLines = [];
     this.alignmentGuides = [];
+    this.emptyStateGroup = null;
   }
 
   /**
@@ -38,6 +40,9 @@ class CanvasManager {
 
     // Listen to window resize
     window.addEventListener('resize', () => this.resizeCanvas());
+
+    // Show empty state initially
+    this.showEmptyState();
 
     return this.canvas;
   }
@@ -169,9 +174,93 @@ class CanvasManager {
   }
 
   /**
+   * Show empty state message
+   */
+  showEmptyState() {
+    if (this.emptyStateGroup) {
+      this.canvas.add(this.emptyStateGroup);
+      this.canvas.renderAll();
+      return;
+    }
+
+    const canvasWidth = this.canvas.getWidth();
+    const canvasHeight = this.canvas.getHeight();
+
+    // Create grid icon using basic shapes
+    const gridSize = 80;
+    const gridSpacing = 28;
+    const gridColor = '#D1D5DB';
+    
+    const gridSquares = [];
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const square = new fabric.Rect({
+          left: col * gridSpacing - gridSize / 2,
+          top: row * gridSpacing - gridSize / 2,
+          width: 20,
+          height: 20,
+          fill: gridColor,
+          rx: 3,
+          ry: 3
+        });
+        gridSquares.push(square);
+      }
+    }
+
+    // Create title text
+    const title = new fabric.Text('Start Planning Your Space', {
+      left: 0,
+      top: gridSize / 2 + 20,
+      fontSize: 24,
+      fontWeight: '600',
+      fill: '#18181B',
+      originX: 'center',
+      originY: 'center',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    });
+
+    // Create subtitle text
+    const subtitle = new fabric.Text('Select a floor plan from the sidebar to begin', {
+      left: 0,
+      top: gridSize / 2 + 55,
+      fontSize: 15,
+      fill: '#71717A',
+      originX: 'center',
+      originY: 'center',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    });
+
+    // Group all elements
+    this.emptyStateGroup = new fabric.Group([...gridSquares, title, subtitle], {
+      left: canvasWidth / 2,
+      top: canvasHeight / 2,
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false
+    });
+
+    this.canvas.add(this.emptyStateGroup);
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Hide empty state message
+   */
+  hideEmptyState() {
+    if (this.emptyStateGroup) {
+      this.canvas.remove(this.emptyStateGroup);
+      this.canvas.renderAll();
+    }
+  }
+
+  /**
    * Draw floor plan
    */
   drawFloorPlan(floorPlan) {
+    // Hide empty state
+    this.hideEmptyState();
+
     // Clear existing floor plan
     if (this.floorPlanRect) {
       this.canvas.remove(this.floorPlanRect);
