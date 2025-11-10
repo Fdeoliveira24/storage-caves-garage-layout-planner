@@ -6,6 +6,12 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
+**Modal Keyboard Fix (v2.3.3):**
+- **Enter Key Handler** - Added Enter key support to confirm modals (was missing, causing Enter to bubble up and create duplicate overlays)
+- **Event Bubbling Prevention** - Added preventDefault() and stopPropagation() to all modal keyboard events
+- **Memory Leak Fix** - Properly cleanup keyboard event listeners when modals close
+- **Consistent Behavior** - Both showConfirm and showPrompt now use unified document-level keyboard handling
+
 **Empty State & UX Fixes (v2.3.2):**
 - **Empty State Centering** - Fixed "Start Planning Your Space" positioning with 100ms setTimeout and auto-recentering on resize
 - **Canvas Dimensions** - Added fallback 800x600 dimensions to prevent zero-sized container issues
