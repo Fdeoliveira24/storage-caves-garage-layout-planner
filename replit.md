@@ -4,6 +4,41 @@
 
 A professional, browser-based garage and storage layout planning tool built entirely with vanilla HTML5, CSS3, and JavaScript ES6. The application allows users to select from pre-defined floor plans, add and manipulate realistic items (vehicles, RVs, boats, storage units), and export layouts as JSON, PNG, or PDF. This is a premium product designed for Envato marketplace with enterprise-grade architecture and zero build dependencies.
 
+## Recent Changes (Nov 10, 2025)
+
+**Major Viewport & Zoom Management Overhaul (v2.11.0):**
+- **FIX: Canvas Initialization Timing** - Resolved 17% zoom bug and canvas shifting to bottom-right corner
+  - Root cause: Fabric.js canvas started at 300×150px default size. When loadAutosave() ran centerAndFit(), zoom was calculated based on tiny canvas yielding ~17%, then resizeCanvas() fired 100ms later but zoom stayed incorrect
+  - Solution: Made init() call resizeCanvas() synchronously BEFORE any viewport operations
+  - Files: js/managers/CanvasManager.js
+  - Test: Reload with saved layout → canvas centered at 100% zoom, no shift
+
+- **FIX: Empty State Text Flickering** - Resolved text appearing on left then moving to center
+  - Root cause: Empty state positioned relative to 300×150 default canvas, shifted when resize occurred
+  - Solution: Synchronous resize ensures empty state uses correct dimensions immediately
+  - Test: Fresh load → empty state centered with no flicker
+
+- **FEATURE: Zoom Persistence** - Manual zoom levels now preserved across window resizes
+  - User need: Users zoom in for precision work; window resize was resetting zoom to auto-fit
+  - Implementation: Added isAutoFitMode flag to track manual vs auto-fit zoom state
+    - centerAndFit() sets isAutoFitMode = true (floor plan selection, reset zoom)
+    - Manual zoom methods (slider, mousewheel, buttons) set isAutoFitMode = false
+    - resizeCanvas() only re-centers when isAutoFitMode === true
+  - Behavior: Manual zoom preserved during resize; auto-fit maintained for floor plan changes
+  - Files: js/managers/CanvasManager.js
+  - Test: Zoom to 150% → resize window → zoom stays at 150%
+
+- **FIX: +New Button Autosave** - Fixed old data reappearing after clicking +New
+  - Root cause: +New cleared memory but not localStorage autosave
+  - Solution: Added Storage.remove() to clear autosave when +New clicked
+  - Files: js/core/App.js
+  - Test: Click +New, confirm, refresh → stays blank
+
+- **Technical Improvements:**
+  - Store floor plan dimensions (floorPlanWidth/Height) for proper re-centering
+  - loadAutosave() returns boolean to indicate success/failure
+  - Enhanced console logging for autosave flow debugging
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
