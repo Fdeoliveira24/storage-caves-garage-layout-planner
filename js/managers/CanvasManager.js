@@ -41,8 +41,11 @@ class CanvasManager {
     // Listen to window resize
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    // Show empty state initially
-    this.showEmptyState();
+    // Show empty state after DOM layout is complete
+    requestAnimationFrame(() => {
+      this.resizeCanvas();
+      this.showEmptyState();
+    });
 
     return this.canvas;
   }
@@ -523,7 +526,9 @@ class CanvasManager {
     this.canvas.clear();
     this.floorPlanRect = null;
     this.entryZoneRect = null;
+    this.entryZoneLabel = null;
     this.gridLines = [];
+    this.emptyStateGroup = null;
   }
 
   /**
