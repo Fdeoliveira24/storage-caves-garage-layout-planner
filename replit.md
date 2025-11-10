@@ -6,12 +6,19 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
-**Bug Fixes (Latest):**
+**Info Panel Redesign (v2.3.0):**
+- **Inline Horizontal Layout** - Moved info panel from disruptive right sidebar to compact horizontal bar below toolbar
+- **Modern Format** - Shows data in single line: "Floor: 24' × 40' | Items: 3 | Selected: Pickup Truck | Size: 6.7' × 19.2' | Position: 3.0' from left, 7.0' from top"
+- **Segment-Based Design** - Uses flex layout with labeled segments separated by vertical dividers for clean visual hierarchy
+- **Responsive Wrapping** - Info bar wraps on narrow screens (≤768px) with proper spacing
+- **Canvas Space** - Removed right sidebar to maximize canvas workspace, matching Figma/Canva aesthetics
+- **Cache-Busting** - Updated version to v=2.3.0 to force browser refresh
+
+**Bug Fixes (Earlier Today):**
 - **Export Filenames** - PNG/PDF exports now use consistent format: "ProjectName_YYYY-MM-DD.png/pdf"
 - **Load/Delete Buttons** - Fixed Saved Layouts tab Load/Delete functionality to properly restore layouts
 - **Empty State Centering** - Empty state message now properly centers after using +New button
 - **Zoom to Center** - Zoom In/Out now correctly zoom toward canvas center instead of drifting right
-- **Cache-Busting** - Added version parameters (v=2.2.1) to force browser refresh after updates
 
 **PDF Export - Print-Ready (300 DPI):**
 - **Professional Output** - Generates print-ready PDFs with 300 DPI resolution (3x multiplier)
@@ -66,8 +73,9 @@ The application follows a **centralized state management** pattern with an **eve
 - Modular CSS structure (`main.css` imports component styles)
 
 **Layout Structure:**
-- Header → Toolbar → Sidebar + Canvas container
-- Sidebar has tabbed interface (Floor Plans vs Items)
+- Header → Toolbar → Info Bar → Sidebar + Canvas container
+- Info Bar displays floor plan, selection, and position data in single horizontal line
+- Sidebar has tabbed interface (Floor Plans vs Items vs Saved)
 - Canvas wrapper with overlay controls (magnifier, measurement tools)
 
 **State Management:**
