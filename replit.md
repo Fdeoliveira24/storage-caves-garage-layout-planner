@@ -6,6 +6,14 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
+**View Controls Dropdown (v2.4.0):**
+- **Grid Toggle** - Show/hide grid overlay for alignment assistance (persists across sessions)
+- **Entry Zone Position** - Flip entry zone between bottom (default) and top positions
+- **Entry Label Toggle** - Show/hide "ENTRY ZONE" label overlay (visible by default)
+- **Smart Defaults** - Legacy saved states without these settings default to: grid visible, entry bottom, label visible
+- **UI Synchronization** - View dropdown buttons always reflect current state on page load, preventing mismatched UI
+- **Consistent Fallbacks** - All three features use `!== false` check for robust undefined handling
+
 **Modal Keyboard Fix (v2.3.3):**
 - **Enter Key Handler** - Added Enter key support to confirm modals (was missing, causing Enter to bubble up and create duplicate overlays)
 - **Event Bubbling Prevention** - Added preventDefault() and stopPropagation() to all modal keyboard events
