@@ -6,6 +6,24 @@ A professional, browser-based garage and storage layout planning tool built enti
 
 ## Recent Changes (Nov 10, 2025)
 
+**Professional View Dropdown Redesign (v2.7.0):**
+- **Segmented Control for Entry Position** - Converted entry zone position selector from rotating dropdown items to modern 2×2 segmented control grid
+  - All 4 positions (Top/Bottom/Left/Right) always visible with clear active state indication
+  - Active button highlighted with primary color background and white text
+  - Reduced cognitive load - no need to guess which positions are available
+- **Section Labels & Dividers** - Added visual hierarchy with uppercase section labels and subtle dividers
+  - "Canvas Guides" section for Grid toggle
+  - "Entry Zone Position" section for segmented control
+  - Entry Label and Border toggles grouped logically
+- **Consistent Material Design Icons** - Standardized all directional icons (upward/downward/left/right arrows)
+- **Fit to Screen Icon Update** - Simplified icon from complex corners to clean square with crosshair representing centering action
+- **CSS Architecture** - Added reusable classes for professional dropdown structure:
+  - `.dropdown-section` - section wrapper
+  - `.dropdown-section-label` - 11px uppercase labels with letter-spacing
+  - `.dropdown-divider` - 1px subtle separator
+  - `.segmented-control` - 2×2 grid layout
+  - `.segmented-button` - individual buttons with `.is-active` state
+
 **UX Improvements - Entry Zone & Zoom (v2.6.0):**
 - **Entry Zone Label Rotation** - "ENTRY ZONE" text now rotates 90° when positioned on left or right sides for better readability
 - **Item Wall Collision Fix** - Items can now touch walls properly; boundary detection uses actual rectangle dimensions instead of bounding box with label text
@@ -24,7 +42,6 @@ A professional, browser-based garage and storage layout planning tool built enti
 - **Entry Zone Label Toggle** - Show/hide "ENTRY ZONE" text label (visible by default)
 - **Grid Z-Index Fix** - Grid now properly renders behind entry zone border and label as requested
 - **Modern Item Labels** - Item labels now use clean sans-serif font (system-ui) instead of default serif
-- **View Dropdown UI** - Shows 3 entry zone position buttons at a time (excluding current position)
 - **Export Compatibility** - All new settings (border visibility, position) included in JSON exports and rendered in PNG/PDF exports
 - **Smart Defaults** - Legacy saved states default to: border visible, entry at bottom, label visible
 
