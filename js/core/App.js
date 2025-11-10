@@ -216,6 +216,35 @@ class App {
     this.renderItemPalette();
     this.updateInfoPanel();
     this.setupToolbarHandlers();
+    this.setupTabSwitching();
+  }
+
+  /**
+   * Setup tab switching
+   */
+  setupTabSwitching() {
+    const tabs = document.querySelectorAll('.sidebar-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active from all tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        // Add active to clicked tab
+        tab.classList.add('active');
+        
+        // Hide all tab contents
+        document.getElementById('floorplan-tab').classList.add('hidden');
+        document.getElementById('items-tab').classList.add('hidden');
+        
+        // Show selected tab content
+        const tabName = tab.dataset.tab;
+        if (tabName === 'floorplans') {
+          document.getElementById('floorplan-tab').classList.remove('hidden');
+        } else if (tabName === 'items') {
+          document.getElementById('items-tab').classList.remove('hidden');
+        }
+      });
+    });
   }
 
   /**
