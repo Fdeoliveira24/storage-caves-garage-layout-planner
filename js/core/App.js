@@ -51,6 +51,9 @@ class App {
     // Load last autosave if exists
     this.loadAutosave();
 
+    // Save initial state to history
+    this.historyManager.save();
+
     console.log('Application initialized successfully');
   }
 
@@ -61,9 +64,9 @@ class App {
     // Canvas events
     this.eventBus.on('canvas:object:modified', (obj) => {
       // Update item position in state when moved
+      // obj.left and obj.top are already center coords due to originX/Y: 'center'
       if (obj && obj.customData && obj.customData.id) {
-        const center = obj.getCenterPoint();
-        this.updateItemPosition(obj.customData.id, center.x, center.y, obj.angle || 0);
+        this.updateItemPosition(obj.customData.id, obj.left, obj.top, obj.angle || 0);
       }
       this.historyManager.save();
     });
@@ -495,7 +498,7 @@ class App {
    */
   autosave() {
     const state = this.state.getState();
-    state.version = '2.0'; // Mark version for compatibility check
+    state.version = '2.1'; // Mark version for compatibility check - center-based coordinates
     Storage.save(Config.STORAGE_KEYS.autosave, state);
   }
 
@@ -506,7 +509,7 @@ class App {
     const savedState = Storage.load(Config.STORAGE_KEYS.autosave);
     
     // Check version and clear if incompatible
-    const APP_VERSION = '2.0'; // Updated coordinate system
+    const APP_VERSION = '2.1'; // Center-based coordinate system
     console.log('Saved version:', savedState ? savedState.version : 'none', 'Current version:', APP_VERSION);
     
     if (savedState && savedState.version !== APP_VERSION) {
@@ -544,11 +547,13 @@ class App {
 
   /**
    * Update item position in state after drag
+   * x, y are center coordinates (object uses originX/Y: 'center')
    */
   updateItemPosition(itemId, x, y, angle) {
     const items = this.state.get('items') || [];
     const item = items.find(i => i.id === itemId);
     if (item) {
+      // Store center coordinates
       item.x = x;
       item.y = y;
       item.angle = angle;

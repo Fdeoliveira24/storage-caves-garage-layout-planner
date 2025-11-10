@@ -95,6 +95,7 @@ class CanvasManager {
 
   /**
    * Constrain object to floor plan bounds
+   * Objects use center origin, so left/top represent center coordinates
    */
   constrainToFloorPlan(obj) {
     if (!obj || !obj.customData || !this.floorPlanRect) return;
@@ -104,31 +105,41 @@ class CanvasManager {
 
     let isOutOfBounds = false;
 
-    // Constrain left
-    if (bounds.left < floorPlan.left) {
-      obj.left = floorPlan.left + obj.getScaledWidth() / 2;
-      isOutOfBounds = true;
-    }
+    // Get center position (obj.left/top are already center due to originX/Y: 'center')
+    const centerX = obj.left;
+    const centerY = obj.top;
+    const halfWidth = obj.getScaledWidth() / 2;
+    const halfHeight = obj.getScaledHeight() / 2;
 
-    // Constrain top
-    if (bounds.top < floorPlan.top) {
-      obj.top = floorPlan.top + obj.getScaledHeight() / 2;
+    let newX = centerX;
+    let newY = centerY;
+
+    // Constrain left
+    if (centerX - halfWidth < floorPlan.left) {
+      newX = floorPlan.left + halfWidth;
       isOutOfBounds = true;
     }
 
     // Constrain right
-    if (bounds.left + bounds.width > floorPlan.left + floorPlan.width) {
-      obj.left = floorPlan.left + floorPlan.width - obj.getScaledWidth() / 2;
+    if (centerX + halfWidth > floorPlan.left + floorPlan.width) {
+      newX = floorPlan.left + floorPlan.width - halfWidth;
+      isOutOfBounds = true;
+    }
+
+    // Constrain top
+    if (centerY - halfHeight < floorPlan.top) {
+      newY = floorPlan.top + halfHeight;
       isOutOfBounds = true;
     }
 
     // Constrain bottom
-    if (bounds.top + bounds.height > floorPlan.top + floorPlan.height) {
-      obj.top = floorPlan.top + floorPlan.height - obj.getScaledHeight() / 2;
+    if (centerY + halfHeight > floorPlan.top + floorPlan.height) {
+      newY = floorPlan.top + floorPlan.height - halfHeight;
       isOutOfBounds = true;
     }
 
     if (isOutOfBounds) {
+      obj.set({ left: newX, top: newY });
       obj.setCoords();
       this.canvas.renderAll();
     }
@@ -301,10 +312,10 @@ class CanvasManager {
     const width = Helpers.feetToPx(itemData.widthFt);
     const height = Helpers.feetToPx(itemData.lengthFt); // Vertical by default
 
-    // Create rectangle
+    // Create rectangle centered at origin
     const rect = new fabric.Rect({
-      left: 0,
-      top: 0,
+      left: -width / 2,
+      top: -height / 2,
       width: width,
       height: height,
       fill: itemData.color || '#2196F3',
@@ -314,10 +325,10 @@ class CanvasManager {
       ry: 4
     });
 
-    // Create label
+    // Create label at center
     const label = new fabric.Text(itemData.label, {
-      left: width / 2,
-      top: height / 2,
+      left: 0,
+      top: 0,
       fontSize: 11,
       fill: '#ffffff',
       fontWeight: 'bold',
@@ -329,10 +340,12 @@ class CanvasManager {
       })
     });
 
-    // Group rectangle and label together
+    // Group rectangle and label together with CENTER origin
     const group = new fabric.Group([rect, label], {
-      left: x - width / 2,
-      top: y - height / 2,
+      left: x,
+      top: y,
+      originX: 'center',
+      originY: 'center',
       selectable: true,
       evented: true,
       hasControls: false,
