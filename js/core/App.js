@@ -220,6 +220,40 @@ class App {
     this.updateInfoPanel();
     this.setupToolbarHandlers();
     this.setupTabSwitching();
+    this.syncViewDropdownUI();
+  }
+
+  /**
+   * Sync View dropdown UI with current settings
+   */
+  syncViewDropdownUI() {
+    // Update grid toggle text
+    const showGrid = this.state.get('settings.showGrid');
+    const gridToggleText = document.getElementById('grid-toggle-text');
+    if (gridToggleText) {
+      gridToggleText.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+    }
+
+    // Update entry zone position buttons visibility
+    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+    const entryZoneTopBtn = document.getElementById('btn-entry-zone-top');
+    const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
+    if (entryZoneTopBtn && entryZoneBottomBtn) {
+      if (entryZonePosition === 'top') {
+        entryZoneTopBtn.style.display = 'none';
+        entryZoneBottomBtn.style.display = 'block';
+      } else {
+        entryZoneTopBtn.style.display = 'block';
+        entryZoneBottomBtn.style.display = 'none';
+      }
+    }
+
+    // Update entry label toggle text
+    const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
+    const entryLabelToggleText = document.getElementById('entry-label-toggle-text');
+    if (entryLabelToggleText) {
+      entryLabelToggleText.textContent = showEntryLabel ? 'Hide Entry Label' : 'Show Entry Label';
+    }
   }
 
   /**
@@ -432,6 +466,45 @@ class App {
     const sendBackBtn = document.getElementById('btn-send-back');
     if (sendBackBtn) {
       sendBackBtn.addEventListener('click', () => this.selectionManager.sendToBack());
+    }
+
+    // View controls
+    const toggleGridBtn = document.getElementById('btn-toggle-grid');
+    if (toggleGridBtn) {
+      toggleGridBtn.addEventListener('click', () => {
+        this.canvasManager.toggleGrid();
+        const showGrid = this.state.get('settings.showGrid');
+        document.getElementById('grid-toggle-text').textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+      });
+    }
+
+    const entryZoneTopBtn = document.getElementById('btn-entry-zone-top');
+    const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
+    
+    if (entryZoneTopBtn && entryZoneBottomBtn) {
+      entryZoneTopBtn.addEventListener('click', () => {
+        this.state.set('settings.entryZonePosition', 'top');
+        this.canvasManager.redrawFloorPlan();
+        entryZoneTopBtn.style.display = 'none';
+        entryZoneBottomBtn.style.display = 'block';
+      });
+      
+      entryZoneBottomBtn.addEventListener('click', () => {
+        this.state.set('settings.entryZonePosition', 'bottom');
+        this.canvasManager.redrawFloorPlan();
+        entryZoneBottomBtn.style.display = 'none';
+        entryZoneTopBtn.style.display = 'block';
+      });
+    }
+
+    const toggleEntryLabelBtn = document.getElementById('btn-toggle-entry-label');
+    if (toggleEntryLabelBtn) {
+      toggleEntryLabelBtn.addEventListener('click', () => {
+        const showLabel = this.state.get('settings.showEntryZoneLabel') !== false;
+        this.state.set('settings.showEntryZoneLabel', !showLabel);
+        this.canvasManager.redrawFloorPlan();
+        document.getElementById('entry-label-toggle-text').textContent = showLabel ? 'Show Entry Label' : 'Hide Entry Label';
+      });
     }
   }
 

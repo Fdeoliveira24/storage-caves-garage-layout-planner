@@ -15,7 +15,9 @@ class State {
         snapToGrid: false,
         showLabels: true,
         showDimensions: true,
-        showRuler: false
+        showRuler: false,
+        entryZonePosition: 'bottom',
+        showEntryZoneLabel: true
       },
       ui: {
         sidebarOpen: true,

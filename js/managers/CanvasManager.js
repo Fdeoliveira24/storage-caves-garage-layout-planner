@@ -297,11 +297,14 @@ class CanvasManager {
       evented: false
     });
 
-    // Create entry zone (bottom 20%)
+    // Create entry zone
     const entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
+    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+    const entryZoneTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
+    
     this.entryZoneRect = new fabric.Rect({
       left: 0,
-      top: height - entryHeight,
+      top: entryZoneTop,
       width: width,
       height: entryHeight,
       fill: Config.COLORS.entryZone,
@@ -313,9 +316,10 @@ class CanvasManager {
     });
     
     // Add entry zone label
+    const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
     this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
       left: width / 2,
-      top: height - entryHeight / 2,
+      top: entryZoneTop + entryHeight / 2,
       fontSize: 12,
       fill: '#D32F2F',
       fontWeight: 'bold',
@@ -323,7 +327,7 @@ class CanvasManager {
       originY: 'center',
       selectable: false,
       evented: false,
-      opacity: 0.8
+      opacity: showEntryLabel ? 0.8 : 0
     });
 
     this.canvas.add(this.floorPlanRect);
@@ -585,6 +589,37 @@ class CanvasManager {
       const width = Helpers.feetToPx(floorPlan.widthFt);
       const height = Helpers.feetToPx(floorPlan.heightFt);
       this.centerAndFit(width, height);
+    }
+  }
+
+  /**
+   * Toggle grid visibility
+   */
+  toggleGrid() {
+    const currentState = this.state.get('settings.showGrid');
+    this.state.set('settings.showGrid', !currentState);
+    
+    const floorPlan = this.state.get('floorPlan');
+    if (floorPlan) {
+      if (!currentState) {
+        const width = Helpers.feetToPx(floorPlan.widthFt);
+        const height = Helpers.feetToPx(floorPlan.heightFt);
+        this.drawGrid(width, height);
+      } else {
+        this.gridLines.forEach(line => this.canvas.remove(line));
+        this.gridLines = [];
+      }
+      this.canvas.renderAll();
+    }
+  }
+
+  /**
+   * Redraw floor plan with current settings
+   */
+  redrawFloorPlan() {
+    const floorPlan = this.state.get('floorPlan');
+    if (floorPlan) {
+      this.drawFloorPlan(floorPlan);
     }
   }
 }
