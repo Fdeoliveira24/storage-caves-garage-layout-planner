@@ -12,6 +12,9 @@
   <div class="app-container">
     <!-- Header -->
     <header class="header">
+      <button id="mobile-menu-toggle" class="mobile-menu-toggle" title="Toggle menu" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/></svg>
+      </button>
       <h1>Garage Layout Planner</h1>
       <div class="project-name-container">
         <span id="project-name" class="project-name">Untitled Layout</span>
@@ -21,10 +24,16 @@
       </div>
     </header>
 
+    <!-- Sidebar Backdrop (mobile only) -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
     <!-- Main Content -->
     <div class="main-content">
       <!-- Sidebar -->
       <aside class="sidebar">
+        <button id="sidebar-close" class="sidebar-close" style="display: none;" title="Close menu">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
+        </button>
         <div class="sidebar-tabs">
           <div class="sidebar-tab active" data-tab="floorplans">Floor Plans</div>
           <div class="sidebar-tab" data-tab="items">Items</div>
@@ -209,6 +218,26 @@
         <!-- Info Bar -->
         <div class="info-bar" id="info-panel"></div>
       </div>
+    </div>
+
+    <!-- Mobile Bottom Toolbar -->
+    <div class="mobile-toolbar" style="display: none;">
+      <button id="mobile-btn-undo" class="btn" title="Undo">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"/></svg>
+        <span>Undo</span>
+      </button>
+      <button id="mobile-btn-redo" class="btn" title="Redo">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"/></svg>
+        <span>Redo</span>
+      </button>
+      <button id="mobile-btn-delete" class="btn" title="Delete">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/></svg>
+        <span>Delete</span>
+      </button>
+      <button id="mobile-btn-more" class="btn btn-primary" title="More">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/></svg>
+        <span>More</span>
+      </button>
     </div>
   </div>
 

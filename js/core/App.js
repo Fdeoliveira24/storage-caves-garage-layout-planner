@@ -52,6 +52,9 @@ class App {
     // Initialize UI
     this.initializeUI();
 
+    // Setup mobile/responsive features
+    this.setupMobileFeatures();
+
     // Setup autosave
     this.setupAutosave();
 
@@ -741,26 +744,43 @@ class App {
    * Returns true if any items are blocking the entry zone
    */
   checkEntryZoneViolations() {
-    const floorPlan = this.state.get('floorPlan');
-    if (!floorPlan) {
+    try {
+      const floorPlan = this.state.get('floorPlan');
+      if (!floorPlan) {
+        this.updateEntryZoneWarning(false);
+        return false;
+      }
+
+      // Guard: Check if itemManager exists and has getItems method
+      if (!this.itemManager || typeof this.itemManager.getItems !== 'function') {
+        this.updateEntryZoneWarning(false);
+        return false;
+      }
+
+      const items = this.itemManager.getItems();
+      if (!items || items.length === 0) {
+        this.updateEntryZoneWarning(false);
+        return false;
+      }
+
+      const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+      
+      // Check if any item is in the entry zone
+      const hasViolation = items.some(item => {
+        if (!item || !item.canvasObject) return false;
+        return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition);
+      });
+
+      // Update state and UI
+      this.state.set('ui.entryZoneViolation', hasViolation);
+      this.updateEntryZoneWarning(hasViolation);
+      
+      return hasViolation;
+    } catch (error) {
+      console.warn('[App] Error checking entry zone violations:', error);
       this.updateEntryZoneWarning(false);
       return false;
     }
-
-    const items = this.itemManager.getItems();
-    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
-    
-    // Check if any item is in the entry zone
-    const hasViolation = items.some(item => {
-      if (!item.canvasObject) return false;
-      return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition);
-    });
-
-    // Update state and UI
-    this.state.set('ui.entryZoneViolation', hasViolation);
-    this.updateEntryZoneWarning(hasViolation);
-    
-    return hasViolation;
   }
 
   /**
@@ -787,6 +807,283 @@ class App {
     if (this.entryZoneWarningBadge) {
       this.entryZoneWarningBadge.style.display = show ? 'flex' : 'none';
     }
+  }
+
+  /**
+   * Setup mobile/responsive features
+   */
+  setupMobileFeatures() {
+    // Cache DOM elements
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const sidebarClose = document.getElementById('sidebar-close');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const sidebar = document.querySelector('.sidebar');
+    const mobileToolbar = document.querySelector('.mobile-toolbar');
+    
+    // Handle viewport changes
+    const handleViewportChange = () => {
+      const width = window.innerWidth;
+      
+      // Show/hide mobile elements based on viewport
+      if (width <= 767) {
+        // Mobile/Tablet: Show hamburger, close button, backdrop
+        if (mobileMenuToggle) mobileMenuToggle.style.display = 'inline-flex';
+        if (sidebarClose) sidebarClose.style.display = 'flex';
+        if (width <= 480 && mobileToolbar) mobileToolbar.style.display = 'flex';
+      } else {
+        // Desktop: Hide mobile elements
+        if (mobileMenuToggle) mobileMenuToggle.style.display = 'none';
+        if (sidebarClose) sidebarClose.style.display = 'none';
+        if (mobileToolbar) mobileToolbar.style.display = 'none';
+        if (sidebar) sidebar.classList.remove('active');
+        if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+      }
+    };
+    
+    // Sidebar toggle function
+    const toggleSidebar = () => {
+      if (sidebar && sidebarBackdrop) {
+        const isActive = sidebar.classList.toggle('active');
+        sidebarBackdrop.classList.toggle('active', isActive);
+        
+        // Prevent body scroll when sidebar is open
+        document.body.style.overflow = isActive ? 'hidden' : '';
+      }
+    };
+    
+    // Close sidebar
+    const closeSidebar = () => {
+      if (sidebar && sidebarBackdrop) {
+        sidebar.classList.remove('active');
+        sidebarBackdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    };
+    
+    // Hamburger menu toggle
+    if (mobileMenuToggle) {
+      mobileMenuToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Sidebar close button
+    if (sidebarClose) {
+      sidebarClose.addEventListener('click', closeSidebar);
+    }
+    
+    // Backdrop click to close
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', closeSidebar);
+    }
+    
+    // Close sidebar when selecting floor plan or item on mobile
+    if (sidebar) {
+      sidebar.addEventListener('click', (e) => {
+        if (window.innerWidth <= 767) {
+          const isFloorPlanCard = e.target.closest('.floor-plan-card');
+          const isItemCard = e.target.closest('.item-card');
+          if (isFloorPlanCard || isItemCard) {
+            setTimeout(closeSidebar, 300); // Delay for better UX
+          }
+        }
+      });
+    }
+    
+    // Mobile toolbar button handlers
+    const mobileBtnUndo = document.getElementById('mobile-btn-undo');
+    const mobileBtnRedo = document.getElementById('mobile-btn-redo');
+    const mobileBtnDelete = document.getElementById('mobile-btn-delete');
+    const mobileBtnMore = document.getElementById('mobile-btn-more');
+    
+    if (mobileBtnUndo) {
+      mobileBtnUndo.addEventListener('click', () => this.historyManager.undo());
+    }
+    
+    if (mobileBtnRedo) {
+      mobileBtnRedo.addEventListener('click', () => this.historyManager.redo());
+    }
+    
+    if (mobileBtnDelete) {
+      mobileBtnDelete.addEventListener('click', () => {
+        const selection = this.canvasManager.getCanvas().getActiveObject();
+        if (selection) {
+          this.eventBus.emit('item:delete:requested', selection.customData?.id);
+        }
+      });
+    }
+    
+    if (mobileBtnMore) {
+      mobileBtnMore.addEventListener('click', () => {
+        this.showMobileMoreMenu();
+      });
+    }
+    
+    // Setup touch gestures for canvas
+    this.setupTouchGestures();
+    
+    // Listen for viewport changes
+    window.addEventListener('resize', handleViewportChange);
+    handleViewportChange(); // Initial call
+  }
+
+  /**
+   * Setup touch gestures (pinch zoom, pan, tap, long-press)
+   */
+  setupTouchGestures() {
+    const canvas = this.canvasManager.getCanvas();
+    if (!canvas) return;
+    
+    let lastDistance = 0;
+    let lastCenter = null;
+    let isPinching = false;
+    
+    // Handle touch start
+    canvas.on('touch:gesture', (e) => {
+      if (e.e.touches && e.e.touches.length === 2) {
+        isPinching = true;
+        
+        // Calculate distance between two fingers
+        const touch1 = e.e.touches[0];
+        const touch2 = e.e.touches[1];
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        lastDistance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Calculate center point
+        lastCenter = {
+          x: (touch1.clientX + touch2.clientX) / 2,
+          y: (touch1.clientY + touch2.clientY) / 2
+        };
+      }
+    });
+    
+    // Handle pinch zoom
+    canvas.on('touch:drag', (e) => {
+      if (isPinching && e.e.touches && e.e.touches.length === 2) {
+        const touch1 = e.e.touches[0];
+        const touch2 = e.e.touches[1];
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (lastDistance > 0) {
+          const delta = distance / lastDistance;
+          const zoom = canvas.getZoom();
+          let newZoom = zoom * delta;
+          
+          // Clamp zoom (10% - 200%)
+          newZoom = Math.max(0.1, Math.min(2, newZoom));
+          
+          // Zoom to pinch center
+          const center = {
+            x: (touch1.clientX + touch2.clientX) / 2,
+            y: (touch1.clientY + touch2.clientY) / 2
+          };
+          
+          canvas.zoomToPoint({ x: center.x, y: center.y }, newZoom);
+          
+          // Mark as manual zoom (not auto-fit)
+          this.canvasManager.isAutoFitMode = false;
+          
+          this.eventBus.emit('canvas:zoomed', newZoom);
+        }
+        
+        lastDistance = distance;
+      }
+    });
+    
+    // Handle touch end
+    canvas.on('touch:longpress', () => {
+      isPinching = false;
+      lastDistance = 0;
+      lastCenter = null;
+    });
+    
+    // Enable touch scrolling/panning when no object is selected
+    canvas.allowTouchScrolling = true;
+  }
+
+  /**
+   * Show mobile "More" menu with additional actions
+   */
+  async showMobileMoreMenu() {
+    const actions = [
+      { label: 'Export JSON', action: () => this.exportManager.exportJSON() },
+      { label: 'Export PNG', action: () => this.showPNGExportDialog() },
+      { label: 'Export PDF', action: () => this.exportManager.exportPDF() },
+      { label: 'Duplicate', action: () => {
+        const selection = this.canvasManager.getCanvas().getActiveObject();
+        if (selection && selection.customData) {
+          this.eventBus.emit('item:duplicate:requested', selection.customData.id);
+        } else {
+          Modal.showError('Please select an item to duplicate');
+        }
+      }},
+      { label: 'Rotate 90°', action: () => {
+        const selection = this.canvasManager.getCanvas().getActiveObject();
+        if (selection) {
+          selection.rotate((selection.angle || 0) + 90);
+          this.canvasManager.getCanvas().renderAll();
+          this.historyManager.save();
+        } else {
+          Modal.showError('Please select an item to rotate');
+        }
+      }},
+      { label: 'Reset Zoom', action: () => this.canvasManager.centerAndFit() }
+    ];
+    
+    // Create simple action sheet using Modal
+    const menuHTML = actions.map((item, i) => 
+      `<button class="dropdown-item" data-action="${i}">${item.label}</button>`
+    ).join('');
+    
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        ${menuHTML}
+      </div>
+    `;
+    
+    container.querySelectorAll('[data-action]').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        actions[i].action();
+        Modal.close();
+      });
+    });
+    
+    Modal.show('More Actions', container);
+  }
+
+  /**
+   * Show PNG export resolution dialog
+   */
+  async showPNGExportDialog() {
+    const resolutions = [
+      { label: '1x (Standard)', value: 1 },
+      { label: '2x (High Quality)', value: 2 },
+      { label: '4x (Print)', value: 4 },
+      { label: '8x (Ultra HD)', value: 8 }
+    ];
+    
+    const menuHTML = resolutions.map((res, i) => 
+      `<button class="dropdown-item" data-res="${res.value}">${res.label}</button>`
+    ).join('');
+    
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        ${menuHTML}
+      </div>
+    `;
+    
+    container.querySelectorAll('[data-res]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const resolution = parseInt(btn.dataset.res);
+        this.exportManager.exportPNG(resolution);
+        Modal.close();
+      });
+    });
+    
+    Modal.show('Select PNG Resolution', container);
   }
 
   /**
