@@ -4,7 +4,103 @@
 
 A professional, browser-based garage and storage layout planning tool built entirely with vanilla HTML5, CSS3, and JavaScript ES6. The application allows users to select from pre-defined floor plans, add and manipulate realistic items (vehicles, RVs, boats, storage units), and export layouts as JSON, PNG, or PDF. This is a premium product designed for Envato marketplace with enterprise-grade architecture and zero build dependencies.
 
-## Recent Changes (Nov 10, 2025)
+## Recent Changes
+
+### Nov 11, 2025 - Mobile/Tablet Responsiveness & Entry Zone Warnings (v2.12.0)
+
+**FEATURE: Full Mobile/Tablet Responsive Design**
+- **Mobile-First CSS Architecture** (css/responsive.css)
+  - Breakpoints: 1024px (tablet landscape), 767px (tablet portrait), 480px (mobile)
+  - Touch-optimized UI: 44px minimum touch targets, increased spacing, larger buttons
+  - GPU acceleration for smooth animations (transform, backdrop-filter)
+  - Accessibility: prefers-reduced-motion support for animation reduction
+  - Landscape orientation support for tablets/phones
+
+- **Tablet Landscape (1024px - 768px)**
+  - Collapsible sidebar: 280px → 60px icon-only mode (auto-collapses, expands on hover)
+  - Touch-friendly toolbar buttons (44px height)
+  - Responsive canvas scaling
+  - Maintained desktop-like experience with space optimization
+
+- **Tablet Portrait (767px - 481px)**
+  - Full-screen drawer sidebar with blur backdrop overlay
+  - Hamburger menu button (#mobile-menu-toggle) in header
+  - Sidebar close button (× icon top-right)
+  - Auto-close sidebar when selecting floor plan/item
+  - Stacked toolbar layout with wrapped buttons
+
+- **Mobile (≤ 480px)**
+  - Bottom toolbar (56px fixed height, safe-area-inset support)
+    - Essential actions: Undo, Redo, Delete, More (vertical icon + label layout)
+    - "More" menu: Export JSON/PNG/PDF, Duplicate, Rotate 90°, Reset Zoom
+  - Full-screen drawer sidebar (slide-in from left, blur backdrop)
+  - 2-column item grid (optimized for small screens)
+  - Compact header (reduced padding, smaller logo)
+  - Hidden less-critical UI elements (info bar minimal mode)
+
+- **Touch Gesture Support** (setupTouchGestures)
+  - Pinch zoom: 2-finger gesture with center-point tracking (10%-200% zoom range)
+  - Pan/drag: Single-finger canvas panning when no object selected
+  - Tap: Object selection and canvas interaction
+  - Long-press: Context menu trigger
+  - Passive event listeners for 60fps scroll performance
+  - Compatible with Fabric.js touch events (touch:gesture, touch:drag, touch:longpress)
+
+- **Mobile JavaScript (setupMobileFeatures)**
+  - Viewport change detection: Show/hide mobile elements based on screen width
+  - Sidebar toggle: Drawer animation with backdrop, prevents body scroll
+  - Auto-close: Sidebar closes after selecting floor plan/item (300ms delay)
+  - Mobile toolbar handlers: Wired to existing event bus (undo, redo, delete)
+  - Resolution picker: PNG export dialog for mobile (1x/2x/4x/8x options)
+
+**FEATURE: Entry Zone Warning System**
+- **Visual Warning Badge** (toolbar)
+  - Animated badge with pulsing effect when items block entry zone
+  - Orange/amber color scheme matching warning semantics
+  - Click to show details/fix violations
+  - Badge visibility synced to state.ui.entryZoneViolation flag
+
+- **Entry Zone Detection** (Bounds.isInEntryZone)
+  - Supports all 4 entry zone positions: top, bottom, left, right
+  - 20% threshold for entry zone depth
+  - Uses Fabric.js bounding boxes for accurate collision detection
+  - Handles rotated objects correctly
+
+- **Real-time Violation Checking** (checkEntryZoneViolations)
+  - Debounced checking (16ms interval) for drag performance
+  - Comprehensive guards: null floor plan, missing itemManager, empty items array
+  - Try/catch error handling to prevent silent failures
+  - Wired to events: object:modified, item:added, item:removed, floorplan:changed, duplicate, paste
+  - Safe no-op when preconditions not met (no floor plan loaded)
+
+**FEATURE: Project Rename**
+- **updateProjectName() helper**
+  - Syncs DOM title element, document title, and state.metadata.projectName
+  - Called from: init(), loadAutosave(), rename button click
+  - Fixes autosave/reload race conditions
+  - ExportManager uses projectName in JSON/PNG/PDF filenames (e.g., "My-Garage-Layout.json")
+
+**Technical Improvements:**
+- Fixed console errors in event handlers (floorplan:changed, item:added)
+- Improved error logging (console.warn for non-critical issues)
+- Performance: CSS will-change for animated elements, passive touch listeners
+- Mobile toolbar conditionally shown via JavaScript (no CSS-only solutions)
+- Hamburger menu icon using Material Design SVG paths
+
+**Files Modified:**
+- css/responsive.css (new file, 438 lines)
+- css/main.css (added responsive.css import)
+- index.html (mobile toolbar, hamburger, backdrop, close button)
+- js/core/App.js (setupMobileFeatures, touch gestures, entry zone checks)
+- js/utils/bounds.js (isInEntryZone for 4 positions)
+
+**Testing Recommendations:**
+- Tablet: Sidebar collapse/expand, touch targets (44px), drawer toggle
+- Mobile: Bottom toolbar actions, gestures (pinch/pan), drawer UX
+- Entry zone: Warnings across add/remove/duplicate/paste, all 4 positions
+- Performance: 60fps animations on mid-range devices, scroll smoothness
+
+### Nov 10, 2025 - Viewport & Zoom Management (v2.11.0)
 
 **Major Viewport & Zoom Management Overhaul (v2.11.0):**
 - **FIX: Canvas Initialization Timing** - Resolved 17% zoom bug and canvas shifting to bottom-right corner
