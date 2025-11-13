@@ -1,85 +1,146 @@
-/* Modern Design System - Inspired by Figma, Canva, Linear */
+/**
+ * Storage Caves Design System
+ * Enterprise-grade color palette and design tokens
+ * Brand: Industrial red (#E74C3C) + Dark charcoal/graphite
+ */
+
 :root {
-  /* Primary Colors - Subtle & Professional */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-primary-light: #eef2ff;
-  --color-primary-dark: #4338ca;
+  /* ===== STORAGE CAVES BRAND COLORS ===== */
+  
+  /* Primary Brand Red - From logo */
+  --color-primary: #E74C3C;
+  --color-primary-hover: #C0392B;
+  --color-primary-light: #FADBD8;
+  --color-primary-dark: #A93226;
+  --color-primary-rgb: 231, 76, 60;
+  
+  /* Graphite/Charcoal - Industrial feel */
+  --color-graphite-900: #1a1a1a;
+  --color-graphite-800: #2d2d2d;
+  --color-graphite-700: #404040;
+  --color-graphite-600: #525252;
+  --color-graphite-500: #6b6b6b;
+  --color-graphite-400: #858585;
+  --color-graphite-300: #a3a3a3;
+  --color-graphite-200: #d4d4d4;
+  --color-graphite-100: #e5e5e5;
+  --color-graphite-50: #f5f5f5;
 
-  /* Backgrounds - Workspace Focused */
-  --color-bg: #fafafa;
+  /* ===== BACKGROUNDS ===== */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-dark: var(--color-graphite-900);
+  --color-bg-elevated: #ffffff;
   --color-bg-panel: #ffffff;
-  --color-bg-secondary: #f4f4f5;
-  --color-bg-hover: #f5f5f5;
-  --color-bg-active: #f0f0f0;
-  --color-bg-input: #ffffff;
 
-  /* Text - Clean Hierarchy */
-  --color-text: #18181b;
-  --color-text-secondary: #71717a;
-  --color-text-tertiary: #a1a1aa;
-  --color-text-disabled: #d4d4d8;
+  /* ===== TEXT COLORS ===== */
+  --color-text-primary: var(--color-graphite-900);
+  --color-text-secondary: var(--color-graphite-600);
+  --color-text-tertiary: var(--color-graphite-400);
+  --color-text-disabled: var(--color-graphite-300);
+  --color-text-inverse: #ffffff;
 
-  /* Borders - Subtle & Minimal */
-  --color-border: #e4e4e7;
-  --color-border-hover: #d4d4d8;
-  --color-border-focus: #6366f1;
+  /* ===== BORDERS ===== */
+  --color-border: var(--color-graphite-200);
+  --color-border-hover: var(--color-graphite-300);
+  --color-border-focus: var(--color-primary);
+  --color-border-light: var(--color-graphite-100);
 
-  /* Accent Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #3b82f6;
+  /* ===== SEMANTIC COLORS ===== */
+  --color-success: #27AE60;
+  --color-warning: #F39C12;
+  --color-danger: #E74C3C;
+  --color-info: #3498DB;
 
-  /* Spacing - Consistent 4px Grid */
+  /* ===== SPACING SYSTEM (4px grid) ===== */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
   --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-2xl: 32px;
-  --spacing-3xl: 48px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+  --spacing-4xl: 40px;
+  --spacing-5xl: 48px;
+  --spacing-6xl: 64px;
 
-  /* Typography - Clean & Readable */
-  --font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  /* ===== TYPOGRAPHY ===== */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Courier New', monospace;
+  
   --font-size-xs: 11px;
   --font-size-sm: 13px;
-  --font-size-md: 14px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
   --font-size-lg: 16px;
   --font-size-xl: 18px;
-  --font-size-2xl: 24px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
 
-  /* Shadows - Floating Panels */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.12);
-  --shadow-floating: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+  /* ===== SHADOWS (minimal, professional) ===== */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-  /* Border Radius - Rounded & Modern */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* ===== BORDER RADIUS ===== */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
   --radius-full: 9999px;
 
-  /* Z-index Layers */
+  /* ===== Z-INDEX LAYERS ===== */
   --z-base: 1;
   --z-sidebar: 10;
   --z-toolbar: 20;
+  --z-header: 30;
   --z-dropdown: 100;
+  --z-overlay: 900;
   --z-modal: 1000;
   --z-tooltip: 2000;
 
-  /* Transitions - Smooth & Delightful */
+  /* ===== TRANSITIONS ===== */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== MOBILE-SPECIFIC ===== */
+  --mobile-header-height: 56px;
+  --mobile-tab-height: 60px;
+  --mobile-touch-target: 44px;
+  --mobile-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+/* ===== DARK MODE (future enhancement) ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: var(--color-graphite-900);
+    --color-bg-secondary: var(--color-graphite-800);
+    --color-bg-tertiary: var(--color-graphite-700);
+    --color-bg-elevated: var(--color-graphite-800);
+    --color-bg-panel: var(--color-graphite-800);
+    
+    --color-text-primary: #ffffff;
+    --color-text-secondary: var(--color-graphite-300);
+    --color-text-tertiary: var(--color-graphite-400);
+    
+    --color-border: var(--color-graphite-700);
+    --color-border-hover: var(--color-graphite-600);
+  }
 }
