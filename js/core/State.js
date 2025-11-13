@@ -19,22 +19,22 @@ class State {
         entryZonePosition: 'bottom',
         showEntryZoneLabel: true,
         showEntryZoneBorder: true,
-        showItemLabels: true
+        showItemLabels: true,
       },
       ui: {
         sidebarOpen: true,
         infoPanelOpen: true,
         activeTab: 'floorplans',
         magnifierActive: false,
-        measurementActive: false
+        measurementActive: false,
       },
       metadata: {
         projectName: 'Untitled Layout',
         clientName: '',
         created: null,
         modified: null,
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     };
 
     this.observers = [];
@@ -115,15 +115,15 @@ class State {
         infoPanelOpen: true,
         activeTab: 'floorplans',
         magnifierActive: false,
-        measurementActive: false
+        measurementActive: false,
       },
       metadata: {
         projectName: 'Untitled Layout',
         clientName: '',
         created: new Date().toISOString(),
         modified: new Date().toISOString(),
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     };
 
     this._notifyObservers();
@@ -159,13 +159,13 @@ class State {
       items: Array.isArray(savedState.items) ? savedState.items : [],
       settings: {
         ...this.state.settings,
-        ...(savedState.settings || {})
+        ...(savedState.settings || {}),
       },
       metadata: {
         ...this.state.metadata,
         ...(savedState.metadata || {}),
-        modified: new Date().toISOString()
-      }
+        modified: new Date().toISOString(),
+      },
     };
 
     this._notifyObservers();

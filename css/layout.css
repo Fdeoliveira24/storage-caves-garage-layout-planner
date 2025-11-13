@@ -149,8 +149,7 @@ body {
   gap: 8px;
   min-height: 48px;
   flex-shrink: 0;
-  overflow-y: visible; /* Allow dropdown to show below */
-  overflow-x: visible; /* Don't clip horizontally either */
+  overflow: visible; /* Allow dropdown to show below */ /* Don't clip horizontally either */
 }
 
 .toolbar::-webkit-scrollbar {
@@ -217,7 +216,7 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .sidebar {
     width: 250px;
   }

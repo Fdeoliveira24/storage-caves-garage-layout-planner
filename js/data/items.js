@@ -16,7 +16,7 @@ const Items = {
           color: '#E57373',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/sports-car-side.png',
-          canvasImage: 'assets/images/items/canvas/sports-car-top.png'
+          canvasImage: 'assets/images/items/canvas/sports-car-top.png',
         },
         {
           id: 'sedan',
@@ -26,7 +26,7 @@ const Items = {
           color: '#64B5F6',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/sedan-side.png',
-          canvasImage: 'assets/images/items/canvas/sedan-top.png'
+          canvasImage: 'assets/images/items/canvas/sedan-top.png',
         },
         {
           id: 'pickup',
@@ -36,7 +36,7 @@ const Items = {
           color: '#81C784',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/pickup-side.png',
-          canvasImage: 'assets/images/items/canvas/pickup-top.png'
+          canvasImage: 'assets/images/items/canvas/pickup-top.png',
         },
         {
           id: 'suv',
@@ -46,7 +46,7 @@ const Items = {
           color: '#BA68C8',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/suv-side.png',
-          canvasImage: 'assets/images/items/canvas/suv-top.png'
+          canvasImage: 'assets/images/items/canvas/suv-top.png',
         },
         {
           id: 'motorcycle',
@@ -56,7 +56,7 @@ const Items = {
           color: '#FFB74D',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/motorcycle-side.png',
-          canvasImage: 'assets/images/items/canvas/motorcycle-top.png'
+          canvasImage: 'assets/images/items/canvas/motorcycle-top.png',
         },
         {
           id: 'van',
@@ -66,9 +66,9 @@ const Items = {
           color: '#A1887F',
           category: 'vehicles',
           paletteImage: 'assets/images/items/palette/van-side.png',
-          canvasImage: 'assets/images/items/canvas/van-top.png'
-        }
-      ]
+          canvasImage: 'assets/images/items/canvas/van-top.png',
+        },
+      ],
     },
     recreational: {
       name: 'Recreational Vehicles',
@@ -81,7 +81,7 @@ const Items = {
           color: '#4DD0E1',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/boat-trailer-side.png',
-          canvasImage: 'assets/images/items/canvas/boat-trailer-top.png'
+          canvasImage: 'assets/images/items/canvas/boat-trailer-top.png',
         },
         {
           id: 'rv-26',
@@ -91,7 +91,7 @@ const Items = {
           color: '#AED581',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/rv-26-side.png',
-          canvasImage: 'assets/images/items/canvas/rv-26-top.png'
+          canvasImage: 'assets/images/items/canvas/rv-26-top.png',
         },
         {
           id: 'rv-34',
@@ -101,7 +101,7 @@ const Items = {
           color: '#DCE775',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/rv-34-side.png',
-          canvasImage: 'assets/images/items/canvas/rv-34-top.png'
+          canvasImage: 'assets/images/items/canvas/rv-34-top.png',
         },
         {
           id: 'jet-ski-trailer',
@@ -111,7 +111,7 @@ const Items = {
           color: '#4FC3F7',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/jet-ski-trailer-side.png',
-          canvasImage: 'assets/images/items/canvas/jet-ski-trailer-top.png'
+          canvasImage: 'assets/images/items/canvas/jet-ski-trailer-top.png',
         },
         {
           id: 'atv',
@@ -121,7 +121,7 @@ const Items = {
           color: '#FFD54F',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/atv-side.png',
-          canvasImage: 'assets/images/items/canvas/atv-top.png'
+          canvasImage: 'assets/images/items/canvas/atv-top.png',
         },
         {
           id: 'golf-cart',
@@ -131,9 +131,9 @@ const Items = {
           color: '#90CAF9',
           category: 'recreational',
           paletteImage: 'assets/images/items/palette/golf-cart-side.png',
-          canvasImage: 'assets/images/items/canvas/golf-cart-top.png'
-        }
-      ]
+          canvasImage: 'assets/images/items/canvas/golf-cart-top.png',
+        },
+      ],
     },
     storage: {
       name: 'Storage & Furniture',
@@ -146,7 +146,7 @@ const Items = {
           color: '#90A4AE',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/shelf-side.png',
-          canvasImage: 'assets/images/items/canvas/shelf-top.png'
+          canvasImage: 'assets/images/items/canvas/shelf-top.png',
         },
         {
           id: 'workbench',
@@ -156,7 +156,7 @@ const Items = {
           color: '#8D6E63',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/workbench-side.png',
-          canvasImage: 'assets/images/items/canvas/workbench-top.png'
+          canvasImage: 'assets/images/items/canvas/workbench-top.png',
         },
         {
           id: 'storage-box',
@@ -166,7 +166,7 @@ const Items = {
           color: '#B0BEC5',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/storage-box-side.png',
-          canvasImage: 'assets/images/items/canvas/storage-box-top.png'
+          canvasImage: 'assets/images/items/canvas/storage-box-top.png',
         },
         {
           id: 'tool-cabinet',
@@ -176,7 +176,7 @@ const Items = {
           color: '#EF5350',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/tool-cabinet-side.png',
-          canvasImage: 'assets/images/items/canvas/tool-cabinet-top.png'
+          canvasImage: 'assets/images/items/canvas/tool-cabinet-top.png',
         },
         {
           id: 'bike-rack',
@@ -186,7 +186,7 @@ const Items = {
           color: '#42A5F5',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/bike-rack-side.png',
-          canvasImage: 'assets/images/items/canvas/bike-rack-top.png'
+          canvasImage: 'assets/images/items/canvas/bike-rack-top.png',
         },
         {
           id: 'freezer',
@@ -196,7 +196,7 @@ const Items = {
           color: '#ECEFF1',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/freezer-side.png',
-          canvasImage: 'assets/images/items/canvas/freezer-top.png'
+          canvasImage: 'assets/images/items/canvas/freezer-top.png',
         },
         {
           id: 'scaffold-rack',
@@ -206,7 +206,7 @@ const Items = {
           color: '#FFA726',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/scaffold-side.png',
-          canvasImage: 'assets/images/items/canvas/scaffold-top.png'
+          canvasImage: 'assets/images/items/canvas/scaffold-top.png',
         },
         {
           id: 'kayak',
@@ -216,7 +216,7 @@ const Items = {
           color: '#A1887F',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/kayak-side.png',
-          canvasImage: 'assets/images/items/canvas/kayak-top.png'
+          canvasImage: 'assets/images/items/canvas/kayak-top.png',
         },
         {
           id: 'small-tool-box',
@@ -226,7 +226,7 @@ const Items = {
           color: '#90A4AE',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/small-tool-box-side.png',
-          canvasImage: 'assets/images/items/canvas/small-tool-box-top.png'
+          canvasImage: 'assets/images/items/canvas/small-tool-box-top.png',
         },
         {
           id: 'car-lift',
@@ -236,10 +236,10 @@ const Items = {
           color: '#EF5350',
           category: 'storage',
           paletteImage: 'assets/images/items/palette/car-lift-side.png',
-          canvasImage: 'assets/images/items/canvas/car-lift-top.png'
-        }
-      ]
-    }
+          canvasImage: 'assets/images/items/canvas/car-lift-top.png',
+        },
+      ],
+    },
   },
 
   /**
@@ -281,9 +281,9 @@ const Items = {
     const lowerQuery = query.toLowerCase();
     return this.getAll().filter(
       (item) =>
-        item.label.toLowerCase().includes(lowerQuery) || item.id.toLowerCase().includes(lowerQuery)
+        item.label.toLowerCase().includes(lowerQuery) || item.id.toLowerCase().includes(lowerQuery),
     );
-  }
+  },
 };
 
 // Make available globally

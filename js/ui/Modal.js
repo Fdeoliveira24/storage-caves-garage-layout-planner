@@ -184,7 +184,7 @@ class Modal {
       Modal._currentModal = {
         overlay,
         resolve,
-        keyHandler
+        keyHandler,
       };
 
       footer.querySelector('[data-action="close"]').addEventListener('click', handleClose);

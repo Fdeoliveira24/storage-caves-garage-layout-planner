@@ -6,7 +6,7 @@ const Storage = (() => {
   const STORAGE_TYPES = {
     LOCAL: 'local',
     SESSION: 'session',
-    MEMORY: 'memory'
+    MEMORY: 'memory',
   };
 
   const memoryStorage = new Map();
@@ -261,7 +261,7 @@ const Storage = (() => {
 
     redetect() {
       return detectStorage();
-    }
+    },
   };
 })();
 

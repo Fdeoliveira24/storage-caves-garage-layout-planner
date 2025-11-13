@@ -103,7 +103,7 @@ const Bounds = {
   snapItemToGrid(item, gridSize = Config.GRID_SIZE) {
     item.set({
       left: this.snapToGrid(item.left, gridSize),
-      top: this.snapToGrid(item.top, gridSize)
+      top: this.snapToGrid(item.top, gridSize),
     });
     item.setCoords();
   },
@@ -119,7 +119,7 @@ const Bounds = {
       right: bounds.left + bounds.width,
       bottom: bounds.top + bounds.height,
       width: bounds.width,
-      height: bounds.height
+      height: bounds.height,
     };
   },
 
@@ -154,15 +154,15 @@ const Bounds = {
         {
           type: 'centerX',
           dist: Math.abs(
-            (targetBounds.left + targetBounds.right) / 2 - (itemBounds.left + itemBounds.right) / 2
-          )
+            (targetBounds.left + targetBounds.right) / 2 - (itemBounds.left + itemBounds.right) / 2,
+          ),
         },
         {
           type: 'centerY',
           dist: Math.abs(
-            (targetBounds.top + targetBounds.bottom) / 2 - (itemBounds.top + itemBounds.bottom) / 2
-          )
-        }
+            (targetBounds.top + targetBounds.bottom) / 2 - (itemBounds.top + itemBounds.bottom) / 2,
+          ),
+        },
       ];
 
       edges.forEach((edge) => {
@@ -170,14 +170,14 @@ const Bounds = {
           nearby.push({
             item,
             edge: edge.type,
-            distance: edge.dist
+            distance: edge.dist,
           });
         }
       });
     });
 
     return nearby;
-  }
+  },
 };
 
 // Make available globally

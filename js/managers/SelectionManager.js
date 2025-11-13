@@ -62,7 +62,7 @@ class SelectionManager {
     }
 
     const selection = new fabric.ActiveSelection(items, {
-      canvas: this.canvas
+      canvas: this.canvas,
     });
 
     this.canvas.setActiveObject(selection);
@@ -138,7 +138,7 @@ class SelectionManager {
             category: item.customData.category,
             x: center.x,
             y: center.y,
-            angle: item.angle || 0
+            angle: item.angle || 0,
           };
         }
         return null;
@@ -196,7 +196,7 @@ class SelectionManager {
     selected.forEach((item) => {
       item.set({
         left: item.left + dx,
-        top: item.top + dy
+        top: item.top + dy,
       });
       item.setCoords();
     });
@@ -221,39 +221,43 @@ class SelectionManager {
     const bounds = selected.map((item) => Bounds.getItemBounds(item));
 
     switch (alignment) {
-      case 'left':
+      case 'left': {
         const minLeft = Math.min(...bounds.map((b) => b.left));
         selected.forEach((item, i) => {
           item.set({ left: item.left + (minLeft - bounds[i].left) });
           item.setCoords();
         });
         break;
+      }
 
-      case 'right':
+      case 'right': {
         const maxRight = Math.max(...bounds.map((b) => b.right));
         selected.forEach((item, i) => {
           item.set({ left: item.left + (maxRight - bounds[i].right) });
           item.setCoords();
         });
         break;
+      }
 
-      case 'top':
+      case 'top': {
         const minTop = Math.min(...bounds.map((b) => b.top));
         selected.forEach((item, i) => {
           item.set({ top: item.top + (minTop - bounds[i].top) });
           item.setCoords();
         });
         break;
+      }
 
-      case 'bottom':
+      case 'bottom': {
         const maxBottom = Math.max(...bounds.map((b) => b.bottom));
         selected.forEach((item, i) => {
           item.set({ top: item.top + (maxBottom - bounds[i].bottom) });
           item.setCoords();
         });
         break;
+      }
 
-      case 'center':
+      case 'center': {
         const avgCenterX =
           bounds.reduce((sum, b) => sum + (b.left + b.right) / 2, 0) / bounds.length;
         selected.forEach((item, i) => {
@@ -262,8 +266,9 @@ class SelectionManager {
           item.setCoords();
         });
         break;
+      }
 
-      case 'middle':
+      case 'middle': {
         const avgCenterY =
           bounds.reduce((sum, b) => sum + (b.top + b.bottom) / 2, 0) / bounds.length;
         selected.forEach((item, i) => {
@@ -272,6 +277,7 @@ class SelectionManager {
           item.setCoords();
         });
         break;
+      }
     }
 
     this.canvas.renderAll();

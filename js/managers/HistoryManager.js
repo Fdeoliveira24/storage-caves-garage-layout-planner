@@ -38,7 +38,7 @@ class HistoryManager {
 
     this.eventBus.emit('history:changed', {
       canUndo: this.canUndo(),
-      canRedo: this.canRedo()
+      canRedo: this.canRedo(),
     });
   }
 
@@ -57,7 +57,7 @@ class HistoryManager {
     this.eventBus.emit('history:undo', previousState);
     this.eventBus.emit('history:changed', {
       canUndo: this.canUndo(),
-      canRedo: this.canRedo()
+      canRedo: this.canRedo(),
     });
 
     return previousState;
@@ -78,7 +78,7 @@ class HistoryManager {
     this.eventBus.emit('history:redo', nextState);
     this.eventBus.emit('history:changed', {
       canUndo: this.canUndo(),
-      canRedo: this.canRedo()
+      canRedo: this.canRedo(),
     });
 
     return nextState;
@@ -106,7 +106,7 @@ class HistoryManager {
     this.currentIndex = -1;
     this.eventBus.emit('history:changed', {
       canUndo: false,
-      canRedo: false
+      canRedo: false,
     });
   }
 
@@ -118,7 +118,7 @@ class HistoryManager {
       total: this.states.length,
       currentIndex: this.currentIndex,
       canUndo: this.canUndo(),
-      canRedo: this.canRedo()
+      canRedo: this.canRedo(),
     };
   }
 }

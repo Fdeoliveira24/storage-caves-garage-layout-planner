@@ -10,24 +10,19 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  
   padding: var(--spacing-3) var(--spacing-4);
   min-height: var(--mobile-touch-target);
-  
   font-family: var(--font-family-sans);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
-  
   border: none;
   border-radius: var(--radius-lg);
-  
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  
   transition: all var(--transition-base);
-  
+
   /* Prevent text selection on double-tap */
   -webkit-tap-highlight-color: transparent;
 }
@@ -185,12 +180,14 @@
   left: 50%;
   margin-left: -8px;
   margin-top: -8px;
-  border: 2px solid currentColor;
+  border: 2px solid currentcolor;
   border-radius: 50%;
   border-top-color: transparent;
   animation: btn-spin 0.6s linear infinite;
 }
 
 @keyframes btn-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -30,7 +30,7 @@ const Validation = {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   },
 
@@ -63,7 +63,7 @@ const Validation = {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   },
 
@@ -83,7 +83,7 @@ const Validation = {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   },
 
@@ -103,7 +103,7 @@ const Validation = {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   },
 
@@ -122,7 +122,7 @@ const Validation = {
   validateNumber(value, min, max) {
     const num = parseFloat(value);
     return !isNaN(num) && num >= min && num <= max;
-  }
+  },
 };
 
 // Make available globally

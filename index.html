@@ -282,7 +282,9 @@
                   </button>
                   <button id="btn-toggle-labels" class="dropdown-item">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z" />
+                      <path
+                        d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z"
+                      />
                     </svg>
                     <span id="labels-toggle-text">Hide Labels</span>
                   </button>
@@ -356,7 +358,12 @@
                 Import
               </button>
               <!-- Hidden file input -->
-              <input type="file" id="json-file-input" accept=".json,application/json" style="display: none" />
+              <input
+                type="file"
+                id="json-file-input"
+                accept=".json,application/json"
+                style="display: none"
+              />
             </div>
           </div>
 
@@ -447,9 +454,7 @@
       }
 
       (function () {
-        const proto = window.CanvasRenderingContext2D
-          ? CanvasRenderingContext2D.prototype
-          : null;
+        const proto = window.CanvasRenderingContext2D ? CanvasRenderingContext2D.prototype : null;
         if (!proto) return;
         const descriptor = Object.getOwnPropertyDescriptor(proto, 'textBaseline');
         if (!descriptor || !descriptor.configurable) return;
@@ -459,7 +464,7 @@
           set(value) {
             const normalized = value === 'alphabetical' ? 'alphabetic' : value;
             descriptor.set.call(this, normalized);
-          }
+          },
         });
       })();
     </script>

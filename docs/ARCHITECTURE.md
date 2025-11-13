@@ -59,6 +59,7 @@ The Garage Layout Planner is built with a modular, scalable architecture using p
 **Purpose:** Single source of truth for all application data
 
 **Responsibilities:**
+
 - Store complete application state
 - Implement observer pattern
 - Provide getters/setters
@@ -66,15 +67,17 @@ The Garage Layout Planner is built with a modular, scalable architecture using p
 - Track state changes
 
 **Key Methods:**
+
 ```javascript
-setState(updates)    // Update state and notify observers
-getState()          // Get complete state (read-only)
-subscribe(callback) // Subscribe to state changes
-get(path)           // Get specific property
-set(path, value)    // Set specific property
+setState(updates); // Update state and notify observers
+getState(); // Get complete state (read-only)
+subscribe(callback); // Subscribe to state changes
+get(path); // Get specific property
+set(path, value); // Set specific property
 ```
 
 **State Structure:**
+
 ```javascript
 {
   floorPlan: { id, widthFt, heightFt, ... },
@@ -92,11 +95,13 @@ set(path, value)    // Set specific property
 **Purpose:** Decoupled inter-module communication
 
 **Responsibilities:**
+
 - Publish/subscribe event system
 - Type-safe event handling
 - Error isolation
 
 **Key Events:**
+
 - `item:added`, `item:removed`, `item:selected`, `item:moved`
 - `floorplan:changed`, `floorplan:custom:start`
 - `export:json`, `export:png`, `export:pdf`
@@ -104,6 +109,7 @@ set(path, value)    // Set specific property
 - `canvas:zoomed`, `canvas:object:moving`
 
 **Usage:**
+
 ```javascript
 // Subscribe
 eventBus.on('item:added', (item) => { ... });
@@ -120,6 +126,7 @@ eventBus.off('item:added', callback);
 **Purpose:** Central configuration constants
 
 **Key Constants:**
+
 - `PX_PER_FOOT: 10` - Scaling factor
 - `MAX_HISTORY: 50` - History stack size
 - `AUTOSAVE_INTERVAL: 30000` - Auto-save frequency
@@ -132,6 +139,7 @@ eventBus.off('item:added', callback);
 ### CanvasManager
 
 **Responsibilities:**
+
 - Initialize Fabric.js canvas
 - Handle zoom/pan
 - Draw floor plans
@@ -140,51 +148,57 @@ eventBus.off('item:added', callback);
 - Export canvas as image
 
 **Key Methods:**
+
 ```javascript
-init()                      // Initialize canvas
-drawFloorPlan(floorPlan)   // Draw floor plan
-addItem(itemData, x, y)    // Add item to canvas
-zoomIn() / zoomOut()       // Zoom controls
-toDataURL(options)         // Export as image
+init(); // Initialize canvas
+drawFloorPlan(floorPlan); // Draw floor plan
+addItem(itemData, x, y); // Add item to canvas
+zoomIn() / zoomOut(); // Zoom controls
+toDataURL(options); // Export as image
 ```
 
 ### FloorPlanManager
 
 **Responsibilities:**
+
 - Floor plan CRUD operations
 - Validation
 - Area calculations
 - Occupancy tracking
 
 **Key Methods:**
+
 ```javascript
-setFloorPlan(id)          // Set active floor plan
-getAllFloorPlans()        // Get all templates
-getArea()                 // Get total area
-getOccupiedArea()         // Get occupied area
-getOccupancyPercentage()  // Calculate occupancy
+setFloorPlan(id); // Set active floor plan
+getAllFloorPlans(); // Get all templates
+getArea(); // Get total area
+getOccupiedArea(); // Get occupied area
+getOccupancyPercentage(); // Calculate occupancy
 ```
 
 ### ItemManager
 
 **Responsibilities:**
+
 - Item library access
 - Add/remove/update items
 - Duplicate/lock/unlock
 - Search/filter
 
 **Key Methods:**
+
 ```javascript
-addItem(itemId, x, y)     // Add item
-removeItem(itemId)        // Remove item
-updateItem(itemId, data)  // Update item
-duplicateItem(itemId)     // Duplicate item
-lockItem() / unlockItem() // Lock controls
+addItem(itemId, x, y); // Add item
+removeItem(itemId); // Remove item
+updateItem(itemId, data); // Update item
+duplicateItem(itemId); // Duplicate item
+lockItem() / unlockItem(); // Lock controls
 ```
 
 ### SelectionManager
 
 **Responsibilities:**
+
 - Single/multi-select
 - Alignment tools
 - Transform operations (move, rotate, scale)
@@ -192,50 +206,56 @@ lockItem() / unlockItem() // Lock controls
 - Z-order control
 
 **Key Methods:**
+
 ```javascript
-selectItem(item)           // Select single
-selectMultiple(items)      // Multi-select
-selectAll()                // Select all
-alignSelected(alignment)   // Align items
-rotateSelected(angle)      // Rotate items
-bringToFront() / sendToBack() // Z-order
+selectItem(item); // Select single
+selectMultiple(items); // Multi-select
+selectAll(); // Select all
+alignSelected(alignment); // Align items
+rotateSelected(angle); // Rotate items
+bringToFront() / sendToBack(); // Z-order
 ```
 
 ### ExportManager
 
 **Responsibilities:**
+
 - JSON export
 - PNG export (multiple resolutions)
 - PDF generation
 - Thumbnail generation
 
 **Key Methods:**
+
 ```javascript
-exportJSON()              // Export as JSON
-exportPNG(resolution)     // Export as PNG
-exportPDF(options)        // Generate PDF
-generateThumbnail()       // Create thumbnail
+exportJSON(); // Export as JSON
+exportPNG(resolution); // Export as PNG
+exportPDF(options); // Generate PDF
+generateThumbnail(); // Create thumbnail
 ```
 
 ### HistoryManager
 
 **Responsibilities:**
+
 - Undo/redo stack
 - State snapshots
 - History navigation
 
 **Key Methods:**
+
 ```javascript
-save()              // Save current state
-undo()              // Undo last change
-redo()              // Redo last undo
-canUndo() / canRedo() // Check availability
-clear()             // Clear history
+save(); // Save current state
+undo(); // Undo last change
+redo(); // Redo last undo
+canUndo() / canRedo(); // Check availability
+clear(); // Clear history
 ```
 
 ## Utility Modules
 
 ### Helpers (helpers.js)
+
 - Unit conversion (feet ↔ pixels, feet ↔ meters)
 - Number formatting
 - ID generation
@@ -243,12 +263,14 @@ clear()             // Clear history
 - Distance/angle calculations
 
 ### Storage (storage.js)
+
 - localStorage wrapper
 - Error handling
 - Quota management
 - Size tracking
 
 ### Bounds (bounds.js)
+
 - Boundary detection
 - Constraint enforcement
 - Snap to grid
@@ -256,6 +278,7 @@ clear()             // Clear history
 - Proximity detection
 
 ### Geometry (geometry.js)
+
 - Turf.js integration
 - Polygon operations
 - Area calculations
@@ -263,6 +286,7 @@ clear()             // Clear history
 - Distance calculations
 
 ### Validation (validation.js)
+
 - Floor plan validation
 - Item validation
 - Input sanitization
@@ -271,6 +295,7 @@ clear()             // Clear history
 ## Data Flow
 
 ### Adding an Item
+
 ```
 User clicks item in palette
     ↓
@@ -290,6 +315,7 @@ InfoPanel updates (via State observer)
 ```
 
 ### Undo Operation
+
 ```
 User presses Ctrl+Z
     ↓
@@ -331,6 +357,7 @@ Info panel updates
 ## Performance Considerations
 
 ### Optimizations
+
 - Debounce mouse move events (16ms)
 - Throttle canvas re-renders
 - Lazy load templates
@@ -339,6 +366,7 @@ Info panel updates
 - Use requestAnimationFrame for animations
 
 ### Memory Management
+
 - Limit history to 50 states
 - Clear unused canvas objects
 - Remove event listeners on destroy
@@ -347,6 +375,7 @@ Info panel updates
 ## Security
 
 ### Best Practices
+
 - Sanitize all user input
 - Validate all data before processing
 - No eval() or Function() usage
@@ -356,17 +385,20 @@ Info panel updates
 ## Testing Strategy
 
 ### Unit Tests (Future)
+
 - State management logic
 - Geometry calculations
 - Validation functions
 - Utility functions
 
 ### Integration Tests (Future)
+
 - Manager interactions
 - Event flow
 - State updates
 
 ### E2E Tests (Future)
+
 - User workflows
 - Export functionality
 - Save/load operations
@@ -374,12 +406,14 @@ Info panel updates
 ## Browser Compatibility
 
 ### Target Browsers
+
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
 
 ### No IE11 Support
+
 - Uses ES6 features freely
 - Modern Canvas API
 - CSS Grid/Flexbox
@@ -387,11 +421,13 @@ Info panel updates
 ## Deployment
 
 ### Static Hosting
+
 - Can be hosted on any static server
 - No backend required
 - CDN-friendly
 
 ### Recommended Hosts
+
 - Netlify
 - Vercel
 - GitHub Pages

@@ -9,13 +9,76 @@ const Config = {
 
   // Floor Plans (in feet)
   FLOOR_PLANS: [
-    { id: 'fp-unit-a', widthFt: 22, heightFt: 55, name: "Units A - 22'×55'", area: 1210, description: "Door: 14' × 14'", doorWidth: 14, doorHeight: 14 },
-    { id: 'fp-unit-b', widthFt: 15, heightFt: 55, name: "Units B - 15'×55'", area: 825, description: "Door: 13' × 14'", doorWidth: 13, doorHeight: 14 },
-    { id: 'fp-unit-c', widthFt: 15, heightFt: 55, name: "Units C - 15'×55'", area: 825, description: "Door: 13' × 14'", doorWidth: 13, doorHeight: 14 },
-    { id: 'fp-unit-d', widthFt: 15, heightFt: 50, name: "Units D - 15'×50'", area: 750, description: "Door: 13' × 14'", doorWidth: 13, doorHeight: 14 },
-    { id: 'fp-unit-e', widthFt: 14, heightFt: 35, name: "Units E - 14'×35'", area: 490, description: "Door: 12' × 12'", doorWidth: 12, doorHeight: 12 },
-    { id: 'fp-unit-f', widthFt: 18, heightFt: 50, name: "Units F - 18'×50'", area: 900, description: "Door: 14' × 14'", doorWidth: 14, doorHeight: 14 },
-    { id: 'fp-unit-h', widthFt: 15, heightFt: 50, name: "Units H - 15'×50'", area: 750, description: "Door: 13' × 14'", doorWidth: 13, doorHeight: 14 }
+    {
+      id: 'fp-unit-a',
+      widthFt: 22,
+      heightFt: 55,
+      name: "Units A - 22'×55'",
+      area: 1210,
+      description: "Door: 14' × 14'",
+      doorWidth: 14,
+      doorHeight: 14,
+    },
+    {
+      id: 'fp-unit-b',
+      widthFt: 15,
+      heightFt: 55,
+      name: "Units B - 15'×55'",
+      area: 825,
+      description: "Door: 13' × 14'",
+      doorWidth: 13,
+      doorHeight: 14,
+    },
+    {
+      id: 'fp-unit-c',
+      widthFt: 15,
+      heightFt: 55,
+      name: "Units C - 15'×55'",
+      area: 825,
+      description: "Door: 13' × 14'",
+      doorWidth: 13,
+      doorHeight: 14,
+    },
+    {
+      id: 'fp-unit-d',
+      widthFt: 15,
+      heightFt: 50,
+      name: "Units D - 15'×50'",
+      area: 750,
+      description: "Door: 13' × 14'",
+      doorWidth: 13,
+      doorHeight: 14,
+    },
+    {
+      id: 'fp-unit-e',
+      widthFt: 14,
+      heightFt: 35,
+      name: "Units E - 14'×35'",
+      area: 490,
+      description: "Door: 12' × 12'",
+      doorWidth: 12,
+      doorHeight: 12,
+    },
+    {
+      id: 'fp-unit-f',
+      widthFt: 18,
+      heightFt: 50,
+      name: "Units F - 18'×50'",
+      area: 900,
+      description: "Door: 14' × 14'",
+      doorWidth: 14,
+      doorHeight: 14,
+    },
+    {
+      id: 'fp-unit-h',
+      widthFt: 15,
+      heightFt: 50,
+      name: "Units H - 15'×50'",
+      area: 750,
+      description: "Door: 13' × 14'",
+      doorWidth: 13,
+      doorHeight: 14,
+    },
   ],
 
   // Canvas
@@ -34,7 +97,7 @@ const Config = {
   // Units
   UNITS: {
     FEET: 'feet',
-    METERS: 'meters'
+    METERS: 'meters',
   },
 
   // Export
@@ -58,15 +121,15 @@ const Config = {
     entryZoneWarning: 'rgba(255, 0, 0, 0.3)',
     selection: '#2196F3',
     alignmentGuide: '#FF5722',
-    dimension: '#666666'
+    dimension: '#666666',
   },
 
   // Storage Keys
   STORAGE_KEYS: {
     layouts: 'garage-planner-layouts',
     settings: 'garage-planner-settings',
-    autosave: 'garage-planner-autosave'
-  }
+    autosave: 'garage-planner-autosave',
+  },
 };
 
 // Make available globally

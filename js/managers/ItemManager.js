@@ -36,7 +36,7 @@ class ItemManager {
       x: x,
       y: y,
       angle: 0,
-      locked: false
+      locked: false,
     };
 
     // Add to canvas

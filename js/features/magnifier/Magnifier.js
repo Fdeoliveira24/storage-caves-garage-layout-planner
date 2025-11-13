@@ -116,7 +116,7 @@ class Magnifier {
       0,
       0,
       this.size,
-      this.size
+      this.size,
     );
 
     this.magnifierCtx.restore();

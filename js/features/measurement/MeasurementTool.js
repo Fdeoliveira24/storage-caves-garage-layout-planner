@@ -1,4 +1,4 @@
-/* global Helpers, Config, fabric */
+/* global Helpers, Config */
 
 /**
  * Measurement Tool
@@ -97,7 +97,7 @@ class MeasurementTool {
       strokeWidth: 2,
       strokeDashArray: [5, 5],
       selectable: false,
-      evented: false
+      evented: false,
     });
 
     // Draw text
@@ -114,8 +114,8 @@ class MeasurementTool {
         backgroundColor: 'rgba(255,255,255,0.9)',
         padding: 4,
         selectable: false,
-        evented: false
-      }
+        evented: false,
+      },
     );
 
     this.canvas.add(this.measurementLine);
@@ -124,7 +124,7 @@ class MeasurementTool {
 
     this.eventBus.emit('tool:measure:complete', {
       distance: displayDistance,
-      unit: unitLabel
+      unit: unitLabel,
     });
   }
 

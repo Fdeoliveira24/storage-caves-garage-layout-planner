@@ -1,4 +1,4 @@
-/* global Helpers, Modal, FileReader */
+/* global Helpers, Modal */
 
 /**
  * Export Manager
@@ -33,9 +33,9 @@ class ExportManager {
         angle: item.angle,
         locked: item.locked,
         category: item.category,
-        color: item.color
+        color: item.color,
       })),
-      settings: state.settings
+      settings: state.settings,
     };
 
     const json = JSON.stringify(exportData, null, 2);
@@ -56,7 +56,7 @@ class ExportManager {
     const dataURL = this.canvasManager.toDataURL({
       multiplier: resolution,
       format: 'png',
-      quality: 1
+      quality: 1,
     });
 
     console.log('Data URL length:', dataURL.length);
@@ -179,7 +179,7 @@ class ExportManager {
     const imgData = this.canvasManager.toDataURL({
       format: 'png',
       quality: 1,
-      multiplier: 3
+      multiplier: 3,
     });
 
     if (!imgData || imgData.length < 100) {
@@ -223,7 +223,7 @@ class ExportManager {
       subject: 'Garage Layout Design',
       author: 'Garage Layout Planner',
       keywords: 'garage, layout, plan, design, storage',
-      creator: 'Garage Layout Planner'
+      creator: 'Garage Layout Planner',
     });
 
     // Save
@@ -238,7 +238,7 @@ class ExportManager {
     this.eventBus.emit('export:pdf:complete', {
       filename,
       format: pdfOptions.format,
-      orientation: pdfOptions.orientation
+      orientation: pdfOptions.orientation,
     });
 
     return pdf;
@@ -308,7 +308,9 @@ class ExportManager {
             });
           }
 
-          Modal.showSuccess(`Layout "${importData.metadata?.projectName || 'Untitled'}" imported successfully!`);
+          Modal.showSuccess(
+            `Layout "${importData.metadata?.projectName || 'Untitled'}" imported successfully!`,
+          );
           this.eventBus.emit('import:json:complete', importData);
           resolve(importData);
         } catch (error) {
@@ -350,7 +352,7 @@ class ExportManager {
       multiplier: 1,
       format: 'png',
       width: width,
-      height: height
+      height: height,
     });
   }
 }

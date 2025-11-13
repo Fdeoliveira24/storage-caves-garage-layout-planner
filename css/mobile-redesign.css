@@ -6,41 +6,35 @@
 
 /* ===== MOBILE LAYOUT ACTIVATION ===== */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   /* Hide desktop UI elements on mobile */
   .mobile-layout .mobile-hide-desktop {
     display: none !important;
   }
-  
+
   /* Ensure canvas wrapper is hidden by default on mobile */
   .mobile-layout .canvas-wrapper {
     display: none;
   }
-  
+
   /* Show canvas when canvas tab is active */
   .mobile-layout .canvas-wrapper.mobile-show-canvas {
     display: block;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
+    inset: 0 0 calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
     z-index: 1;
   }
-  
+
   /* Mobile content area */
   .mobile-layout .mobile-content {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
+    inset: 0 0 calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
     background: var(--color-bg);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .mobile-layout .mobile-content.mobile-show-content {
     display: block;
   }
@@ -50,10 +44,7 @@
 
 .mobile-ui-container {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: var(--z-base);
   pointer-events: none;
 }
@@ -106,7 +97,7 @@
   justify-content: space-around;
   padding: 0 0 var(--mobile-safe-area-bottom) 0;
   z-index: var(--z-toolbar);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -2px 8px rgb(0 0 0 / 4%);
 }
 
 .mobile-tab {
@@ -169,15 +160,17 @@
   height: 56px;
   border-radius: 50%;
   border: none;
-  background: #E74C3C;
+  background: #e74c3c;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 16px rgba(231, 76, 60, 0.25);
+  box-shadow: 0 8px 16px rgb(231 76 60 / 25%);
   cursor: pointer;
   z-index: calc(var(--z-toolbar) + 2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .mobile-fab svg {
@@ -187,7 +180,7 @@
 
 .mobile-fab:active {
   transform: scale(0.94);
-  box-shadow: 0 8px 18px rgba(231, 76, 60, 0.35);
+  box-shadow: 0 8px 18px rgb(231 76 60 / 35%);
 }
 
 .mobile-action-panel {
@@ -197,11 +190,12 @@
   bottom: calc(var(--mobile-safe-area-bottom) * -1);
   background: var(--color-bg-elevated, #fff);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  box-shadow: 0 -18px 32px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 -18px 32px rgb(15 23 42 / 12%);
   transform: translateY(110%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: calc(var(--z-toolbar) + 1);
-  padding: var(--spacing-xl) var(--spacing-lg) calc(var(--spacing-xl) + var(--mobile-safe-area-bottom)) var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-lg)
+    calc(var(--spacing-xl) + var(--mobile-safe-area-bottom)) var(--spacing-lg);
 }
 
 .mobile-action-panel-open {
@@ -279,16 +273,16 @@
 }
 
 .mobile-action-danger {
-  background: rgba(231, 76, 60, 0.08);
-  color: #E74C3C;
+  background: rgb(231 76 60 / 8%);
+  color: #e74c3c;
 }
 
 .mobile-action-danger:active {
-  background: rgba(231, 76, 60, 0.16);
-  border-color: rgba(231, 76, 60, 0.35);
+  background: rgb(231 76 60 / 16%);
+  border-color: rgb(231 76 60 / 35%);
 }
 
-@media (min-width: 480px) {
+@media (width >= 480px) {
   .mobile-action-panel-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -468,11 +462,11 @@
 
 /* ===== MOBILE CANVAS ADJUSTMENTS ===== */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   .mobile-layout .mobile-show-canvas #canvas {
     touch-action: none;
   }
-  
+
   .mobile-layout .mobile-show-canvas .canvas-overlay-controls {
     bottom: var(--spacing-lg);
     right: var(--spacing-lg);
@@ -511,7 +505,9 @@
 }
 
 @keyframes mobile-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== SAFE AREA SUPPORT ===== */
@@ -520,16 +516,15 @@
   .mobile-tab-bar {
     padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom));
   }
-  
+
   .mobile-layout .canvas-wrapper.mobile-show-canvas {
     bottom: calc(var(--mobile-tab-height) + env(safe-area-inset-bottom));
   }
-  
+
   .mobile-layout .mobile-content {
     bottom: calc(var(--mobile-tab-height) + env(safe-area-inset-bottom));
   }
 }
-
 
 /* ===== SAVED LAYOUTS ===== */
 
@@ -697,10 +692,7 @@
 
 .mobile-top-tabs {
   position: fixed;
-  top: 56px;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
+  inset: 56px 0 calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
   background: var(--color-bg);
   z-index: var(--z-toolbar);
   transform: translateX(0);
@@ -747,62 +739,24 @@
 
 /* ===== BOTTOM NAV 3-BUTTON LAYOUT ===== */
 
-@media (max-width: 767px) {
+@media (width <= 767px) {
   .mobile-tab-bar {
     justify-content: space-between;
     padding: 0 var(--spacing-xl) var(--mobile-safe-area-bottom) var(--spacing-xl);
   }
-  
+
   .mobile-tab {
     flex: 0 1 auto;
     min-width: 70px;
   }
-  
+
   .mobile-tab-canvas {
     position: relative;
   }
-  
+
   .mobile-tab-canvas::before {
     width: 40px;
   }
-}
-
-/* ===== FLOOR PLAN CARDS (NO ICONS) ===== */
-
-.mobile-floor-plan-card .mobile-card-icon {
-  display: none;
-}
-
-.mobile-floor-plan-card h3 {
-  margin-top: 0;
-}
-
-.mobile-floor-plan-card {
-  padding: var(--spacing-lg) var(--spacing-xl);
-}
-
-/* ===== ITEM CARDS (SINGLE BACKGROUND) ===== */
-
-.mobile-item-card {
-  background: var(--color-bg-elevated);
-}
-
-.mobile-card-image {
-  width: 100%;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  margin-bottom: var(--spacing-md);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.mobile-card-image img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
 }
 
 /* ===== VIEW OPTIONS ===== */

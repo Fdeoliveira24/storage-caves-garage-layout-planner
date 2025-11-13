@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, Storage, Bounds */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds */
 
 /**
  * Main Application Controller
@@ -433,7 +433,7 @@ class App {
         <div class="floorplan-info">${fp.description}</div>
         <div class="floorplan-area">${fp.area} sq ft</div>
       </div>
-    `
+    `,
       )
       .join('');
 
@@ -465,25 +465,25 @@ class App {
             <div class="category-name">${category.name}</div>
             <div class="category-items">
               ${category.items
-    .map((item) => {
-      const hasImage = Config.USE_IMAGES && item.paletteImage;
-      if (hasImage) {
-        return `
+                .map((item) => {
+                  const hasImage = Config.USE_IMAGES && item.paletteImage;
+                  if (hasImage) {
+                    return `
                       <div class="palette-item" data-id="${item.id}" style="background-color: ${item.color}20; border-color: ${item.color}">
                         <img src="${item.paletteImage}" loading="lazy" decoding="async" class="item-preview" style="display:block;max-width:60px;margin:auto;">
                         <div class="item-label">${item.label}</div>
                         <div class="item-size">${item.lengthFt}' × ${item.widthFt}'</div>
                       </div>
                     `;
-      }
-      return `
+                  }
+                  return `
                     <div class="palette-item" data-id="${item.id}" style="background-color: ${item.color}20; border-color: ${item.color}">
                       <div class="item-label">${item.label}</div>
                       <div class="item-size">${item.lengthFt}' × ${item.widthFt}'</div>
                     </div>
                   `;
-    })
-    .join('')}
+                })
+                .join('')}
             </div>
           </div>
         `;
@@ -522,7 +522,7 @@ class App {
         const newName = await Modal.showPrompt(
           'Rename Project',
           'Enter project name:',
-          currentName
+          currentName,
         );
 
         if (newName && newName.trim() !== '') {
@@ -539,7 +539,7 @@ class App {
       newBtn.addEventListener('click', async () => {
         const confirmed = await Modal.showConfirm(
           'Start New Layout?',
-          'Any unsaved changes will be lost. Are you sure?'
+          'Any unsaved changes will be lost. Are you sure?',
         );
         if (confirmed) {
           console.log('[App] Starting new layout');
@@ -552,7 +552,7 @@ class App {
           this.historyManager.clear();
 
           // CRITICAL: Clear autosave from localStorage immediately
-          Storage.remove(Config.STORAGE_KEYS.autosave);
+          StorageUtil.remove(Config.STORAGE_KEYS.autosave);
           console.log('[App] Cleared autosave from localStorage');
 
           // Ensure viewport is reset (clear() already does this, but be explicit)
@@ -1044,7 +1044,7 @@ class App {
       mobileBtnNew.addEventListener('click', async () => {
         const confirmed = await Modal.showConfirm(
           'Start New Layout?',
-          "This will clear the current layout. Make sure you've saved your work."
+          "This will clear the current layout. Make sure you've saved your work.",
         );
         if (confirmed) {
           console.log('[App] Starting new layout (mobile)');
@@ -1057,7 +1057,7 @@ class App {
           this.historyManager.clear();
 
           // CRITICAL: Clear autosave from localStorage immediately
-          Storage.remove(Config.STORAGE_KEYS.autosave);
+          StorageUtil.remove(Config.STORAGE_KEYS.autosave);
           console.log('[App] Cleared autosave from localStorage');
 
           // Ensure viewport is reset (clear() already does this, but be explicit)
@@ -1098,7 +1098,7 @@ class App {
               selection.customData.id,
               selection.left,
               selection.top,
-              selection.angle
+              selection.angle,
             );
           }
 
@@ -1171,7 +1171,7 @@ class App {
         // Calculate center point
         lastCenter = {
           x: (touch1.clientX + touch2.clientX) / 2,
-          y: (touch1.clientY + touch2.clientY) / 2
+          y: (touch1.clientY + touch2.clientY) / 2,
         };
       }
     });
@@ -1196,7 +1196,7 @@ class App {
           // Zoom to pinch center
           const center = {
             x: (touch1.clientX + touch2.clientX) / 2,
-            y: (touch1.clientY + touch2.clientY) / 2
+            y: (touch1.clientY + touch2.clientY) / 2,
           };
 
           canvas.zoomToPoint({ x: center.x, y: center.y }, newZoom);
@@ -1383,7 +1383,7 @@ class App {
       { label: '1x (Standard)', value: 1 },
       { label: '2x (High Quality)', value: 2 },
       { label: '4x (Print)', value: 4 },
-      { label: '8x (Ultra HD)', value: 8 }
+      { label: '8x (Ultra HD)', value: 8 },
     ];
 
     const menuHTML = resolutions
@@ -1466,7 +1466,7 @@ class App {
    */
   setupAutosave() {
     // Skip autosave setup if storage is not available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       console.warn('[App] Autosave disabled - persistent storage not available');
       return;
     }
@@ -1484,7 +1484,7 @@ class App {
    */
   autosave() {
     // Skip if storage not available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       return;
     }
 
@@ -1499,12 +1499,12 @@ class App {
           floorPlan: state.floorPlan,
           items: state.items,
           settings: state.settings,
-          metadata: state.metadata
-        }
+          metadata: state.metadata,
+        },
         // NOTE: Viewport (zoom/pan) is intentionally NOT saved
       };
 
-      Storage.save(Config.STORAGE_KEYS.autosave, autosaveData);
+      StorageUtil.save(Config.STORAGE_KEYS.autosave, autosaveData);
       // [App] Autosave completed + timestamp
     } catch (error) {
       console.error('[App] Autosave failed:', error);
@@ -1517,13 +1517,13 @@ class App {
    */
   loadAutosave() {
     // Skip if storage not available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       console.log('[App] Autosave unavailable - persistent storage not available');
       return false;
     }
 
     try {
-      const savedData = Storage.load(Config.STORAGE_KEYS.autosave);
+      const savedData = StorageUtil.load(Config.STORAGE_KEYS.autosave);
 
       if (!savedData) {
         console.log('[App] No autosave found');
@@ -1537,9 +1537,9 @@ class App {
           '[App] Incompatible autosave version:',
           savedData.version,
           'expected:',
-          APP_VERSION
+          APP_VERSION,
         );
-        Storage.remove(Config.STORAGE_KEYS.autosave);
+        StorageUtil.remove(Config.STORAGE_KEYS.autosave);
         return false;
       }
 
@@ -1550,7 +1550,7 @@ class App {
 
         if (daysSinceAutosave > 7) {
           console.log('[App] Autosave expired (>7 days old), clearing...');
-          Storage.remove(Config.STORAGE_KEYS.autosave);
+          StorageUtil.remove(Config.STORAGE_KEYS.autosave);
           return false;
         }
       }
@@ -1558,7 +1558,7 @@ class App {
       // Validate required data
       if (!savedData.state) {
         console.log('[App] Invalid autosave structure, missing state');
-        Storage.remove(Config.STORAGE_KEYS.autosave);
+        StorageUtil.remove(Config.STORAGE_KEYS.autosave);
         return false;
       }
 
@@ -1609,7 +1609,7 @@ class App {
     } catch (error) {
       console.error('[App] Failed to load autosave:', error);
       console.log('[App] Clearing corrupted autosave data');
-      Storage.remove(Config.STORAGE_KEYS.autosave);
+      StorageUtil.remove(Config.STORAGE_KEYS.autosave);
       return false;
     }
   }
@@ -1635,7 +1635,7 @@ class App {
    */
   async saveLayout() {
     // Check if storage is available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       Modal.showError('Cannot save layout - persistent storage is not available in your browser');
       return;
     }
@@ -1644,17 +1644,17 @@ class App {
     if (!name) return;
 
     const state = this.state.getState();
-    const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+    const layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
 
     layouts.push({
       id: Helpers.generateId('layout'),
       name: name,
       created: new Date().toISOString(),
       state: state,
-      thumbnail: this.exportManager.generateThumbnail()
+      thumbnail: this.exportManager.generateThumbnail(),
     });
 
-    const saved = Storage.save(Config.STORAGE_KEYS.layouts, layouts);
+    const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
     if (saved) {
       Modal.showSuccess('Layout saved successfully!');
       this.renderSavedLayouts();
@@ -1702,7 +1702,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
     `.trim();
 
     const body = encodeURIComponent(
-      `Hi,\n\nI'd like to share my garage layout plan with you:\n\n${layoutInfo}\n\n---\nCreated with Storage Caves Garage Layout Planner`
+      `Hi,\n\nI'd like to share my garage layout plan with you:\n\n${layoutInfo}\n\n---\nCreated with Storage Caves Garage Layout Planner`,
     );
 
     // Open default email client
@@ -1716,7 +1716,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
     const container = document.getElementById('saved-layouts-list');
     if (!container) return;
 
-    const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+    const layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
 
     if (layouts.length === 0) {
       container.innerHTML = `
@@ -1739,7 +1739,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
           <button class="btn-delete-layout" data-id="${layout.id}">Delete</button>
         </div>
       </div>
-    `
+    `,
       )
       .join('');
 
@@ -1755,7 +1755,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
         e.stopPropagation();
         const confirmed = await Modal.showConfirm(
           'Delete Layout?',
-          'Are you sure you want to delete this layout? This cannot be undone.'
+          'Are you sure you want to delete this layout? This cannot be undone.',
         );
         if (confirmed) {
           this.deleteLayout(btn.dataset.id);
@@ -1773,13 +1773,13 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
    */
   async loadLayout(layoutId) {
     // Check if storage is available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       Modal.showError('Cannot load layout - persistent storage is not available in your browser');
       return;
     }
 
     try {
-      const layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+      const layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
       const layout = layouts.find((l) => l.id === layoutId);
 
       if (!layout) {
@@ -1789,7 +1789,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
 
       const confirmed = await Modal.showConfirm(
         'Load Layout?',
-        'This will replace your current layout. Any unsaved changes will be lost.'
+        'This will replace your current layout. Any unsaved changes will be lost.',
       );
 
       if (!confirmed) return;
@@ -1834,14 +1834,14 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
    */
   deleteLayout(layoutId) {
     // Check if storage is available
-    if (!Storage.isAvailable) {
+    if (!StorageUtil.isAvailable) {
       Modal.showError('Cannot delete layout - persistent storage is not available in your browser');
       return;
     }
 
-    let layouts = Storage.load(Config.STORAGE_KEYS.layouts) || [];
+    let layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
     layouts = layouts.filter((l) => l.id !== layoutId);
-    const saved = Storage.save(Config.STORAGE_KEYS.layouts, layouts);
+    const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
 
     if (saved) {
       this.renderSavedLayouts();

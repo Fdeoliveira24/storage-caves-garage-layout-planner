@@ -7,6 +7,7 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 ## Features
 
 ### Core Functionality
+
 - **7 Pre-Defined Floor Plans** - From 20×25' to 24×50' (500-1200 sq ft)
 - **20+ Realistic Items** - Vehicles, RVs, boats, storage with accurate dimensions
 - **Drag & Drop Interface** - Intuitive item placement
@@ -14,6 +15,7 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 - **Entry Zone Warnings** - Bottom 20% marked for garage door clearance
 
 ### Item Manipulation
+
 - **Selection Tools** - Single-click, multi-select (Shift+click), selection box
 - **Transform Operations** - Move, rotate (90° or free), duplicate, delete
 - **Alignment Tools** - Left, right, center, top, bottom, middle
@@ -21,6 +23,7 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 - **Lock/Unlock** - Prevent accidental movement
 
 ### Professional Tools
+
 - **50-Level Undo/Redo** - Full history stack
 - **Magnifying Glass** - 2.5x zoom for precision
 - **Measurement Tool** - Click two points to measure distance
@@ -29,6 +32,7 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 - **Snap to Grid** - 1-foot increments
 
 ### Export & Save
+
 - **JSON Export** - Complete layout data
 - **PNG Export** - Multiple resolutions (1x, 2x, 4x, 8x)
 - **PDF Export** - Professional reports with item list
@@ -36,6 +40,7 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 - **Save/Load Layouts** - Manage multiple projects
 
 ### Keyboard Shortcuts
+
 - **Arrow Keys** - Nudge items (2px, Shift = 10px)
 - **Delete/Backspace** - Remove selected items
 - **R** - Rotate 90°
@@ -48,11 +53,13 @@ A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScrip
 ## Installation
 
 ### Option 1: Direct Open
+
 1. Download or clone this repository
 2. Open `index.html` in your browser
 3. Start planning!
 
 ### Option 2: Local Web Server
+
 ```bash
 # Python 3
 python3 -m http.server 5000
@@ -69,12 +76,14 @@ Then open `http://localhost:5000` in your browser.
 ## Usage Guide
 
 ### Getting Started
+
 1. **Select a Floor Plan** - Click a floor plan from the left sidebar
 2. **Add Items** - Switch to "Items" tab and click items to add them
 3. **Arrange Layout** - Drag items, rotate, resize as needed
 4. **Save** - Click the save button to store your layout
 
 ### Item Management
+
 - **Add Item** - Click any item in the palette (added to center)
 - **Move Item** - Click and drag or use arrow keys
 - **Rotate Item** - Click rotate button or press R
@@ -83,11 +92,13 @@ Then open `http://localhost:5000` in your browser.
 - **Lock Item** - Prevent movement (coming soon)
 
 ### Alignment
+
 - Select multiple items (Shift+click)
 - Use alignment buttons to align edges or centers
 - Items snap together for precise placement
 
 ### Export Options
+
 - **JSON** - Save complete layout data for backup/sharing
 - **PNG** - High-resolution images for presentations
 - **PDF** - Professional reports with measurements
@@ -111,6 +122,7 @@ Then open `http://localhost:5000` in your browser.
 ## Architecture
 
 ### Modular Design
+
 - **State Management** - Centralized state with observer pattern
 - **Event Bus** - Decoupled module communication
 - **Manager Classes** - Separation of concerns
@@ -122,6 +134,7 @@ Then open `http://localhost:5000` in your browser.
   - HistoryManager - Undo/redo stack
 
 ### File Structure
+
 ```
 ├── index.html
 ├── css/
@@ -151,7 +164,9 @@ Then open `http://localhost:5000` in your browser.
 ## Customization
 
 ### Adding Custom Items
+
 Edit `js/data/items.js` to add new items:
+
 ```javascript
 {
   id: 'custom-item',
@@ -164,6 +179,7 @@ Edit `js/data/items.js` to add new items:
 ```
 
 ### Custom Floor Plans
+
 Phase 2 will include custom floor plan drawing tool.
 
 ## License
@@ -181,6 +197,7 @@ For issues or questions, please create an issue on GitHub or contact support.
 ## Roadmap
 
 ### Phase 1 (Current - MVP) ✓
+
 - 7 rectangular floor plans
 - 20+ items
 - Complete manipulation tools
@@ -189,6 +206,7 @@ For issues or questions, please create an issue on GitHub or contact support.
 - Keyboard shortcuts
 
 ### Phase 2 (Advanced Features)
+
 - Custom floor plan drawing
 - L-shaped & T-shaped floor plans
 - Doors, windows, obstacles
@@ -198,6 +216,7 @@ For issues or questions, please create an issue on GitHub or contact support.
 - Collaboration features
 
 ### Phase 3 (Pro Features)
+
 - 3D preview mode
 - AI layout assistant
 - Cost estimation

@@ -1,4 +1,4 @@
-/* global turf, Helpers */
+/* global Helpers */
 
 /**
  * Geometry Utilities using Turf.js
@@ -18,9 +18,9 @@ const Geometry = {
           [bounds.left + bounds.width, bounds.top],
           [bounds.left + bounds.width, bounds.top + bounds.height],
           [bounds.left, bounds.top + bounds.height],
-          [bounds.left, bounds.top] // Close the loop
-        ]
-      ]
+          [bounds.left, bounds.top], // Close the loop
+        ],
+      ],
     };
   },
 
@@ -68,7 +68,7 @@ const Geometry = {
       const kinks = turf.kinks(polygon);
       return {
         valid: kinks.features.length === 0,
-        intersections: kinks.features
+        intersections: kinks.features,
       };
     }
     return { valid: true, intersections: [] };
@@ -96,7 +96,7 @@ const Geometry = {
         right: bbox[2],
         bottom: bbox[3],
         width: bbox[2] - bbox[0],
-        height: bbox[3] - bbox[1]
+        height: bbox[3] - bbox[1],
       };
     }
     return null;
@@ -123,7 +123,7 @@ const Geometry = {
     }
 
     return inside;
-  }
+  },
 };
 
 // Make available globally

@@ -1,4 +1,4 @@
-/* global fabric, Helpers, Config */
+/* global Helpers, Config */
 
 /**
  * Canvas Manager - Fabric.js Canvas Management
@@ -51,7 +51,7 @@ class CanvasManager {
       // Rotation control styling
       rotatingPointOffset: 40,
       // Padding for better hit area
-      padding: 0
+      padding: 0,
     });
 
     // Customize multi-selection (ActiveSelection) appearance
@@ -64,7 +64,7 @@ class CanvasManager {
       transparentCorners: false,
       borderDashArray: [5, 5],
       borderScaleFactor: 2,
-      padding: 0
+      padding: 0,
     });
 
     // Setup event listeners
@@ -103,7 +103,7 @@ class CanvasManager {
     if (this.emptyStateGroup) {
       this.emptyStateGroup.set({
         left: width / 2,
-        top: height / 2
+        top: height / 2,
       });
     }
 
@@ -187,7 +187,7 @@ class CanvasManager {
       if (isOutOfBounds) {
         obj.set({
           left: obj.left + offsetX,
-          top: obj.top + offsetY
+          top: obj.top + offsetY,
         });
         obj.setCoords();
         this.canvas.renderAll();
@@ -302,7 +302,7 @@ class CanvasManager {
           height: 20,
           fill: gridColor,
           rx: 3,
-          ry: 3
+          ry: 3,
         });
         gridSquares.push(square);
       }
@@ -317,7 +317,7 @@ class CanvasManager {
       fill: '#18181B',
       originX: 'center',
       originY: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'system-ui, -apple-system, sans-serif',
     });
 
     // Create subtitle text
@@ -328,7 +328,7 @@ class CanvasManager {
       fill: '#71717A',
       originX: 'center',
       originY: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'system-ui, -apple-system, sans-serif',
     });
 
     // Group all elements
@@ -338,7 +338,7 @@ class CanvasManager {
       originX: 'center',
       originY: 'center',
       selectable: false,
-      evented: false
+      evented: false,
     });
 
     this.canvas.add(this.emptyStateGroup);
@@ -390,7 +390,7 @@ class CanvasManager {
       stroke: Config.COLORS.floorPlanStroke,
       strokeWidth: 2,
       selectable: false,
-      evented: false
+      evented: false,
     });
 
     // Create entry zone
@@ -428,7 +428,7 @@ class CanvasManager {
       strokeWidth: 2,
       selectable: false,
       evented: false,
-      opacity: showEntryBorder ? 1 : 0
+      opacity: showEntryBorder ? 1 : 0,
     });
 
     // Add entry zone label with rotation for vertical positions
@@ -445,7 +445,7 @@ class CanvasManager {
       angle: labelAngle,
       selectable: false,
       evented: false,
-      opacity: showEntryLabel ? 0.8 : 0
+      opacity: showEntryLabel ? 0.8 : 0,
     });
 
     this.canvas.add(this.floorPlanRect);
@@ -489,7 +489,7 @@ class CanvasManager {
         strokeWidth: isMajor ? 1.25 : 0.5,
         opacity: isMajor ? 0.35 : 0.18,
         selectable: false,
-        evented: false
+        evented: false,
       });
       this.gridLines.push(line);
       this.canvas.add(line);
@@ -503,7 +503,7 @@ class CanvasManager {
         strokeWidth: isMajor ? 1.25 : 0.5,
         opacity: isMajor ? 0.35 : 0.18,
         selectable: false,
-        evented: false
+        evented: false,
       });
       this.gridLines.push(line);
       this.canvas.add(line);
@@ -515,8 +515,17 @@ class CanvasManager {
   /**
    * Center and fit floor plan in viewport
    * Sets auto-fit mode flag
+   * If no dimensions provided, uses stored floor plan dimensions
    */
   centerAndFit(width, height) {
+    // If no dimensions provided, use stored floor plan dimensions
+    if (width === undefined || height === undefined) {
+      width = this.floorPlanWidth;
+      height = this.floorPlanHeight;
+    }
+
+    if (!width || !height) return; // No floor plan to center
+
     const canvasWidth = this.canvas.getWidth();
     const canvasHeight = this.canvas.getHeight();
 
@@ -563,7 +572,7 @@ class CanvasManager {
           }
           this._swapGroupImage(group, img, itemData);
         },
-        { crossOrigin: 'anonymous' }
+        { crossOrigin: 'anonymous' },
       );
     }
 
@@ -588,7 +597,7 @@ class CanvasManager {
       stroke: '#333',
       strokeWidth: 2,
       rx: 4,
-      ry: 4
+      ry: 4,
     });
 
     // Create label at center
@@ -603,8 +612,8 @@ class CanvasManager {
       originY: 'center',
       shadow: new fabric.Shadow({
         color: 'rgba(0,0,0,0.5)',
-        blur: 3
-      })
+        blur: 3,
+      }),
     });
 
     // Group rectangle and label together with CENTER origin
@@ -635,8 +644,8 @@ class CanvasManager {
         color: 'rgba(0,0,0,0.3)',
         blur: 10,
         offsetX: 2,
-        offsetY: 2
-      })
+        offsetY: 2,
+      }),
     });
 
     group.setControlsVisibility({
@@ -648,7 +657,7 @@ class CanvasManager {
       br: true,
       tl: true,
       tr: true,
-      mtr: true
+      mtr: true,
     });
 
     group.label = label;
@@ -683,7 +692,7 @@ class CanvasManager {
       left: -width / 2,
       top: -height / 2,
       originX: 'left',
-      originY: 'top'
+      originY: 'top',
     });
     img.scaleToWidth(width);
     img.scaleY = height / img.height;
@@ -734,7 +743,7 @@ class CanvasManager {
       format: 'png',
       quality: 1,
       multiplier: options.multiplier || 1,
-      ...options
+      ...options,
     });
   }
 
@@ -801,11 +810,11 @@ class CanvasManager {
     const canvas = this.canvas;
     const vpt = canvas.viewportTransform;
     const zoom = canvas.getZoom();
-    
+
     // Convert viewport center to canvas coordinates
     const centerX = (canvas.width / 2 - vpt[4]) / zoom;
     const centerY = (canvas.height / 2 - vpt[5]) / zoom;
-    
+
     return { x: centerX, y: centerY };
   }
 
@@ -952,6 +961,26 @@ class CanvasManager {
     if (this.entryZoneLabel) {
       this.entryZoneLabel.moveTo(3);
     }
+  }
+
+  /**
+   * Ensure static layers (floor plan, grid, entry zone) stay behind items
+   * Called after bring-front/send-back operations to prevent items from going behind floor plan
+   */
+  ensureStaticLayersBehind() {
+    if (!this.canvas) return;
+
+    const objects = this.canvas.getObjects();
+    const staticObjects = objects.filter(
+      (obj) =>
+        obj.customData?.isFloorPlan ||
+        obj.customData?.isGrid ||
+        obj.customData?.isEntryZone ||
+        obj.customData?.isEntryLabel,
+    );
+
+    staticObjects.forEach((obj) => obj.sendToBack());
+    this.canvas.renderAll();
   }
 }
 

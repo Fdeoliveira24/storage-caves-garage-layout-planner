@@ -43,7 +43,7 @@
   font-style: italic;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .info-bar {
     gap: 12px;
     padding: 8px 12px;

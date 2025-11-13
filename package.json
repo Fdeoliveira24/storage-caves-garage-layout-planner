@@ -1,0 +1,48 @@
+{
+  "name": "garage-layout-planner",
+  "version": "1.0.0",
+  "description": "Professional garage layout planner - vanilla JS, HTML5, CSS3",
+  "scripts": {
+    "format": "prettier \"**/*.{js,css,html,json,md}\" --write",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "css:lint": "stylelint \"**/*.css\"",
+    "css:fix": "stylelint \"**/*.css\" --fix",
+    "html:lint": "htmlhint **/*.html",
+    "types": "tsc --noEmit || true",
+    "dupes": "jscpd --reporters console --min-tokens 50 --pattern \"**/*.{js,css,html}\" --ignore \"**/dist/**,**/vendor/**\"",
+    "dead": "depcheck && unimported",
+    "test": "vitest run",
+    "spell": "cspell \"**/*.{js,css,html,md}\"",
+    "a11y": "pa11y http://localhost:5000/index.html || true",
+    "check": "npm run lint && npm run css:lint && npm run html:lint && npm run types && npm run dupes && npm run dead && npm run test && npm run spell"
+  },
+  "lint-staged": {
+    "*.{js,css,html,md,json}": [
+      "prettier --write"
+    ]
+  },
+  "type": "module",
+  "dependencies": {
+    "@types/node": "^24.10.1",
+    "cspell": "^9.3.1",
+    "depcheck": "^1.4.7",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "htmlhint": "^1.7.1",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.5",
+    "jsdom": "^27.2.0",
+    "lint-staged": "^16.2.6",
+    "pa11y": "^9.0.1",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.25.0",
+    "stylelint-config-standard": "^39.0.1",
+    "typescript": "^5.9.3",
+    "unimported": "^1.31.0",
+    "vitest": "^4.0.8"
+  }
+}
