@@ -14,6 +14,7 @@ class App {
     this.selectionManager = null;
     this.exportManager = null;
     this.historyManager = null;
+    this.mobileUIManager = null;
     this.autosaveInterval = null;
 
     // Cached DOM references for performance
@@ -54,8 +55,14 @@ class App {
     // Initialize UI
     this.initializeUI();
 
-    // Setup mobile/responsive features
-    this.setupMobileFeatures();
+    // Initialize modern mobile UI (NEW - replaces old mobile features)
+    if (window.MobileUIManager) {
+      this.mobileUIManager = new MobileUIManager(this);
+      this.mobileUIManager.init();
+    } else {
+      // Fallback to legacy mobile features if MobileUIManager not available
+      this.setupMobileFeatures();
+    }
 
     // Setup autosave
     this.setupAutosave();
