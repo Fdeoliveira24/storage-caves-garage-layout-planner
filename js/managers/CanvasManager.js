@@ -935,22 +935,6 @@ class CanvasManager {
       this.entryZoneLabel.moveTo(3);
     }
   }
-  
-  /**
-   * Resume canvas interactions (rebind Fabric.js pointer/touch events)
-   * Called when showing canvas on mobile after it was hidden
-   */
-  resumeInteractions() {
-    if (!this.canvas) return;
-    
-    // Rebind Fabric.js event listeners (private API, guarded)
-    this.canvas._removeEventListeners?.();
-    this.canvas._initEventListeners?.() || this.canvas._bindEvents?.();
-    
-    // Recalculate offsets and refresh
-    this.canvas.calcOffset();
-    this.canvas.requestRenderAll();
-  }
 }
 
 // Make available globally

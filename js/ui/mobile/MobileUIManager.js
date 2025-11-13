@@ -22,11 +22,9 @@ class MobileUIManager {
     this.historyManager = null;
     
     // Mobile state
-    this.activeTab = 'plans';
-    this.activeSubTab = 'floorplans';
+    this.activeTab = 'floorplans';
     this.isMobile = false;
     this.initialized = false;
-    this.isToolbarVisible = false;
     
     // Mobile containers
     this.mobileContainer = null;
@@ -91,10 +89,12 @@ class MobileUIManager {
     this.mobileContainer.id = 'mobile-ui-container';
     this.mobileContainer.className = 'mobile-ui-container';
     
-    // Mobile content area (Plans combines floor plans + items, no Saved tab)
+    // Mobile content area for floor plans and items
     this.mobileContainer.innerHTML = `
       <div id="mobile-content" class="mobile-content">
-        <div id="mobile-plans-view" class="mobile-view"></div>
+        <div id="mobile-floor-plans-view" class="mobile-view"></div>
+        <div id="mobile-items-view" class="mobile-view"></div>
+        <div id="mobile-saved-view" class="mobile-view"></div>
         <div id="mobile-more-view" class="mobile-view"></div>
       </div>
     `;
@@ -106,9 +106,6 @@ class MobileUIManager {
     
     // Create mobile toolbar (for canvas actions)
     this.createMobileToolbar();
-    
-    // Create canvas FAB toggle button
-    this.createCanvasFab();
   }
   
   /**
@@ -132,20 +129,33 @@ class MobileUIManager {
   }
   
   /**
-   * Create bottom tab navigation (3 tabs: Plans, Canvas, More)
+   * Create bottom tab navigation
    */
   createTabBar() {
     this.tabBar = document.createElement('nav');
     this.tabBar.id = 'mobile-tab-bar';
     this.tabBar.className = 'mobile-tab-bar';
     this.tabBar.innerHTML = `
-      <button class="mobile-tab mobile-tab-active" data-tab="plans">
+      <button class="mobile-tab mobile-tab-active" data-tab="floorplans">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <line x1="9" y1="3" x2="9" y2="21"/>
           <line x1="15" y1="3" x2="15" y2="21"/>
         </svg>
         <span>Plans</span>
+      </button>
+      <button class="mobile-tab" data-tab="items">
+        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Items</span>
+      </button>
+      <button class="mobile-tab" data-tab="saved">
+        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+        </svg>
+        <span>Saved</span>
       </button>
       <button class="mobile-tab" data-tab="canvas">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -234,56 +244,6 @@ class MobileUIManager {
   }
   
   /**
-   * Create FAB (Floating Action Button) to toggle canvas toolbar
-   */
-  createCanvasFab() {
-    const fab = document.createElement('button');
-    fab.id = 'mobile-canvas-fab';
-    fab.className = 'mobile-canvas-fab';
-    fab.style.display = 'none';
-    fab.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M8 12h8"/><path d="M12 8v8"/>
-      </svg>
-    `;
-    fab.addEventListener('click', () => this.toggleToolbar());
-    document.body.appendChild(fab);
-  }
-  
-  /**
-   * Toggle toolbar visibility
-   */
-  toggleToolbar() {
-    this.isToolbarVisible = !this.isToolbarVisible;
-    if (this.isToolbarVisible) {
-      this.mobileToolbar.classList.add('mobile-show-toolbar');
-    } else {
-      this.mobileToolbar.classList.remove('mobile-show-toolbar');
-    }
-  }
-  
-  /**
-   * Hide toolbar
-   */
-  hideToolbar() {
-    this.isToolbarVisible = false;
-    if (this.mobileToolbar) {
-      this.mobileToolbar.classList.remove('mobile-show-toolbar');
-    }
-  }
-  
-  /**
-   * Activate mobile canvas (rebind events and refresh)
-   */
-  activateMobileCanvas() {
-    if (!this.canvasManager) return;
-    
-    // Rebind Fabric.js pointer/touch events and refresh canvas
-    this.canvasManager.resumeInteractions();
-  }
-  
-  /**
    * Setup event listeners
    */
   setupEventListeners() {
@@ -317,7 +277,7 @@ class MobileUIManager {
   }
   
   /**
-   * Switch tabs (plans, canvas, more)
+   * Switch tabs
    */
   switchTab(tabName) {
     this.activeTab = tabName;
@@ -330,55 +290,35 @@ class MobileUIManager {
     // Toggle views via CSS classes
     const canvasWrapper = document.querySelector('.canvas-wrapper');
     const mobileContent = document.getElementById('mobile-content');
-    const canvasFab = document.getElementById('mobile-canvas-fab');
     
     if (tabName === 'canvas') {
       // Show canvas
       if (canvasWrapper) canvasWrapper.classList.add('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.remove('mobile-show-content');
-      if (canvasFab) canvasFab.style.display = 'flex';
-      
-      // Activate canvas after DOM update
-      setTimeout(() => {
-        this.activateMobileCanvas();
-      }, 100);
+      if (this.mobileToolbar) this.mobileToolbar.classList.add('mobile-show-toolbar');
     } else {
-      // Hide canvas and FAB
+      // Show mobile content area
       if (canvasWrapper) canvasWrapper.classList.remove('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.add('mobile-show-content');
-      if (canvasFab) canvasFab.style.display = 'none';
-      this.hideToolbar();
+      if (this.mobileToolbar) this.mobileToolbar.classList.remove('mobile-show-toolbar');
       
       // Show appropriate view
       const views = document.querySelectorAll('.mobile-view');
       views.forEach(v => v.classList.remove('mobile-view-active'));
       
-      if (tabName === 'plans') {
-        document.getElementById('mobile-plans-view')?.classList.add('mobile-view-active');
-        this.renderPlans();
+      if (tabName === 'floorplans') {
+        document.getElementById('mobile-floor-plans-view')?.classList.add('mobile-view-active');
+        this.renderFloorPlans();
+      } else if (tabName === 'items') {
+        document.getElementById('mobile-items-view')?.classList.add('mobile-view-active');
+        this.renderItems();
+      } else if (tabName === 'saved') {
+        document.getElementById('mobile-saved-view')?.classList.add('mobile-view-active');
+        this.renderSaved();
       } else if (tabName === 'more') {
         document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
         this.renderMore();
       }
-    }
-  }
-  
-  /**
-   * Switch sub-tabs within Plans (floorplans/items)
-   */
-  switchSubTab(subTabName) {
-    this.activeSubTab = subTabName;
-    
-    // Update sub-tab UI
-    document.querySelectorAll('.mobile-sub-tab').forEach(t => {
-      t.classList.toggle('mobile-sub-tab-active', t.dataset.subtab === subTabName);
-    });
-    
-    // Render appropriate content
-    if (subTabName === 'floorplans') {
-      this.renderFloorPlansContent();
-    } else if (subTabName === 'items') {
-      this.renderItemsContent();
     }
   }
   
@@ -392,62 +332,41 @@ class MobileUIManager {
       mobileContent.classList.add('mobile-show-content');
     }
     
-    // Render plans tab (default to floor plans sub-tab)
-    this.switchTab('plans');
+    // Render floor plans tab
+    this.switchTab('floorplans');
   }
   
   /**
-   * Render Plans view with sub-tabs (Floor Plans and Items)
+   * Render floor plans view
    */
-  renderPlans() {
-    const container = document.getElementById('mobile-plans-view');
+  renderFloorPlans() {
+    const container = document.getElementById('mobile-floor-plans-view');
     if (!container) return;
     
-    container.innerHTML = `
-      <div class="mobile-view-header">
-        <h2>Select Layout & Items</h2>
-        <div class="mobile-sub-tabs">
-          <button class="mobile-sub-tab ${this.activeSubTab === 'floorplans' ? 'mobile-sub-tab-active' : ''}" data-subtab="floorplans">Floor Plans</button>
-          <button class="mobile-sub-tab ${this.activeSubTab === 'items' ? 'mobile-sub-tab-active' : ''}" data-subtab="items">Items</button>
-        </div>
-      </div>
-      <div id="mobile-sub-content"></div>
-    `;
-    
-    // Setup sub-tab click handlers
-    container.querySelectorAll('.mobile-sub-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        this.switchSubTab(tab.dataset.subtab);
-      });
-    });
-    
-    // Render initial sub-tab content
-    if (this.activeSubTab === 'floorplans') {
-      this.renderFloorPlansContent();
-    } else {
-      this.renderItemsContent();
-    }
-  }
-  
-  /**
-   * Render floor plans content (no icons, just metadata)
-   */
-  renderFloorPlansContent() {
-    const subContent = document.getElementById('mobile-sub-content');
-    if (!subContent) return;
-    
+    // Get floor plans from manager (NOT window.FLOOR_PLANS)
     const floorPlans = this.floorPlanManager?.getAllFloorPlans() || [];
     const currentPlan = this.state.get('floorPlan');
     
-    subContent.innerHTML = `
+    container.innerHTML = `
+      <div class="mobile-view-header">
+        <h2>Floor Plans</h2>
+        <p>Select a garage layout</p>
+      </div>
       <div class="mobile-floor-plan-list">
         ${floorPlans.map(plan => `
           <button class="mobile-floor-plan-card ${currentPlan?.id === plan.id ? 'mobile-card-selected' : ''}" 
                   data-floor-plan-id="${plan.id}">
+            <div class="mobile-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+                <line x1="15" y1="3" x2="15" y2="21"/>
+              </svg>
+            </div>
             <h3>${plan.name}</h3>
             <div class="mobile-card-meta">
               <span>${plan.widthFt}' × ${plan.heightFt}'</span>
-              <span>Door: ${plan.description}</span>
+              <span>${plan.description}</span>
               <span>${plan.area} sq ft</span>
             </div>
           </button>
@@ -456,7 +375,7 @@ class MobileUIManager {
     `;
     
     // Setup floor plan click handlers
-    subContent.querySelectorAll('.mobile-floor-plan-card').forEach(card => {
+    container.querySelectorAll('.mobile-floor-plan-card').forEach(card => {
       card.addEventListener('click', () => {
         const planId = card.dataset.floorPlanId;
         this.selectFloorPlan(planId);
@@ -465,15 +384,20 @@ class MobileUIManager {
   }
   
   /**
-   * Render items content
+   * Render items view
    */
-  renderItemsContent() {
-    const subContent = document.getElementById('mobile-sub-content');
-    if (!subContent || !this.itemManager) return;
+  renderItems() {
+    const container = document.getElementById('mobile-items-view');
+    if (!container || !this.itemManager) return;
     
+    // Get items from Items.getAll() (loaded from js/data/items.js)
     const items = window.Items?.getAll() || [];
     
-    subContent.innerHTML = `
+    container.innerHTML = `
+      <div class="mobile-view-header">
+        <h2>Items</h2>
+        <p>Add items to your layout</p>
+      </div>
       <div class="mobile-item-list">
         ${items.map(item => `
           <button class="mobile-item-card" data-item-id="${item.id}">
@@ -488,10 +412,10 @@ class MobileUIManager {
     `;
     
     // Setup item click handlers
-    subContent.querySelectorAll('.mobile-item-card').forEach(card => {
+    container.querySelectorAll('.mobile-item-card').forEach(card => {
       card.addEventListener('click', () => {
         const itemId = card.dataset.itemId;
-        this.addItemCentered(itemId);
+        this.addItem(itemId);
       });
     });
   }
@@ -503,28 +427,12 @@ class MobileUIManager {
     const container = document.getElementById('mobile-more-view');
     if (!container) return;
     
-    const settings = this.state.get('settings') || {};
-    const layouts = window.Storage?.load(window.Config?.STORAGE_KEYS?.layouts) || [];
-    
     container.innerHTML = `
       <div class="mobile-view-header">
         <h2>Actions</h2>
         <p>Export and manage your layout</p>
       </div>
       <div class="mobile-more-list">
-        <button class="mobile-more-item" data-action="saved-layouts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-          </svg>
-          <span>Saved Layouts ${layouts.length > 0 ? `(${layouts.length})` : ''}</span>
-        </button>
-        <button class="mobile-more-item" data-action="rename-layout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-          <span>Rename Layout</span>
-        </button>
-        <div class="mobile-more-divider"></div>
         <button class="mobile-more-item" data-action="export-png">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -539,6 +447,12 @@ class MobileUIManager {
           </svg>
           <span>Export as PDF</span>
         </button>
+        <button class="mobile-more-item mobile-json-export" data-action="export-json">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+          </svg>
+          <span>Export as JSON</span>
+        </button>
         <button class="mobile-more-item" data-action="share-email">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -552,32 +466,11 @@ class MobileUIManager {
           </svg>
           <span>New Layout</span>
         </button>
-        <div class="mobile-more-divider"></div>
-        <div class="mobile-more-section-title">View Options</div>
-        <button class="mobile-more-item mobile-more-toggle ${settings.showGrid ? '' : 'mobile-toggle-off'}" data-action="toggle-grid">
-          <span>Show Grid</span>
-          <div class="mobile-toggle-switch"></div>
-        </button>
-        <button class="mobile-more-item mobile-more-toggle ${settings.showEntryZoneLabel ? '' : 'mobile-toggle-off'}" data-action="toggle-entry-label">
-          <span>Show Entry Label</span>
-          <div class="mobile-toggle-switch"></div>
-        </button>
-        <button class="mobile-more-item mobile-more-toggle ${settings.showEntryZoneBorder ? '' : 'mobile-toggle-off'}" data-action="toggle-entry-border">
-          <span>Show Entry Border</span>
-          <div class="mobile-toggle-switch"></div>
-        </button>
-        <div class="mobile-more-section-title">Entry Zone Position</div>
-        <div class="mobile-entry-zone-grid">
-          <button class="mobile-entry-zone-btn ${settings.entryZonePosition === 'bottom' ? 'mobile-entry-active' : ''}" data-action="entry-zone-bottom">Bottom</button>
-          <button class="mobile-entry-zone-btn ${settings.entryZonePosition === 'left' ? 'mobile-entry-active' : ''}" data-action="entry-zone-left">Left</button>
-          <button class="mobile-entry-zone-btn ${settings.entryZonePosition === 'right' ? 'mobile-entry-active' : ''}" data-action="entry-zone-right">Right</button>
-          <button class="mobile-entry-zone-btn ${settings.entryZonePosition === 'top' ? 'mobile-entry-active' : ''}" data-action="entry-zone-top">Top</button>
-        </div>
       </div>
     `;
     
     // Setup more item click handlers
-    container.querySelectorAll('.mobile-more-item, .mobile-entry-zone-btn').forEach(item => {
+    container.querySelectorAll('.mobile-more-item').forEach(item => {
       item.addEventListener('click', () => {
         this.handleMoreAction(item.dataset.action);
       });
@@ -661,20 +554,12 @@ class MobileUIManager {
   }
   
   /**
-   * Add item to canvas (centered)
+   * Add item to canvas
    */
-  addItemCentered(itemId) {
-    if (!this.itemManager || !this.canvasManager) return;
-    
-    const floorPlan = this.state.get('floorPlan');
-    if (!floorPlan) return;
-    
-    // Calculate center position
-    const centerX = (floorPlan.widthFt * 10) / 2;
-    const centerY = (floorPlan.heightFt * 10) / 2;
-    
-    // Add item at center
-    this.itemManager.addItem(itemId, centerX, centerY);
+  addItem(itemId) {
+    if (this.itemManager) {
+      this.itemManager.addItem(itemId);
+    }
   }
   
   /**
@@ -689,13 +574,7 @@ class MobileUIManager {
         this.canvasManager?.zoomOut();
         break;
       case 'fit-view':
-        // Fit and center floor plan
-        const floorPlan = this.state.get('floorPlan');
-        if (floorPlan && this.canvasManager) {
-          const width = floorPlan.widthFt * 10;
-          const height = floorPlan.heightFt * 10;
-          this.canvasManager.centerAndFit(width, height);
-        }
+        this.canvasManager?.resetViewport();
         break;
       case 'undo':
         this.historyManager?.undo();
@@ -724,111 +603,17 @@ class MobileUIManager {
   /**
    * Handle more menu actions
    */
-  async handleMoreAction(action) {
-    // Saved Layouts modal
-    if (action === 'saved-layouts') {
-      await this.showSavedLayoutsModal();
-      return;
-    }
-    
-    // Rename Layout
-    if (action === 'rename-layout') {
-      const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
-      const newName = await window.Modal?.showPrompt('Rename Project', 'Enter project name:', currentName);
-      if (newName && newName.trim()) {
-        this.app.updateProjectName?.(newName.trim());
-        window.Modal?.showSuccess('Project renamed successfully');
-      }
-      return;
-    }
-    
-    // View Options toggles
-    if (action === 'toggle-grid') {
-      this.state.setState({ settings: { ...this.state.get('settings'), showGrid: !this.state.get('settings.showGrid') } });
-      this.canvasManager?.toggleGrid();
-      this.renderMore();
-      return;
-    }
-    
-    if (action === 'toggle-entry-label') {
-      this.state.setState({ settings: { ...this.state.get('settings'), showEntryZoneLabel: !this.state.get('settings.showEntryZoneLabel') } });
-      this.canvasManager?.redrawFloorPlan();
-      this.renderMore();
-      return;
-    }
-    
-    if (action === 'toggle-entry-border') {
-      this.state.setState({ settings: { ...this.state.get('settings'), showEntryZoneBorder: !this.state.get('settings.showEntryZoneBorder') } });
-      this.canvasManager?.redrawFloorPlan();
-      this.renderMore();
-      return;
-    }
-    
-    // Entry Zone position
-    const entryZoneActions = {
-      'entry-zone-bottom': 'bottom',
-      'entry-zone-left': 'left',
-      'entry-zone-right': 'right',
-      'entry-zone-top': 'top'
-    };
-    
-    if (entryZoneActions[action]) {
-      this.state.setState({ settings: { ...this.state.get('settings'), entryZonePosition: entryZoneActions[action] } });
-      this.canvasManager?.redrawFloorPlan();
-      this.renderMore();
-      return;
-    }
-    
-    // Delegate to desktop buttons
-    const btnActions = {
+  handleMoreAction(action) {
+    const actions = {
       'export-png': '#btn-export-png',
       'export-pdf': '#btn-export-pdf',
+      'export-json': '#btn-export-json',
       'share-email': '#btn-share-email',
       'new': '#btn-new'
     };
     
-    const btn = document.querySelector(btnActions[action]);
+    const btn = document.querySelector(actions[action]);
     if (btn) btn.click();
-  }
-  
-  /**
-   * Show saved layouts modal
-   */
-  async showSavedLayoutsModal() {
-    const layouts = window.Storage?.load(window.Config?.STORAGE_KEYS?.layouts) || [];
-    
-    if (layouts.length === 0) {
-      await window.Modal?.showInfo('No Saved Layouts', 'You haven\'t saved any layouts yet. Create and save a layout from the More menu.');
-      return;
-    }
-    
-    const layoutsHtml = layouts.map(layout => `
-      <div class="mobile-saved-item" style="margin-bottom: 12px;">
-        <div style="flex: 1;">
-          <div style="font-weight: 600; margin-bottom: 4px;">${layout.name}</div>
-          <div style="font-size: 12px; color: #666;">${new Date(layout.created).toLocaleDateString()}</div>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn-secondary" onclick="window.mobileUI_loadLayout('${layout.id}')">Load</button>
-          <button class="btn-danger" onclick="window.mobileUI_deleteLayout('${layout.id}')">Delete</button>
-        </div>
-      </div>
-    `).join('');
-    
-    // Set up global helpers for modal buttons
-    window.mobileUI_loadLayout = (id) => {
-      this.app.loadLayout?.(id);
-      document.querySelector('.modal')?.remove();
-    };
-    window.mobileUI_deleteLayout = async (id) => {
-      const confirmed = await window.Modal?.showConfirm('Delete Layout?', 'Are you sure you want to delete this layout?');
-      if (confirmed) {
-        this.app.deleteLayout?.(id);
-        document.querySelector('.modal')?.remove();
-      }
-    };
-    
-    await window.Modal?.showInfo('Saved Layouts', layoutsHtml);
   }
   
   /**
