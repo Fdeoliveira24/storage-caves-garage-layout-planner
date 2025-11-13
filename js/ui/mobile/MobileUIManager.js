@@ -847,13 +847,7 @@ class MobileUIManager {
    */
   async handleMoreAction(action) {
     if (action === 'save-layout') {
-      try {
-        await this.app.saveLayout();
-        // Switch to canvas after successful save
-        this.switchTab('canvas');
-      } catch (error) {
-        console.error('Save layout error:', error);
-      }
+      await this.saveMobileLayout();
       return;
     }
 
@@ -949,6 +943,61 @@ class MobileUIManager {
       this.init();
     } else if (!e.matches && this.initialized) {
       this.destroy();
+    }
+  }
+
+  /**
+   * Save layout (mobile-specific implementation)
+   */
+  async saveMobileLayout() {
+    // Check if storage is available
+    if (!window.StorageUtil?.isAvailable) {
+      window.Modal?.showError('Cannot save layout - persistent storage is not available in your browser');
+      return;
+    }
+
+    try {
+      // Close More menu BEFORE showing prompt to prevent z-index blocking
+      // Modal overlay (z-index 999) needs to be above More menu (z-index 1000)
+      this.switchTab('canvas');
+
+      // Small delay to ensure More menu animation completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Get layout name from user
+      const name = await window.Modal?.showPrompt('Save Layout', 'Enter layout name:');
+      if (!name || !name.trim()) {
+        // User cancelled or entered empty name - throw to trigger finally
+        throw new Error('Save cancelled');
+      }
+
+      const state = this.state.getState();
+      const layouts = window.StorageUtil.load(window.Config.STORAGE_KEYS.layouts) || [];
+
+      layouts.push({
+        id: window.Helpers.generateId('layout'),
+        name: name.trim(),
+        created: new Date().toISOString(),
+        state: state,
+        thumbnail: this.app.exportManager?.generateThumbnail() || null,
+      });
+
+      const saved = window.StorageUtil.save(window.Config.STORAGE_KEYS.layouts, layouts);
+      if (!saved) {
+        // Save failed - throw to trigger finally
+        window.Modal?.showError('Failed to save layout - storage error');
+        throw new Error('Save failed');
+      }
+
+      // Success! Show message and refresh list
+      window.Modal?.showSuccess('Layout saved successfully!');
+      this.app.renderSavedLayouts?.();
+      // Stay on canvas - user likely wants to continue working
+      
+    } catch (error) {
+      // Any cancellation, dismissal, or error - return to More menu
+      // This handles: cancel button, overlay click, back button, save errors
+      this.switchTab('more');
     }
   }
 
