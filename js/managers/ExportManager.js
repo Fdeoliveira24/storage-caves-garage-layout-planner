@@ -39,7 +39,7 @@ class ExportManager {
     };
 
     const json = JSON.stringify(exportData, null, 2);
-    const filename = `${state.metadata.projectName || 'layout'}-${Date.now()}.json`;
+    const filename = `${state.metadata.name || state.metadata.projectName || 'layout'}-${Date.now()}.json`;
 
     Helpers.downloadFile(json, filename, 'application/json');
     this.eventBus.emit('export:json:complete', filename);
@@ -68,7 +68,8 @@ class ExportManager {
     }
 
     // Format: "Project Name_YYYY-MM-DD_Buford-GA.png"
-    const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+    const metadata = this.state.get('metadata') || {};
+    const projectName = metadata.name || metadata.projectName || 'Untitled Layout';
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const filename = `${projectName}_${date}_Buford-GA.png`;
 
@@ -193,7 +194,8 @@ class ExportManager {
     pdf.setFontSize(16);
     pdf.setFont(undefined, 'bold');
     pdf.setTextColor(40);
-    const title = this.state.get('metadata.projectName') || 'Garage Layout Plan';
+    const metadata = this.state.get('metadata') || {};
+    const title = metadata.name || metadata.projectName || 'Garage Layout Plan';
     pdf.text(title, margin, margin + 8);
 
     pdf.setFontSize(9);
@@ -228,7 +230,8 @@ class ExportManager {
 
     // Save
     // Format: "Project Name_YYYY-MM-DD.pdf"
-    const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+    const metadataForPdf = this.state.get('metadata') || {};
+    const projectName = metadataForPdf.name || metadataForPdf.projectName || 'Untitled Layout';
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const filename = `${projectName}_${date}_Buford-GA.pdf`;
     pdf.save(filename);
