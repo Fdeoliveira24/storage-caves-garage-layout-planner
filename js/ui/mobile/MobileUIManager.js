@@ -303,7 +303,7 @@ class MobileUIManager {
     if (projectName) {
       // Update from state
       const metadata = this.state.get('metadata') || {};
-      projectName.textContent = metadata.name || 'Untitled Layout';
+      projectName.textContent = metadata.projectName || 'Untitled Layout';
 
       // Click to edit
       projectName.addEventListener('click', async () => {
@@ -311,10 +311,10 @@ class MobileUIManager {
         const newName = await window.Modal?.showPrompt(
           'Rename Layout',
           'Enter a name for your layout:',
-          currentMetadata.name || 'Untitled Layout',
+          currentMetadata.projectName || 'Untitled Layout',
         );
         if (newName && newName.trim()) {
-          this.state.set('metadata', { ...currentMetadata, name: newName.trim() });
+          this.state.set('metadata', { ...currentMetadata, projectName: newName.trim() });
           projectName.textContent = newName.trim();
         }
       });

@@ -1686,7 +1686,7 @@ class App {
     const doorInfo = doorWidth && doorHeight ? `${doorWidth}' × ${doorHeight}'` : 'N/A';
 
     // Create email content
-    const subject = encodeURIComponent(`Storage CavesGarage Layout: ${projectName}`);
+    const subject = encodeURIComponent(`Storage Caves Garage Layout: ${projectName}`);
 
     const layoutInfo = `
 Location: ${metadata.location || 'Buford, GA'}
