@@ -1,0 +1,196 @@
+/**
+ * Button Component System
+ * Modern, touch-optimized button variants
+ */
+
+/* === BASE BUTTON === */
+
+.btn-v3 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  
+  padding: var(--spacing-3) var(--spacing-4);
+  min-height: var(--mobile-touch-target);
+  
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  
+  border: none;
+  border-radius: var(--radius-lg);
+  
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  
+  transition: all var(--transition-base);
+  
+  /* Prevent text selection on double-tap */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-v3:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-v3:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* === PRIMARY BUTTON === */
+
+.btn-v3-primary {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500));
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-v3-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-700), var(--color-primary-600));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn-v3-primary:active {
+  background: var(--color-primary-800);
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+/* === SECONDARY BUTTON === */
+
+.btn-v3-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1.5px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-v3-secondary:hover {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-v3-secondary:active {
+  background-color: var(--color-gray-100);
+  transform: scale(0.98);
+}
+
+/* === GHOST BUTTON === */
+
+.btn-v3-ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-v3-ghost:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-text-primary);
+}
+
+.btn-v3-ghost:active {
+  background-color: var(--color-gray-200);
+}
+
+/* === ICON BUTTON === */
+
+.btn-v3-icon {
+  padding: var(--spacing-3);
+  min-width: var(--mobile-touch-target);
+  min-height: var(--mobile-touch-target);
+}
+
+.btn-v3-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* === ACCENT BUTTON === */
+
+.btn-v3-accent {
+  background: linear-gradient(135deg, var(--color-accent-600), var(--color-accent-500));
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-v3-accent:hover {
+  background: linear-gradient(135deg, var(--color-accent-700), var(--color-accent-600));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn-v3-accent:active {
+  background: var(--color-accent-800);
+  transform: translateY(0);
+}
+
+/* === DANGER BUTTON === */
+
+.btn-v3-danger {
+  background-color: var(--color-error-500);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-v3-danger:hover {
+  background-color: var(--color-error-600);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-v3-danger:active {
+  background-color: var(--color-error-700);
+}
+
+/* === SIZE VARIANTS === */
+
+.btn-v3-sm {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+}
+
+.btn-v3-lg {
+  padding: var(--spacing-4) var(--spacing-6);
+  font-size: var(--font-size-lg);
+  min-height: 56px;
+}
+
+/* === FULL WIDTH === */
+
+.btn-v3-block {
+  width: 100%;
+}
+
+/* === LOADING STATE === */
+
+.btn-v3-loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn-v3-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
