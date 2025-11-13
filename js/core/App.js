@@ -76,8 +76,7 @@ class App {
     }
 
     // Sync project name from state to UI
-    const metadata = this.state.get('metadata') || {};
-    this.updateProjectName(metadata.name || metadata.projectName);
+    this.updateProjectName(this.state.get('metadata.projectName'));
 
     // Check entry zone violations after load
     this.checkEntryZoneViolations();
@@ -519,8 +518,7 @@ class App {
     const renameBtn = document.getElementById('btn-rename-project');
     if (renameBtn) {
       renameBtn.addEventListener('click', async () => {
-        const metadata = this.state.get('metadata') || {};
-        const currentName = metadata.name || metadata.projectName || 'Untitled Layout';
+        const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
         const newName = await Modal.showPrompt(
           'Rename Project',
           'Enter project name:',
@@ -876,9 +874,8 @@ class App {
     document.title = `${name} - Garage Layout Planner`;
 
     // Update state if different
-    const currentMetadata = this.state.get('metadata') || {};
-    if (currentMetadata.name !== name) {
-      this.state.set('metadata', { ...currentMetadata, name });
+    if (this.state.get('metadata.projectName') !== name) {
+      this.state.set('metadata.projectName', name);
     }
   }
 
@@ -1605,8 +1602,7 @@ class App {
       this.canvasManager.toggleItemLabels(showLabels);
 
       // Sync project name from loaded state to UI
-      const savedMetadata = savedState.metadata || {};
-      this.updateProjectName(savedMetadata.name || savedMetadata.projectName);
+      this.updateProjectName(savedState.metadata?.projectName);
 
       console.log('[App] Autosave loaded successfully: floor plan + ' + items.length + ' items');
       return true;
@@ -1674,7 +1670,7 @@ class App {
     const floorPlan = this.state.get('floorPlan');
     const items = this.state.get('items') || [];
     const metadata = this.state.get('metadata') || {};
-    const projectName = metadata.name || metadata.projectName || 'Untitled Layout';
+    const projectName = metadata.projectName || 'Untitled Layout';
 
     if (!floorPlan) {
       Modal.showError('Please select a floor plan first');
@@ -1690,7 +1686,7 @@ class App {
     const doorInfo = doorWidth && doorHeight ? `${doorWidth}' × ${doorHeight}'` : 'N/A';
 
     // Create email content
-    const subject = encodeURIComponent(`Storage Caves Garage Layout: ${projectName}`);
+    const subject = encodeURIComponent(`Storage CavesGarage Layout: ${projectName}`);
 
     const layoutInfo = `
 Location: ${metadata.location || 'Buford, GA'}
@@ -1810,8 +1806,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
       this.state.loadState(layout.state);
 
       // Update project name in UI and document title
-      const layoutMetadata = layout.state.metadata || {};
-      this.updateProjectName(layoutMetadata.name || layoutMetadata.projectName);
+      this.updateProjectName(layout.state.metadata?.projectName);
 
       // Sync view dropdown UI with loaded state
       this.syncViewDropdownUI();

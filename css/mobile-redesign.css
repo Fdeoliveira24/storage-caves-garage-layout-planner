@@ -150,31 +150,6 @@
   line-height: 1;
 }
 
-/* ===== MOBILE ACTION BUTTON (NON-TAB) ===== */
-
-.mobile-action-button {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  min-height: var(--mobile-touch-target);
-  padding: var(--spacing-sm) var(--spacing-xs);
-  background: none;
-  border: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: color var(--transition-fast);
-  position: relative;
-}
-
-.mobile-action-button:active {
-  color: var(--color-primary);
-}
-
 /* ===== MOBILE FAB CANVAS CONTROLS ===== */
 
 .mobile-fab {

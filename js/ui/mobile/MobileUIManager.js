@@ -170,12 +170,6 @@ class MobileUIManager {
         </svg>
         <span>Canvas</span>
       </button>
-      <button class="mobile-action-button" data-action="canvas-actions">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-        </svg>
-        <span>Actions</span>
-      </button>
       <button class="mobile-tab" data-tab="more">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -191,6 +185,15 @@ class MobileUIManager {
    * Create mobile toolbar for canvas actions
    */
   createMobileToolbar() {
+    const fab = document.createElement('button');
+    fab.id = 'mobile-fab';
+    fab.className = 'mobile-fab';
+    fab.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+    `;
+
     this.mobileToolbar = document.createElement('div');
     this.mobileToolbar.id = 'mobile-action-panel';
     this.mobileToolbar.className = 'mobile-action-panel';
@@ -255,11 +258,16 @@ class MobileUIManager {
       </div>
     `;
 
+    fab.addEventListener('click', () => {
+      this.mobileToolbar.classList.toggle('mobile-action-panel-open');
+    });
+
     const closeBtn = this.mobileToolbar.querySelector('.mobile-action-close');
     closeBtn.addEventListener('click', () => {
       this.mobileToolbar.classList.remove('mobile-action-panel-open');
     });
 
+    document.body.appendChild(fab);
     document.body.appendChild(this.mobileToolbar);
   }
 
@@ -412,12 +420,6 @@ class MobileUIManager {
       return;
     }
 
-    // Handle canvas actions button
-    if (tab.dataset.action === 'canvas-actions') {
-      this.mobileToolbar?.classList.toggle('mobile-action-panel-open');
-      return;
-    }
-
     const tabName = tab.dataset.tab;
     if (tabName) {
       this.switchTab(tabName);
@@ -428,14 +430,11 @@ class MobileUIManager {
    * Switch tabs
    */
   switchTab(tabName) {
-    // Update bottom tab bar active states (skip Actions button since it's not a tab)
+    // Update bottom tab bar active states
     const tabs = this.tabBar?.querySelectorAll('.mobile-tab');
     tabs?.forEach((t) => {
       t.classList.toggle('mobile-tab-active', t.dataset.tab === tabName);
     });
-
-    // Close action panel when switching tabs
-    this.mobileToolbar?.classList.remove('mobile-action-panel-open');
 
     // Get key elements
     const canvasWrapper = document.querySelector('.canvas-wrapper');
@@ -884,9 +883,10 @@ class MobileUIManager {
 
     switch (action) {
       case 'toggle-grid':
+        settings.showGrid = !settings.showGrid;
+        this.state.set('settings', settings);
         if (this.canvasManager && this.canvasManager.toggleGrid) {
           this.canvasManager.toggleGrid();
-          this.renderMore();
         }
         this.switchTab('canvas');
         break;
