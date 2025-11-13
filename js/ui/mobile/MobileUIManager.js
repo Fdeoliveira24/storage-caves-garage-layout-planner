@@ -247,21 +247,15 @@ class MobileUIManager {
     
     if (zoomIn) {
       zoomIn.addEventListener('click', () => {
-        const canvas = this.app.canvasManager.getCanvas();
-        const currentZoom = canvas.getZoom();
-        const newZoom = Math.min(currentZoom + 0.1, 2);
-        canvas.setZoom(newZoom);
-        canvas.requestRenderAll();
+        const currentZoom = this.app.canvasManager.getCanvas().getZoom();
+        this.app.canvasManager.setZoom(Math.min(currentZoom + 0.1, 2));
       });
     }
     
     if (zoomOut) {
       zoomOut.addEventListener('click', () => {
-        const canvas = this.app.canvasManager.getCanvas();
-        const currentZoom = canvas.getZoom();
-        const newZoom = Math.max(currentZoom - 0.1, 0.1);
-        canvas.setZoom(newZoom);
-        canvas.requestRenderAll();
+        const currentZoom = this.app.canvasManager.getCanvas().getZoom();
+        this.app.canvasManager.setZoom(Math.max(currentZoom - 0.1, 0.1));
       });
     }
     
@@ -539,7 +533,7 @@ class MobileUIManager {
     const container = document.getElementById('mobile-item-list');
     if (!container) return;
     
-    const allItems = Items.getAll();
+    const allItems = Items.getAllItems();
     const query = this.mobileState.searchQuery.toLowerCase();
     const category = this.mobileState.activeCategory;
     
@@ -571,15 +565,18 @@ class MobileUIManager {
       return;
     }
     
-    container.innerHTML = filteredItems.map(item => `
+    container.innerHTML = filteredItems.map(item => {
+      const iconData = Icons.getIconData(item.icon);
+      return `
         <div class="mobile-item-card" data-id="${item.id}">
           <div class="mobile-item-card-icon">
-            <div style="width: 32px; height: 32px; background: ${item.color}; border-radius: var(--radius-sm);"></div>
+            ${iconData ? iconData : `<div style="width: 32px; height: 32px; background: ${item.color}; border-radius: 8px;"></div>`}
           </div>
           <div class="mobile-item-card-label">${item.label}</div>
           <div class="mobile-item-card-size">${item.lengthFt}' × ${item.widthFt}'</div>
         </div>
-      `).join('');
+      `;
+    }).join('');
     
     // Add click handlers
     container.querySelectorAll('.mobile-item-card').forEach(card => {
