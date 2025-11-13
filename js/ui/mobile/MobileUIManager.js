@@ -20,6 +20,7 @@ class MobileUIManager {
     this.itemManager = null;
     this.canvasManager = null;
     this.historyManager = null;
+    this.selectionManager = null;
 
     // Mobile state
     this.activeTab = 'canvas';
@@ -80,6 +81,7 @@ class MobileUIManager {
     this.itemManager = this.app.itemManager;
     this.canvasManager = this.app.canvasManager;
     this.historyManager = this.app.historyManager;
+    this.selectionManager = this.app.selectionManager;
   }
 
   /**
@@ -305,9 +307,6 @@ class MobileUIManager {
 
       // Click to edit
       projectName.addEventListener('click', async () => {
-        // Close top tabs first to prevent flicker
-        this.closeTopTabs();
-
         const currentMetadata = this.state.get('metadata') || {};
         const newName = await window.Modal?.showPrompt(
           'Rename Layout',
@@ -829,18 +828,14 @@ class MobileUIManager {
           });
         break;
       case 'bring-front':
-        this.canvasManager
-          ?.getCanvas()
-          ?.getActiveObjects()
-          .forEach((item) => item.bringToFront());
-        this.canvasManager?.ensureStaticLayersBehind();
+        if (this.selectionManager) {
+          this.selectionManager.bringToFront();
+        }
         break;
       case 'send-back':
-        this.canvasManager
-          ?.getCanvas()
-          ?.getActiveObjects()
-          .forEach((item) => item.sendToBack());
-        this.canvasManager?.ensureStaticLayersBehind();
+        if (this.selectionManager) {
+          this.selectionManager.sendToBack();
+        }
         break;
     }
     // Close action panel after action
@@ -852,8 +847,13 @@ class MobileUIManager {
    */
   async handleMoreAction(action) {
     if (action === 'save-layout') {
-      await this.app.saveLayout();
-      this.switchTab('canvas');
+      try {
+        await this.app.saveLayout();
+        // Switch to canvas after successful save
+        this.switchTab('canvas');
+      } catch (error) {
+        console.error('Save layout error:', error);
+      }
       return;
     }
 
@@ -866,7 +866,13 @@ class MobileUIManager {
     };
 
     const btn = document.querySelector(actions[action]);
-    if (btn) btn.click();
+    if (btn) {
+      btn.click();
+      // Switch to canvas after export actions
+      if (action.startsWith('export-')) {
+        this.switchTab('canvas');
+      }
+    }
   }
 
   /**

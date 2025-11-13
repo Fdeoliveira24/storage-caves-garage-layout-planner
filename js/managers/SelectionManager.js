@@ -290,6 +290,19 @@ class SelectionManager {
   bringToFront() {
     const selected = this.getSelection();
     selected.forEach((item) => item.bringToFront());
+    
+    // Ensure floor plan elements stay in correct order after bringing items forward
+    if (this.canvasManager.floorPlanRect) {
+      this.canvasManager.floorPlanRect.moveTo(0);
+    }
+    if (this.canvasManager.entryZoneRect) {
+      this.canvasManager.entryZoneRect.moveTo(1);
+    }
+    if (this.canvasManager.entryZoneLabel) {
+      this.canvasManager.entryZoneLabel.moveTo(2);
+    }
+    this.canvasManager.gridLines.forEach((line) => line.moveTo(3));
+    
     this.canvas.renderAll();
   }
 
