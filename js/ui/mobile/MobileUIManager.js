@@ -952,9 +952,9 @@ class MobileUIManager {
   async saveMobileLayout() {
     try {
       // Show one-time warning if storage is not fully persistent
-      if (window.StorageUtil && !window.StorageUtil.isPersistent && !window._storageWarningShown) {
+      if (window.Storage && !window.Storage.isPersistent && !window._storageWarningShown) {
         window._storageWarningShown = true;
-        const mode = window.StorageUtil.mode;
+        const mode = window.Storage.mode;
         if (mode === 'session') {
           window.Modal?.showInfo('Your layouts will be saved for this session, but will be cleared when you close this tab');
         } else if (mode === 'memory') {
@@ -977,7 +977,7 @@ class MobileUIManager {
       }
 
       const state = this.state.getState();
-      const layouts = window.StorageUtil.load(window.Config.STORAGE_KEYS.layouts) || [];
+      const layouts = window.Storage?.load(window.Config?.STORAGE_KEYS?.layouts) || [];
 
       layouts.push({
         id: window.Helpers.generateId('layout'),
@@ -987,7 +987,7 @@ class MobileUIManager {
         thumbnail: this.app.exportManager?.generateThumbnail() || null,
       });
 
-      const saved = window.StorageUtil.save(window.Config.STORAGE_KEYS.layouts, layouts);
+      const saved = window.Storage?.save(window.Config?.STORAGE_KEYS?.layouts, layouts);
       if (!saved) {
         // Save failed - throw to trigger catch
         window.Modal?.showError('Failed to save layout - storage error');
