@@ -21,6 +21,13 @@ class ItemManager {
       return null;
     }
 
+    // Default to viewport center if no position specified
+    if (x === undefined || y === undefined) {
+      const center = this.canvasManager.getViewportCenter();
+      x = center.x;
+      y = center.y;
+    }
+
     // Create unique item data - preserve template id as itemId
     const itemData = {
       ...itemTemplate,

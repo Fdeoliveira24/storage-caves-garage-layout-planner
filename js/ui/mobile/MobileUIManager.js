@@ -188,68 +188,89 @@ class MobileUIManager {
    * Create mobile toolbar for canvas actions
    */
   createMobileToolbar() {
+    const fab = document.createElement('button');
+    fab.id = 'mobile-fab';
+    fab.className = 'mobile-fab';
+    fab.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+    `;
+    
     this.mobileToolbar = document.createElement('div');
-    this.mobileToolbar.id = 'mobile-toolbar';
-    this.mobileToolbar.className = 'mobile-toolbar';
+    this.mobileToolbar.id = 'mobile-action-panel';
+    this.mobileToolbar.className = 'mobile-action-panel';
     this.mobileToolbar.innerHTML = `
-      <div class="mobile-toolbar-row">
-        <button class="mobile-tool-btn" data-action="zoom-out" title="Zoom Out">
+      <div class="mobile-action-panel-header">
+        <h3>Canvas Actions</h3>
+        <button class="mobile-action-close" aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <button class="mobile-tool-btn" data-action="zoom-in" title="Zoom In">
+      </div>
+      <div class="mobile-action-panel-grid">
+        <button class="mobile-action-btn" data-action="zoom-in">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
           </svg>
+          <span>Zoom In</span>
         </button>
-        <button class="mobile-tool-btn" data-action="fit-view" title="Fit to View">
+        <button class="mobile-action-btn" data-action="zoom-out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+          <span>Zoom Out</span>
+        </button>
+        <button class="mobile-action-btn" data-action="fit-view">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
           </svg>
+          <span>Fit View</span>
         </button>
-      </div>
-      <div class="mobile-toolbar-row">
-        <button class="mobile-tool-btn" data-action="undo" title="Undo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
-          </svg>
-        </button>
-        <button class="mobile-tool-btn" data-action="redo" title="Redo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
-          </svg>
-        </button>
-        <button class="mobile-tool-btn" data-action="rotate" title="Rotate 90°">
+        <button class="mobile-action-btn" data-action="rotate">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
           </svg>
+          <span>Rotate</span>
         </button>
-        <button class="mobile-tool-btn" data-action="duplicate" title="Duplicate">
+        <button class="mobile-action-btn" data-action="duplicate">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
           </svg>
+          <span>Duplicate</span>
         </button>
-      </div>
-      <div class="mobile-toolbar-row">
-        <button class="mobile-tool-btn" data-action="bring-front" title="Bring to Front">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
-          </svg>
-        </button>
-        <button class="mobile-tool-btn" data-action="send-back" title="Send to Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
-          </svg>
-        </button>
-        <button class="mobile-tool-btn mobile-tool-danger" data-action="delete" title="Delete">
+        <button class="mobile-action-btn" data-action="delete">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
           </svg>
+          <span>Delete</span>
+        </button>
+        <button class="mobile-action-btn" data-action="bring-front">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
+          </svg>
+          <span>Bring Front</span>
+        </button>
+        <button class="mobile-action-btn" data-action="send-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
+          </svg>
+          <span>Send Back</span>
         </button>
       </div>
     `;
     
+    fab.addEventListener('click', () => {
+      this.mobileToolbar.classList.toggle('mobile-action-panel-open');
+    });
+    
+    const closeBtn = this.mobileToolbar.querySelector('.mobile-action-close');
+    closeBtn.addEventListener('click', () => {
+      this.mobileToolbar.classList.remove('mobile-action-panel-open');
+    });
+    
+    document.body.appendChild(fab);
     document.body.appendChild(this.mobileToolbar);
   }
   
@@ -265,7 +286,7 @@ class MobileUIManager {
     // Toolbar actions
     if (this.mobileToolbar) {
       this.mobileToolbar.addEventListener('click', (e) => {
-        const btn = e.target.closest('.mobile-tool-btn');
+        const btn = e.target.closest('.mobile-action-btn');
         if (btn) this.handleToolAction(btn.dataset.action);
       });
     }
@@ -427,10 +448,8 @@ class MobileUIManager {
    * Handle new layout button click
    */
   handleNewLayout() {
-    if (confirm('Start a new layout? This will clear the current canvas.')) {
-      this.app.newLayout();
-      this.switchTab('canvas');
-    }
+    const btn = document.querySelector('#btn-new');
+    if (btn) btn.click();
   }
   
   /**
@@ -525,6 +544,13 @@ class MobileUIManager {
     const container = document.getElementById('mobile-more-view');
     if (!container) return;
     
+    // Read current settings state
+    const settings = this.state.get('settings') || {};
+    const showGrid = settings.showGrid !== undefined ? settings.showGrid : true;
+    const showEntryZoneLabel = settings.showEntryZoneLabel !== undefined ? settings.showEntryZoneLabel : true;
+    const showEntryZoneBorder = settings.showEntryZoneBorder !== undefined ? settings.showEntryZoneBorder : true;
+    const entryZonePosition = settings.entryZonePosition || 'bottom';
+    
     container.innerHTML = `
       <div class="mobile-view-header">
         <h2>Actions</h2>
@@ -565,12 +591,54 @@ class MobileUIManager {
           <span>New Layout</span>
         </button>
       </div>
+      <div class="mobile-view-options">
+        <h3>View Options</h3>
+        <div class="mobile-view-options-group">
+          <h4>Display</h4>
+          <div class="mobile-view-options-toggles">
+            <button class="mobile-toggle-btn ${showGrid ? 'mobile-toggle-active' : ''}" data-action="toggle-grid">
+              <span>Grid</span>
+              ${showGrid ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <button class="mobile-toggle-btn ${showEntryZoneLabel ? 'mobile-toggle-active' : ''}" data-action="toggle-entry-label">
+              <span>Entry Label</span>
+              ${showEntryZoneLabel ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <button class="mobile-toggle-btn ${showEntryZoneBorder ? 'mobile-toggle-active' : ''}" data-action="toggle-entry-border">
+              <span>Entry Border</span>
+              ${showEntryZoneBorder ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+          </div>
+        </div>
+        <div class="mobile-view-options-group">
+          <h4>Entry Zone Position</h4>
+          <div class="mobile-view-options-positions">
+            <button class="mobile-position-btn ${entryZonePosition === 'bottom' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="bottom">Bottom</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'left' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="left">Left</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'right' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="right">Right</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'top' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="top">Top</button>
+          </div>
+        </div>
+      </div>
     `;
     
     // Setup more item click handlers
     container.querySelectorAll('.mobile-more-item').forEach(item => {
       item.addEventListener('click', () => {
         this.handleMoreAction(item.dataset.action);
+      });
+    });
+    
+    // Setup View Options handlers
+    container.querySelectorAll('.mobile-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.handleViewOptionToggle(btn.dataset.action);
+      });
+    });
+    
+    container.querySelectorAll('.mobile-position-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.handleEntryPositionChange(btn.dataset.position);
       });
     });
   }
@@ -715,6 +783,59 @@ class MobileUIManager {
     
     const btn = document.querySelector(actions[action]);
     if (btn) btn.click();
+  }
+  
+  /**
+   * Handle View Options toggle actions
+   */
+  handleViewOptionToggle(action) {
+    const settings = this.state.get('settings') || {};
+    
+    switch (action) {
+      case 'toggle-grid':
+        settings.showGrid = !settings.showGrid;
+        this.state.set('settings', settings);
+        if (this.canvasManager && this.canvasManager.toggleGrid) {
+          this.canvasManager.toggleGrid();
+        }
+        this.switchTab('canvas');
+        break;
+        
+      case 'toggle-entry-label':
+        settings.showEntryZoneLabel = !settings.showEntryZoneLabel;
+        this.state.set('settings', settings);
+        this.redrawFloorPlan();
+        this.switchTab('canvas');
+        break;
+        
+      case 'toggle-entry-border':
+        settings.showEntryZoneBorder = !settings.showEntryZoneBorder;
+        this.state.set('settings', settings);
+        this.redrawFloorPlan();
+        this.switchTab('canvas');
+        break;
+    }
+  }
+  
+  /**
+   * Handle Entry Zone position change
+   */
+  handleEntryPositionChange(position) {
+    const settings = this.state.get('settings') || {};
+    settings.entryZonePosition = position;
+    this.state.set('settings', settings);
+    this.redrawFloorPlan();
+    this.switchTab('canvas');
+  }
+  
+  /**
+   * Redraw floor plan
+   */
+  redrawFloorPlan() {
+    const floorPlan = this.state.get('floorPlan');
+    if (floorPlan && this.canvasManager && this.canvasManager.drawFloorPlan) {
+      this.canvasManager.drawFloorPlan(floorPlan);
+    }
   }
   
   /**

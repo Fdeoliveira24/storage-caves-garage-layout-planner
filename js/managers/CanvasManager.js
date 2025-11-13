@@ -794,6 +794,22 @@ class CanvasManager {
   }
 
   /**
+   * Get viewport center in canvas coordinates
+   * Accounts for zoom and pan transformations
+   */
+  getViewportCenter() {
+    const canvas = this.canvas;
+    const vpt = canvas.viewportTransform;
+    const zoom = canvas.getZoom();
+    
+    // Convert viewport center to canvas coordinates
+    const centerX = (canvas.width / 2 - vpt[4]) / zoom;
+    const centerY = (canvas.height / 2 - vpt[5]) / zoom;
+    
+    return { x: centerX, y: centerY };
+  }
+
+  /**
    * Zoom in
    */
   zoomIn() {
@@ -802,6 +818,7 @@ class CanvasManager {
     zoom = Math.min(zoom * 1.1, 2); // Max 200%
 
     canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+    canvas.requestRenderAll();
 
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
@@ -818,6 +835,7 @@ class CanvasManager {
     zoom = Math.max(zoom / 1.1, 0.1); // Min 10%
 
     canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+    canvas.requestRenderAll();
 
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
