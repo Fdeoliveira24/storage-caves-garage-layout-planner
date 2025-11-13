@@ -66,6 +66,11 @@ class Modal {
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
 
+      // Preserve scroll position before locking body
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.classList.add('modal-open');
+
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.innerHTML = `
@@ -86,11 +91,36 @@ class Modal {
       document.body.appendChild(overlay);
 
       const input = modal.querySelector('.modal-input');
+      
+      // Mobile keyboard detection
+      const handleInputFocus = () => {
+        // Add keyboard-aware styling when input is focused on mobile
+        if (window.innerWidth <= 767) {
+          overlay.classList.add('modal-overlay--keyboard');
+        }
+      };
+
+      const handleInputBlur = () => {
+        // Remove keyboard styling when input loses focus
+        overlay.classList.remove('modal-overlay--keyboard');
+      };
+
+      input.addEventListener('focus', handleInputFocus);
+      input.addEventListener('blur', handleInputBlur);
+
       input.focus();
       input.select();
 
       const handleClose = (value) => {
         document.removeEventListener('keydown', keyHandler);
+        input.removeEventListener('focus', handleInputFocus);
+        input.removeEventListener('blur', handleInputBlur);
+        
+        // Restore scroll position
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, scrollY);
+        
         overlay.remove();
         resolve(value);
       };

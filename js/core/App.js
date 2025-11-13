@@ -1771,18 +1771,9 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
 
   /**
    * Load a saved layout
-   */
-  /**
-   * Load a saved layout
    * Validates data and resets viewport
    */
   async loadLayout(layoutId) {
-    // Check if storage is available
-    if (!StorageUtil.isAvailable) {
-      Modal.showError('Cannot load layout - persistent storage is not available in your browser');
-      return;
-    }
-
     try {
       const layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
       const layout = layouts.find((l) => l.id === layoutId);
@@ -1798,8 +1789,6 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
       );
 
       if (!confirmed) return;
-
-      // [App] Loading layout: id
 
       // Validate layout data
       if (!layout.state || !layout.state.floorPlan) {
@@ -1838,21 +1827,24 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
    * Delete a saved layout
    */
   deleteLayout(layoutId) {
-    // Check if storage is available
-    if (!StorageUtil.isAvailable) {
-      Modal.showError('Cannot delete layout - persistent storage is not available in your browser');
-      return;
-    }
+    try {
+      let layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
+      layouts = layouts.filter((l) => l.id !== layoutId);
+      const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
 
-    let layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
-    layouts = layouts.filter((l) => l.id !== layoutId);
-    const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
-
-    if (saved) {
-      this.renderSavedLayouts();
-      Modal.showSuccess('Layout deleted');
-    } else {
-      Modal.showError('Failed to delete layout - storage error');
+      if (saved) {
+        // Update both desktop and mobile saved lists
+        this.renderSavedLayouts();
+        if (this.mobileUIManager) {
+          this.mobileUIManager.renderSaved();
+        }
+        Modal.showSuccess('Layout deleted');
+      } else {
+        Modal.showError('Failed to delete layout - storage error');
+      }
+    } catch (error) {
+      console.error('[App] Failed to delete layout:', error);
+      Modal.showError('Failed to delete layout');
     }
   }
 }
