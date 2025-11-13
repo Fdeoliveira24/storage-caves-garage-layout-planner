@@ -326,6 +326,7 @@ class MobileUIManager {
         const topTabsSheet = document.getElementById('mobile-top-tabs');
         if (topTabsSheet) {
           topTabsSheet.classList.remove('mobile-top-tabs-closed');
+          this.topTabOpen = true;
         }
         this.switchTopTab(this.lastTopTab || 'floorplans');
       });
@@ -735,30 +736,47 @@ class MobileUIManager {
   handleToolAction(action) {
     switch (action) {
       case 'zoom-in':
-        this.canvasManager.zoomIn();
+        this.canvasManager?.zoomIn();
         break;
       case 'zoom-out':
-        this.canvasManager.zoomOut();
+        this.canvasManager?.zoomOut();
         break;
       case 'fit-view':
-        this.canvasManager.resetViewport();
+        this.canvasManager?.resetViewport();
         break;
       case 'rotate':
-        this.app.rotateSelection();
+        const selection = this.canvasManager?.getCanvas()?.getActiveObjects() || [];
+        selection.forEach(item => {
+          const currentAngle = item.angle || 0;
+          item.rotate(currentAngle + 90);
+        });
+        this.canvasManager?.getCanvas()?.renderAll();
         break;
       case 'duplicate':
-        this.app.duplicateSelection();
+        this.canvasManager?.getCanvas()?.getActiveObjects().forEach(item => {
+          if (item.customData?.id) {
+            this.itemManager?.duplicateItem(item.customData.id);
+          }
+        });
         break;
       case 'delete':
-        this.app.deleteSelection();
+        this.canvasManager?.getCanvas()?.getActiveObjects().forEach(item => {
+          if (item.customData?.id) {
+            this.itemManager?.removeItem(item.customData.id);
+          }
+        });
         break;
       case 'bring-front':
-        this.app.bringToFront();
+        this.canvasManager?.getCanvas()?.getActiveObjects().forEach(item => item.bringToFront());
+        this.canvasManager?.getCanvas()?.renderAll();
         break;
       case 'send-back':
-        this.app.sendToBack();
+        this.canvasManager?.getCanvas()?.getActiveObjects().forEach(item => item.sendToBack());
+        this.canvasManager?.getCanvas()?.renderAll();
         break;
     }
+    // Close action panel after action
+    this.mobileToolbar?.classList.remove('mobile-action-panel-open');
   }
   
   /**

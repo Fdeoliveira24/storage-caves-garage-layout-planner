@@ -820,11 +820,19 @@
   color: var(--color-text-primary);
 }
 
-.mobile-toggle-group {
-  display: flex;
-  flex-direction: column;
+.mobile-toggle-group,
+.mobile-view-options-toggles {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
+}
+
+.mobile-view-options-group h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
 }
 
 .mobile-toggle-btn {
@@ -863,7 +871,8 @@
   opacity: 1;
 }
 
-.mobile-position-group {
+.mobile-position-group,
+.mobile-view-options-positions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-sm);
