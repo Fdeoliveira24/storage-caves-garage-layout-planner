@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Garage Layout Planner - Modern Mobile UI Mockup</title>
+  <style>
+    /* ================================
+       MODERN DESIGN SYSTEM
+       Fresh, vibrant, app-like experience
+       ================================ */
+    
+    :root {
+      /* Primary Brand Colors - More vibrant */
+      --color-primary: #5B7FFF;
+      --color-primary-hover: #4A6EEE;
+      --color-primary-light: #EEF2FF;
+      --color-primary-dark: #3D5ACC;
+      
+      /* Accent Colors - Energetic */
+      --color-accent: #FF6B9D;
+      --color-accent-light: #FFE8F0;
+      --color-success: #10B981;
+      --color-warning: #FF9F43;
+      --color-danger: #FF5252;
+      --color-info: #00C7F2;
+      
+      /* Neutral Palette - Clean & Modern */
+      --color-bg: #F8F9FC;
+      --color-bg-panel: #FFFFFF;
+      --color-bg-secondary: #F1F3F9;
+      --color-bg-hover: #E8EAEF;
+      --color-bg-active: #DFE1E6;
+      --color-bg-elevated: #FFFFFF;
+      
+      /* Text - Strong Hierarchy */
+      --color-text: #1A1D29;
+      --color-text-secondary: #6B7280;
+      --color-text-tertiary: #9CA3AF;
+      --color-text-disabled: #D1D5DB;
+      --color-text-inverse: #FFFFFF;
+      
+      /* Borders - Softer */
+      --color-border: #E5E7EB;
+      --color-border-light: #F3F4F6;
+      --color-border-focus: #5B7FFF;
+      
+      /* Shadows - More pronounced */
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+      --shadow-floating: 0 8px 32px rgba(91, 127, 255, 0.12);
+      
+      /* Border Radius - More rounded */
+      --radius-xs: 6px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      
+      /* Spacing */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-xl: 24px;
+      --spacing-2xl: 32px;
+      
+      /* Typography */
+      --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      --font-size-xs: 11px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 17px;
+      --font-size-xl: 20px;
+      
+      /* Animations */
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    /* ================================
+       GLOBAL STYLES
+       ================================ */
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: var(--font-family);
+      background: var(--color-bg);
+      color: var(--color-text);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* ================================
+       APP LAYOUT
+       ================================ */
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for mobile */
+    }
+    
+    /* ================================
+       MODERN HEADER
+       ================================ */
+    
+    .header {
+      background: var(--color-bg-panel);
+      border-bottom: 1px solid var(--color-border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    
+    .menu-btn:active {
+      background: var(--color-bg-hover);
+      transform: scale(0.95);
+    }
+    
+    .menu-btn svg {
+      width: 22px;
+      height: 22px;
+      color: var(--color-text);
+    }
+    
+    .project-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .project-name {
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      color: var(--color-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .project-subtitle {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+      margin-top: 2px;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    
+    .icon-btn:active {
+      background: var(--color-bg-hover);
+      transform: scale(0.95);
+    }
+    
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      color: var(--color-text-secondary);
+    }
+    
+    .icon-btn.primary {
+      background: var(--color-primary);
+    }
+    
+    .icon-btn.primary svg {
+      color: var(--color-text-inverse);
+    }
+    
+    .icon-btn.primary:active {
+      background: var(--color-primary-hover);
+    }
+    
+    /* Badge for warnings/notifications */
+    .badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      background: var(--color-warning);
+      border: 2px solid var(--color-bg-panel);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    
+    /* ================================
+       CANVAS AREA
+       ================================ */
+    
+    .canvas-area {
+      flex: 1;
+      background: var(--color-bg);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .canvas-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-tertiary);
+      padding: 24px;
+      background: 
+        linear-gradient(90deg, var(--color-border-light) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(var(--color-border-light) 1px, transparent 1px) 0 0 / 20px 20px;
+    }
+    
+    .canvas-placeholder svg {
+      width: 64px;
+      height: 64px;
+      color: var(--color-text-disabled);
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .canvas-placeholder h3 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .canvas-placeholder p {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-tertiary);
+      text-align: center;
+    }
+    
+    /* ================================
+       FLOATING ACTION BUTTON (FAB)
+       ================================ */
+    
+    .fab-container {
+      position: absolute;
+      bottom: 80px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 50;
+    }
+    
+    .fab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      background: var(--color-bg-panel);
+      border: none;
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+    
+    .fab:active {
+      transform: scale(0.92);
+    }
+    
+    .fab.primary {
+      background: var(--color-primary);
+      box-shadow: var(--shadow-floating);
+    }
+    
+    .fab svg {
+      width: 24px;
+      height: 24px;
+      color: var(--color-text);
+    }
+    
+    .fab.primary svg {
+      color: var(--color-text-inverse);
+    }
+    
+    /* ================================
+       MODERN BOTTOM TOOLBAR
+       ================================ */
+    
+    .bottom-toolbar {
+      background: var(--color-bg-panel);
+      border-top: 1px solid var(--color-border);
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      position: relative;
+      z-index: 100;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .toolbar-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+      min-height: 56px;
+    }
+    
+    .toolbar-btn:active {
+      background: var(--color-bg-hover);
+      transform: scale(0.95);
+    }
+    
+    .toolbar-btn.active {
+      background: var(--color-primary-light);
+    }
+    
+    .toolbar-btn.active .toolbar-icon {
+      color: var(--color-primary);
+    }
+    
+    .toolbar-btn.active .toolbar-label {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+    
+    .toolbar-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--color-text-secondary);
+      transition: color var(--transition-fast);
+    }
+    
+    .toolbar-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color var(--transition-fast);
+    }
+    
+    /* Primary action button in toolbar */
+    .toolbar-btn.primary {
+      background: var(--color-primary);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .toolbar-btn.primary:active {
+      background: var(--color-primary-hover);
+    }
+    
+    .toolbar-btn.primary .toolbar-icon {
+      color: var(--color-text-inverse);
+    }
+    
+    .toolbar-btn.primary .toolbar-label {
+      color: var(--color-text-inverse);
+    }
+    
+    /* Ripple effect */
+    .toolbar-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    
+    .toolbar-btn:active::before {
+      opacity: 1;
+    }
+    
+    /* ================================
+       MOBILE DRAWER (Sidebar)
+       ================================ */
+    
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-base);
+      z-index: 200;
+    }
+    
+    .drawer-backdrop.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 85%;
+      max-width: 320px;
+      background: var(--color-bg-panel);
+      transform: translateX(-100%);
+      transition: transform var(--transition-base);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .drawer.active {
+      transform: translateX(0);
+    }
+    
+    .drawer-header {
+      padding: 20px 16px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .drawer-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    
+    .drawer-close {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    
+    .drawer-close:active {
+      background: var(--color-bg-hover);
+    }
+    
+    .drawer-close svg {
+      width: 20px;
+      height: 20px;
+      color: var(--color-text-secondary);
+    }
+    
+    .drawer-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 12px;
+      background: var(--color-bg-secondary);
+    }
+    
+    .drawer-tab {
+      flex: 1;
+      padding: 14px 12px;
+      background: none;
+      border: none;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    
+    .drawer-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      background: var(--color-bg-panel);
+    }
+    
+    .drawer-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .drawer-section {
+      padding: 16px;
+    }
+    
+    /* ================================
+       FLOOR PLAN CARDS
+       ================================ */
+    
+    .floor-plans-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 16px;
+    }
+    
+    .floor-plan-card {
+      background: var(--color-bg-panel);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .floor-plan-card:active {
+      transform: scale(0.97);
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .floor-plan-card.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .floor-plan-preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .floor-plan-preview svg {
+      width: 48px;
+      height: 48px;
+      color: var(--color-text-tertiary);
+      opacity: 0.5;
+    }
+    
+    .floor-plan-name {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+    
+    .floor-plan-dimensions {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+    }
+    
+    .check-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0);
+      transition: all var(--transition-bounce);
+    }
+    
+    .floor-plan-card.selected .check-badge {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    .check-badge svg {
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+    
+    /* ================================
+       ITEM PALETTE
+       ================================ */
+    
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 16px;
+    }
+    
+    .item-card {
+      background: var(--color-bg-panel);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-height: 90px;
+      position: relative;
+    }
+    
+    .item-card:active {
+      transform: scale(0.97);
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+    
+    .item-icon {
+      width: 40px;
+      height: 40px;
+      color: var(--color-text-secondary);
+    }
+    
+    .item-label {
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      color: var(--color-text);
+      text-align: center;
+      line-height: 1.3;
+    }
+    
+    .item-dimensions {
+      font-size: 10px;
+      color: var(--color-text-tertiary);
+      text-align: center;
+    }
+    
+    /* ================================
+       BOTTOM SHEET
+       ================================ */
+    
+    .bottom-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-base);
+      z-index: 300;
+    }
+    
+    .bottom-sheet-backdrop.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--color-bg-panel);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      transform: translateY(100%);
+      transition: transform var(--transition-base);
+      z-index: 301;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .bottom-sheet.active {
+      transform: translateY(0);
+    }
+    
+    .bottom-sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--color-border);
+      border-radius: 2px;
+      margin: 12px auto 8px;
+    }
+    
+    .bottom-sheet-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    
+    .bottom-sheet-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    
+    .bottom-sheet-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .sheet-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    
+    .sheet-option:active {
+      background: var(--color-bg-hover);
+    }
+    
+    .sheet-option:last-child {
+      border-bottom: none;
+    }
+    
+    .sheet-option-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .sheet-option-icon svg {
+      width: 24px;
+      height: 24px;
+      color: var(--color-primary);
+    }
+    
+    .sheet-option-content {
+      flex: 1;
+    }
+    
+    .sheet-option-title {
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 2px;
+    }
+    
+    .sheet-option-subtitle {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-tertiary);
+    }
+    
+    .sheet-option-arrow {
+      width: 20px;
+      height: 20px;
+      color: var(--color-text-tertiary);
+      flex-shrink: 0;
+    }
+    
+    /* ================================
+       TOAST NOTIFICATIONS
+       ================================ */
+    
+    .toast {
+      position: fixed;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      left: 16px;
+      right: 16px;
+      background: var(--color-text);
+      color: var(--color-text-inverse);
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 400;
+      transform: translateY(120%);
+      transition: transform var(--transition-base);
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+    }
+    
+    .toast-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--color-text-inverse);
+      flex-shrink: 0;
+    }
+    
+    .toast-message {
+      flex: 1;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+    }
+    
+    .toast-action {
+      background: none;
+      border: none;
+      color: var(--color-accent);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Success variant */
+    .toast.success {
+      background: var(--color-success);
+    }
+    
+    /* Warning variant */
+    .toast.warning {
+      background: var(--color-warning);
+    }
+    
+    /* Error variant */
+    .toast.error {
+      background: var(--color-danger);
+    }
+  </style>
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <button class="menu-btn" onclick="toggleDrawer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+        <div class="project-info">
+          <div class="project-name">My Dream Garage</div>
+          <div class="project-subtitle">24' × 20' • 3 items</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+        <button class="icon-btn">
+          <span class="badge"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+          </svg>
+        </button>
+        <button class="icon-btn primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+    
+    <!-- Canvas Area -->
+    <main class="canvas-area">
+      <div class="canvas-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+        </svg>
+        <h3>Start Your Design</h3>
+        <p>Select a floor plan from the menu to begin</p>
+      </div>
+      
+      <!-- Floating Action Buttons -->
+      <div class="fab-container">
+        <button class="fab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+        <button class="fab primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+        </button>
+      </div>
+    </main>
+    
+    <!-- Bottom Toolbar -->
+    <nav class="bottom-toolbar">
+      <button class="toolbar-btn active">
+        <svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+        </svg>
+        <span class="toolbar-label">Select</span>
+      </button>
+      
+      <button class="toolbar-btn">
+        <svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        <span class="toolbar-label">Add</span>
+      </button>
+      
+      <button class="toolbar-btn primary" onclick="showBottomSheet()">
+        <svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+        <span class="toolbar-label">Actions</span>
+      </button>
+      
+      <button class="toolbar-btn">
+        <svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+        </svg>
+        <span class="toolbar-label">More</span>
+      </button>
+      
+      <button class="toolbar-btn">
+        <svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <path d="M9 22V12h6v10"/>
+        </svg>
+        <span class="toolbar-label">Export</span>
+      </button>
+    </nav>
+    
+  </div>
+  
+  <!-- Drawer Backdrop -->
+  <div class="drawer-backdrop" onclick="toggleDrawer()"></div>
+  
+  <!-- Drawer (Sidebar) -->
+  <aside class="drawer">
+    <div class="drawer-header">
+      <h2 class="drawer-title">Floor Plans & Items</h2>
+      <button class="drawer-close" onclick="toggleDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="drawer-tabs">
+      <button class="drawer-tab active">Floor Plans</button>
+      <button class="drawer-tab">Items</button>
+      <button class="drawer-tab">Saved</button>
+    </div>
+    
+    <div class="drawer-content">
+      <div class="floor-plans-grid">
+        <div class="floor-plan-card selected">
+          <div class="check-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="floor-plan-preview">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h16v16H4z"/>
+            </svg>
+          </div>
+          <div class="floor-plan-name">Standard 2-Car</div>
+          <div class="floor-plan-dimensions">24' × 20'</div>
+        </div>
+        
+        <div class="floor-plan-card">
+          <div class="check-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="floor-plan-preview">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h16v16H4z"/>
+            </svg>
+          </div>
+          <div class="floor-plan-name">Extended 2-Car</div>
+          <div class="floor-plan-dimensions">24' × 24'</div>
+        </div>
+        
+        <div class="floor-plan-card">
+          <div class="check-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="floor-plan-preview">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h24v16H4z"/>
+            </svg>
+          </div>
+          <div class="floor-plan-name">3-Car Tandem</div>
+          <div class="floor-plan-dimensions">36' × 20'</div>
+        </div>
+        
+        <div class="floor-plan-card">
+          <div class="check-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="floor-plan-preview">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h16v16H4z"/>
+            </svg>
+          </div>
+          <div class="floor-plan-name">Workshop</div>
+          <div class="floor-plan-dimensions">30' × 30'</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Bottom Sheet Backdrop -->
+  <div class="bottom-sheet-backdrop" onclick="hideBottomSheet()"></div>
+  
+  <!-- Bottom Sheet -->
+  <div class="bottom-sheet">
+    <div class="bottom-sheet-handle"></div>
+    <div class="bottom-sheet-header">
+      <h3 class="bottom-sheet-title">Quick Actions</h3>
+    </div>
+    <div class="bottom-sheet-content">
+      <button class="sheet-option">
+        <div class="sheet-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div class="sheet-option-content">
+          <div class="sheet-option-title">Add Item</div>
+          <div class="sheet-option-subtitle">Place a new item on canvas</div>
+        </div>
+        <svg class="sheet-option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      
+      <button class="sheet-option">
+        <div class="sheet-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+          </svg>
+        </div>
+        <div class="sheet-option-content">
+          <div class="sheet-option-title">Duplicate</div>
+          <div class="sheet-option-subtitle">Copy selected items</div>
+        </div>
+        <svg class="sheet-option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      
+      <button class="sheet-option">
+        <div class="sheet-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45z"/>
+          </svg>
+        </div>
+        <div class="sheet-option-content">
+          <div class="sheet-option-title">Rotate 90°</div>
+          <div class="sheet-option-subtitle">Rotate selected items</div>
+        </div>
+        <svg class="sheet-option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      
+      <button class="sheet-option">
+        <div class="sheet-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </div>
+        <div class="sheet-option-content">
+          <div class="sheet-option-title">Delete</div>
+          <div class="sheet-option-subtitle">Remove selected items</div>
+        </div>
+        <svg class="sheet-option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      
+      <button class="sheet-option">
+        <div class="sheet-option-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+        </div>
+        <div class="sheet-option-content">
+          <div class="sheet-option-title">Export Layout</div>
+          <div class="sheet-option-subtitle">Save as PNG or PDF</div>
+        </div>
+        <svg class="sheet-option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Toast Notification (hidden by default) -->
+  <div class="toast success" style="display: none;">
+    <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span class="toast-message">Layout saved successfully!</span>
+    <button class="toast-action">UNDO</button>
+  </div>
+  
+  <script>
+    // Drawer toggle
+    function toggleDrawer() {
+      const drawer = document.querySelector('.drawer');
+      const backdrop = document.querySelector('.drawer-backdrop');
+      drawer.classList.toggle('active');
+      backdrop.classList.toggle('active');
+    }
+    
+    // Bottom sheet toggle
+    function showBottomSheet() {
+      const sheet = document.querySelector('.bottom-sheet');
+      const backdrop = document.querySelector('.bottom-sheet-backdrop');
+      sheet.classList.add('active');
+      backdrop.classList.add('active');
+    }
+    
+    function hideBottomSheet() {
+      const sheet = document.querySelector('.bottom-sheet');
+      const backdrop = document.querySelector('.bottom-sheet-backdrop');
+      sheet.classList.remove('active');
+      backdrop.classList.remove('active');
+    }
+    
+    // Toast demo removed - interface is now always visible
+  </script>
+</body>
+</html>

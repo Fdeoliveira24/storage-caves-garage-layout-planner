@@ -1,18 +1,58 @@
 /**
- * Mobile Redesign - Professional UI for Touch Devices
- * Uses desktop design tokens for consistency
- * Only defines mobile-specific touch ergonomics
+ * Mobile Redesign - Modern, Vibrant, App-Like UI
+ * Fresh, energetic design for mobile touch experience
  */
 
 /* ========================================
-   MOBILE-SPECIFIC VARIABLES
+   MODERN MOBILE DESIGN SYSTEM
 ======================================== */
 :root {
-  /* Mobile Touch Metrics */
+  /* Mobile-Specific Vibrant Colors */
+  --mobile-primary: #5B7FFF;
+  --mobile-primary-hover: #4A6EEE;
+  --mobile-primary-light: #EEF2FF;
+  --mobile-primary-dark: #3D5ACC;
+  
+  /* Energetic Accents */
+  --mobile-accent: #FF6B9D;
+  --mobile-accent-light: #FFE8F0;
+  --mobile-success: #10B981;
+  --mobile-warning: #FF9F43;
+  
+  /* Clean Backgrounds */
+  --mobile-bg: #F8F9FC;
+  --mobile-bg-panel: #FFFFFF;
+  --mobile-bg-secondary: #F1F3F9;
+  --mobile-bg-hover: #E8EAEF;
+  
+  /* Text Hierarchy */
+  --mobile-text: #1A1D29;
+  --mobile-text-secondary: #6B7280;
+  --mobile-text-tertiary: #9CA3AF;
+  --mobile-text-inverse: #FFFFFF;
+  
+  /* Softer Borders */
+  --mobile-border: #E5E7EB;
+  --mobile-border-light: #F3F4F6;
+  
+  /* Pronounced Shadows */
+  --mobile-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+  --mobile-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --mobile-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --mobile-shadow-floating: 0 8px 32px rgba(91, 127, 255, 0.12);
+  
+  /* More Rounded Corners */
+  --mobile-radius-sm: 8px;
+  --mobile-radius-md: 12px;
+  --mobile-radius-lg: 16px;
+  --mobile-radius-xl: 24px;
+  --mobile-radius-full: 9999px;
+  
+  /* Touch Metrics */
   --mobile-safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --mobile-tab-bar-height: 64px;
+  --mobile-toolbar-height: 72px;
   --mobile-fab-size: 56px;
-  --mobile-touch-target: 48px;
+  --mobile-header-height: 56px;
 }
 
 /* ========================================
@@ -33,7 +73,7 @@
 }
 
 /* ========================================
-   MOBILE BOTTOM TAB NAVIGATION
+   MODERN BOTTOM TOOLBAR (Grid Layout)
 ======================================== */
 .mobile-tab-bar {
   display: none;
@@ -41,93 +81,117 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(var(--mobile-tab-bar-height) + var(--mobile-safe-area-bottom));
-  padding-bottom: var(--mobile-safe-area-bottom);
-  background: var(--color-bg-panel);
-  border-top: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
+  background: var(--mobile-bg-panel);
+  border-top: 1px solid var(--mobile-border);
+  padding: 8px 8px calc(8px + var(--mobile-safe-area-bottom));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
   z-index: 1000;
 }
 
 @media (max-width: 767px) {
   .mobile-tab-bar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
   }
 }
 
 .mobile-tab {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  height: var(--mobile-tab-bar-height);
-  color: var(--color-text-secondary);
+  gap: 4px;
+  padding: 10px 8px;
   background: transparent;
   border: none;
+  border-radius: var(--mobile-radius-md);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: all 150ms ease;
   -webkit-tap-highlight-color: transparent;
   position: relative;
+  min-height: 56px;
 }
 
-.mobile-tab svg {
-  width: 24px;
-  height: 24px;
-  transition: none;
-}
-
-.mobile-tab-label {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+.mobile-tab:active {
+  background: var(--mobile-bg-hover);
+  transform: scale(0.95);
 }
 
 .mobile-tab.active {
-  color: var(--color-primary);
+  background: var(--mobile-primary-light);
 }
 
-/* Active indicator - subtle 2px bar */
-.mobile-tab.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 2px;
-  background: var(--color-primary);
-  border-radius: var(--radius-xs);
+.mobile-tab.active .mobile-tab-icon {
+  color: var(--mobile-primary);
 }
 
-/* Touch press state */
-.mobile-tab:active {
-  opacity: 0.7;
+.mobile-tab.active .mobile-tab-label {
+  color: var(--mobile-primary);
+  font-weight: 600;
+}
+
+.mobile-tab-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--mobile-text-secondary);
+  transition: color 150ms ease;
+}
+
+.mobile-tab svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mobile-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--mobile-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 150ms ease;
+}
+
+/* Primary action button in toolbar */
+.mobile-tab.primary {
+  background: var(--mobile-primary);
+  border-radius: var(--mobile-radius-lg);
+}
+
+.mobile-tab.primary:active {
+  background: var(--mobile-primary-hover);
+}
+
+.mobile-tab.primary .mobile-tab-icon {
+  color: var(--mobile-text-inverse);
+}
+
+.mobile-tab.primary .mobile-tab-label {
+  color: var(--mobile-text-inverse);
+  font-weight: 600;
 }
 
 /* ========================================
-   FLOATING ACTION BUTTON (FAB)
+   FLOATING ACTION BUTTON (FAB) - Circular
 ======================================== */
 .mobile-fab {
   display: none;
   position: fixed;
-  bottom: calc(var(--mobile-tab-bar-height) + var(--mobile-safe-area-bottom) + var(--spacing-lg));
-  right: var(--spacing-lg);
+  bottom: calc(var(--mobile-toolbar-height) + var(--mobile-safe-area-bottom) + 16px);
+  right: 16px;
   width: var(--mobile-fab-size);
   height: var(--mobile-fab-size);
-  background: var(--color-primary);
+  background: var(--mobile-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--mobile-radius-full);
+  box-shadow: var(--mobile-shadow-floating);
   cursor: pointer;
   z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -143,8 +207,17 @@
 }
 
 .mobile-fab:active {
-  opacity: 0.9;
-  transform: translateY(1px);
+  transform: scale(0.92);
+  box-shadow: 0 4px 12px rgba(91, 127, 255, 0.2);
+}
+
+.mobile-fab.secondary {
+  background: var(--mobile-bg-panel);
+  box-shadow: var(--mobile-shadow-lg);
+}
+
+.mobile-fab.secondary svg {
+  color: var(--mobile-text);
 }
 
 /* FAB with menu */
@@ -292,61 +365,61 @@
 }
 
 .mobile-floor-plan-card {
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
+  background: var(--mobile-bg-panel);
+  border: 1px solid var(--mobile-border);
+  border-radius: var(--mobile-radius-lg);
+  padding: 20px;
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all 250ms ease;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--mobile-shadow-sm);
 }
 
 .mobile-floor-plan-card:active {
-  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .mobile-floor-plan-card.active {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: var(--mobile-primary);
+  background: var(--mobile-primary-light);
+  box-shadow: 0 0 0 3px rgba(91, 127, 255, 0.1);
 }
 
 .mobile-floor-plan-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 12px;
 }
 
 .mobile-floor-plan-card-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mobile-text);
   margin: 0;
 }
 
 .mobile-floor-plan-card-badge {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  background: var(--mobile-primary);
+  color: var(--mobile-text-inverse);
+  padding: 6px 12px;
+  border-radius: var(--mobile-radius-md);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .mobile-floor-plan-card-details {
   display: flex;
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-md);
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .mobile-floor-plan-card-detail {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: 6px;
+  color: var(--mobile-text-secondary);
+  font-size: 13px;
 }
 
 .mobile-floor-plan-card-detail svg {
@@ -365,24 +438,24 @@
 }
 
 .mobile-item-card {
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
+  background: var(--mobile-bg-panel);
+  border: 1px solid var(--mobile-border);
+  border-radius: var(--mobile-radius-lg);
+  padding: 16px;
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all 250ms ease;
   -webkit-tap-highlight-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   min-height: 120px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--mobile-shadow-sm);
 }
 
 .mobile-item-card:active {
-  opacity: 0.9;
-  border-color: var(--color-primary);
+  transform: scale(0.95);
+  border-color: var(--mobile-primary);
 }
 
 .mobile-item-card-icon {
@@ -433,36 +506,37 @@
 }
 
 .mobile-category-chip {
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  background: var(--mobile-bg-panel);
+  border: 1px solid var(--mobile-border);
+  color: var(--mobile-text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--mobile-radius-xl);
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-category-chip.active {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: var(--mobile-primary);
+  border-color: var(--mobile-primary);
+  color: var(--mobile-text-inverse);
+  font-weight: 600;
 }
 
 .mobile-category-chip:active {
-  opacity: 0.8;
+  transform: scale(0.95);
 }
 
 /* ========================================
    MOBILE SEARCH BAR
 ======================================== */
 .mobile-search-bar {
-  padding: var(--spacing-lg);
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
+  padding: 16px;
+  background: var(--mobile-bg);
+  border-bottom: 1px solid var(--mobile-border);
 }
 
 .mobile-search-input-wrapper {
