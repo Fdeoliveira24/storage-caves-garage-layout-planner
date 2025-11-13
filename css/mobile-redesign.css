@@ -561,3 +561,174 @@
 .mobile-json-export {
   display: none !important;
 }
+
+/* ===== PROJECT HEADER ===== */
+
+.mobile-project-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: calc(var(--z-toolbar) + 1);
+  padding: 0 var(--spacing-lg);
+}
+
+.mobile-menu-btn {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-menu-btn:active {
+  background: var(--color-bg-secondary);
+  transform: scale(0.95);
+}
+
+.mobile-project-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+  flex: 1;
+  text-align: center;
+}
+
+.mobile-project-name:active {
+  background: var(--color-bg-secondary);
+}
+
+/* ===== TOP TAB STRIP ===== */
+
+.mobile-top-tabs {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
+  background: var(--color-bg);
+  z-index: var(--z-toolbar);
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-top-tabs.mobile-top-tabs-closed {
+  transform: translateX(-100%);
+}
+
+.mobile-top-tabs-strip {
+  display: flex;
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0;
+}
+
+.mobile-top-tab {
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-sm);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mobile-top-tab.mobile-top-tab-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.mobile-top-tabs-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--spacing-lg);
+}
+
+/* ===== BOTTOM NAV 3-BUTTON LAYOUT ===== */
+
+@media (max-width: 767px) {
+  .mobile-tab-bar {
+    justify-content: space-between;
+    padding: 0 var(--spacing-xl) var(--mobile-safe-area-bottom) var(--spacing-xl);
+  }
+  
+  .mobile-tab {
+    flex: 0 1 auto;
+    min-width: 70px;
+  }
+  
+  .mobile-tab-canvas {
+    position: relative;
+  }
+  
+  .mobile-tab-canvas::before {
+    width: 40px;
+  }
+}
+
+/* ===== FLOOR PLAN CARDS (NO ICONS) ===== */
+
+.mobile-floor-plan-card .mobile-card-icon {
+  display: none;
+}
+
+.mobile-floor-plan-card h3 {
+  margin-top: 0;
+}
+
+.mobile-floor-plan-card {
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+/* ===== ITEM CARDS (SINGLE BACKGROUND) ===== */
+
+.mobile-item-card {
+  background: var(--color-bg-elevated);
+}
+
+.mobile-card-image {
+  width: 100%;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mobile-card-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

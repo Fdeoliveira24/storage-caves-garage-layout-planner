@@ -22,9 +22,11 @@ class MobileUIManager {
     this.historyManager = null;
     
     // Mobile state
-    this.activeTab = 'floorplans';
+    this.activeTab = 'canvas';
     this.isMobile = false;
     this.initialized = false;
+    this.topTabOpen = false;
+    this.lastTopTab = 'floorplans';
     
     // Mobile containers
     this.mobileContainer = null;
@@ -89,12 +91,29 @@ class MobileUIManager {
     this.mobileContainer.id = 'mobile-ui-container';
     this.mobileContainer.className = 'mobile-ui-container';
     
-    // Mobile content area for floor plans and items
+    // Mobile content area with project header and top tabs
     this.mobileContainer.innerHTML = `
+      <div id="mobile-project-header" class="mobile-project-header">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" title="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <h1 id="mobile-project-name" class="mobile-project-name">Untitled Layout</h1>
+      </div>
+      <div id="mobile-top-tabs" class="mobile-top-tabs">
+        <div class="mobile-top-tabs-strip">
+          <button class="mobile-top-tab mobile-top-tab-active" data-top-tab="floorplans">Floor Plans</button>
+          <button class="mobile-top-tab" data-top-tab="items">Items</button>
+          <button class="mobile-top-tab" data-top-tab="saved">Saved</button>
+        </div>
+        <div class="mobile-top-tabs-content">
+          <div id="mobile-floor-plans-view" class="mobile-view mobile-view-active"></div>
+          <div id="mobile-items-view" class="mobile-view"></div>
+          <div id="mobile-saved-view" class="mobile-view"></div>
+        </div>
+      </div>
       <div id="mobile-content" class="mobile-content">
-        <div id="mobile-floor-plans-view" class="mobile-view"></div>
-        <div id="mobile-items-view" class="mobile-view"></div>
-        <div id="mobile-saved-view" class="mobile-view"></div>
         <div id="mobile-more-view" class="mobile-view"></div>
       </div>
     `;
@@ -104,8 +123,14 @@ class MobileUIManager {
     // Create bottom tab bar
     this.createTabBar();
     
-    // Create mobile toolbar (for canvas actions)
+    // Create mobile toolbar (for canvas actions - now will be FAB)
     this.createMobileToolbar();
+    
+    // Setup project name editing
+    this.setupProjectName();
+    
+    // Setup top tab listeners
+    this.setupTopTabs();
   }
   
   /**
@@ -136,28 +161,13 @@ class MobileUIManager {
     this.tabBar.id = 'mobile-tab-bar';
     this.tabBar.className = 'mobile-tab-bar';
     this.tabBar.innerHTML = `
-      <button class="mobile-tab mobile-tab-active" data-tab="floorplans">
+      <button class="mobile-tab" data-action="new-layout">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <line x1="9" y1="3" x2="9" y2="21"/>
-          <line x1="15" y1="3" x2="15" y2="21"/>
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        <span>Plans</span>
+        <span>New</span>
       </button>
-      <button class="mobile-tab" data-tab="items">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        <span>Items</span>
-      </button>
-      <button class="mobile-tab" data-tab="saved">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-        </svg>
-        <span>Saved</span>
-      </button>
-      <button class="mobile-tab" data-tab="canvas">
+      <button class="mobile-tab mobile-tab-active mobile-tab-canvas" data-tab="canvas">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
         </svg>
@@ -266,14 +276,115 @@ class MobileUIManager {
   }
   
   /**
+   * Setup project name editing
+   */
+  setupProjectName() {
+    const projectName = document.getElementById('mobile-project-name');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    
+    if (projectName) {
+      // Update from state
+      const metadata = this.state.get('metadata') || {};
+      projectName.textContent = metadata.name || 'Untitled Layout';
+      
+      // Click to edit
+      projectName.addEventListener('click', () => {
+        const currentMetadata = this.state.get('metadata') || {};
+        const currentName = currentMetadata.name || 'Untitled Layout';
+        const newName = prompt('Enter project name:', currentName);
+        if (newName && newName.trim()) {
+          this.state.set('metadata', { ...currentMetadata, name: newName.trim() });
+          projectName.textContent = newName.trim();
+        }
+      });
+    }
+    
+    // Menu button to open top tabs
+    if (menuBtn) {
+      menuBtn.addEventListener('click', () => {
+        this.switchTopTab(this.lastTopTab || 'floorplans');
+      });
+    }
+  }
+  
+  /**
+   * Setup top tab strip listeners
+   */
+  setupTopTabs() {
+    const topTabsStrip = document.querySelector('.mobile-top-tabs-strip');
+    if (!topTabsStrip) return;
+    
+    topTabsStrip.addEventListener('click', (e) => {
+      const tab = e.target.closest('.mobile-top-tab');
+      if (!tab) return;
+      
+      const tabName = tab.dataset.topTab;
+      this.switchTopTab(tabName);
+    });
+  }
+  
+  /**
+   * Switch top tabs (Floor Plans / Items / Saved)
+   */
+  switchTopTab(tabName) {
+    this.lastTopTab = tabName;
+    
+    // Update tab active state
+    document.querySelectorAll('.mobile-top-tab').forEach(t => {
+      t.classList.toggle('mobile-top-tab-active', t.dataset.topTab === tabName);
+    });
+    
+    // Update views
+    const views = document.querySelectorAll('#mobile-top-tabs .mobile-view');
+    views.forEach(v => v.classList.remove('mobile-view-active'));
+    
+    if (tabName === 'floorplans') {
+      document.getElementById('mobile-floor-plans-view')?.classList.add('mobile-view-active');
+      this.renderFloorPlans();
+    } else if (tabName === 'items') {
+      document.getElementById('mobile-items-view')?.classList.add('mobile-view-active');
+      this.renderItems();
+    } else if (tabName === 'saved') {
+      document.getElementById('mobile-saved-view')?.classList.add('mobile-view-active');
+      this.renderSaved();
+    }
+    
+    // Open top tabs sheet (remove closed class)
+    const topTabsSheet = document.getElementById('mobile-top-tabs');
+    if (topTabsSheet) {
+      topTabsSheet.classList.remove('mobile-top-tabs-closed');
+      this.topTabOpen = true;
+    }
+  }
+  
+  /**
+   * Close top tabs sheet (slide left animation)
+   */
+  closeTopTabs() {
+    const topTabsSheet = document.getElementById('mobile-top-tabs');
+    if (topTabsSheet) {
+      topTabsSheet.classList.add('mobile-top-tabs-closed');
+      this.topTabOpen = false;
+    }
+  }
+  
+  /**
    * Handle tab click
    */
   handleTabClick(e) {
     const tab = e.target.closest('.mobile-tab');
     if (!tab) return;
     
+    // Handle new layout action
+    if (tab.dataset.action === 'new-layout') {
+      this.handleNewLayout();
+      return;
+    }
+    
     const tabName = tab.dataset.tab;
-    this.switchTab(tabName);
+    if (tabName) {
+      this.switchTab(tabName);
+    }
   }
   
   /**
@@ -290,35 +401,35 @@ class MobileUIManager {
     // Toggle views via CSS classes
     const canvasWrapper = document.querySelector('.canvas-wrapper');
     const mobileContent = document.getElementById('mobile-content');
+    const topTabStrip = document.getElementById('mobile-top-tabs');
     
     if (tabName === 'canvas') {
-      // Show canvas
+      // Show canvas, hide top tabs and More view
       if (canvasWrapper) canvasWrapper.classList.add('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.remove('mobile-show-content');
-      if (this.mobileToolbar) this.mobileToolbar.classList.add('mobile-show-toolbar');
-    } else {
-      // Show mobile content area
+      if (topTabStrip) topTabStrip.classList.add('mobile-top-tabs-closed');
+      this.topTabOpen = false;
+    } else if (tabName === 'more') {
+      // Show More view, hide canvas and top tabs
       if (canvasWrapper) canvasWrapper.classList.remove('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.add('mobile-show-content');
-      if (this.mobileToolbar) this.mobileToolbar.classList.remove('mobile-show-toolbar');
+      if (topTabStrip) topTabStrip.classList.add('mobile-top-tabs-closed');
+      this.topTabOpen = false;
       
-      // Show appropriate view
       const views = document.querySelectorAll('.mobile-view');
       views.forEach(v => v.classList.remove('mobile-view-active'));
-      
-      if (tabName === 'floorplans') {
-        document.getElementById('mobile-floor-plans-view')?.classList.add('mobile-view-active');
-        this.renderFloorPlans();
-      } else if (tabName === 'items') {
-        document.getElementById('mobile-items-view')?.classList.add('mobile-view-active');
-        this.renderItems();
-      } else if (tabName === 'saved') {
-        document.getElementById('mobile-saved-view')?.classList.add('mobile-view-active');
-        this.renderSaved();
-      } else if (tabName === 'more') {
-        document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
-        this.renderMore();
-      }
+      document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
+      this.renderMore();
+    }
+  }
+  
+  /**
+   * Handle new layout button click
+   */
+  handleNewLayout() {
+    if (confirm('Start a new layout? This will clear the current canvas.')) {
+      this.app.newLayout();
+      this.switchTab('canvas');
     }
   }
   
@@ -326,14 +437,8 @@ class MobileUIManager {
    * Render initial tab
    */
   renderInitialTab() {
-    // Show mobile content area
-    const mobileContent = document.getElementById('mobile-content');
-    if (mobileContent) {
-      mobileContent.classList.add('mobile-show-content');
-    }
-    
-    // Render floor plans tab
-    this.switchTab('floorplans');
+    // Open top tabs by default and render floor plans
+    this.switchTopTab('floorplans');
   }
   
   /**
@@ -356,17 +461,10 @@ class MobileUIManager {
         ${floorPlans.map(plan => `
           <button class="mobile-floor-plan-card ${currentPlan?.id === plan.id ? 'mobile-card-selected' : ''}" 
                   data-floor-plan-id="${plan.id}">
-            <div class="mobile-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <line x1="9" y1="3" x2="9" y2="21"/>
-                <line x1="15" y1="3" x2="15" y2="21"/>
-              </svg>
-            </div>
             <h3>${plan.name}</h3>
             <div class="mobile-card-meta">
               <span>${plan.widthFt}' × ${plan.heightFt}'</span>
-              <span>${plan.description}</span>
+              <span>Door: ${plan.description}</span>
               <span>${plan.area} sq ft</span>
             </div>
           </button>
@@ -521,6 +619,9 @@ class MobileUIManager {
         const layoutId = btn.dataset.layoutId;
         if (this.app && this.app.loadLayout) {
           this.app.loadLayout(layoutId);
+          // Close top tabs and switch to canvas
+          this.closeTopTabs();
+          setTimeout(() => this.switchTab('canvas'), 300);
         }
       });
     });
@@ -620,12 +721,14 @@ class MobileUIManager {
    * Event handlers
    */
   onFloorPlanSelected() {
-    // Auto-switch to canvas after selecting floor plan
+    // Close top tabs and switch to canvas after selecting floor plan
+    this.closeTopTabs();
     setTimeout(() => this.switchTab('canvas'), 300);
   }
   
   onItemAdded() {
-    // Auto-switch to canvas after adding item
+    // Close top tabs and switch to canvas after adding item
+    this.closeTopTabs();
     setTimeout(() => this.switchTab('canvas'), 300);
   }
   
