@@ -309,10 +309,10 @@ class MobileUIManager {
       projectName.textContent = metadata.name || 'Untitled Layout';
       
       // Click to edit
-      projectName.addEventListener('click', () => {
+      projectName.addEventListener('click', async () => {
         const currentMetadata = this.state.get('metadata') || {};
         const currentName = currentMetadata.name || 'Untitled Layout';
-        const newName = prompt('Enter project name:', currentName);
+        const newName = await window.Modal?.showPrompt('Edit Project Name', 'Enter a name for your layout:', currentName);
         if (newName && newName.trim()) {
           this.state.set('metadata', { ...currentMetadata, name: newName.trim() });
           projectName.textContent = newName.trim();
@@ -323,6 +323,10 @@ class MobileUIManager {
     // Menu button to open top tabs
     if (menuBtn) {
       menuBtn.addEventListener('click', () => {
+        const topTabsSheet = document.getElementById('mobile-top-tabs');
+        if (topTabsSheet) {
+          topTabsSheet.classList.remove('mobile-top-tabs-closed');
+        }
         this.switchTopTab(this.lastTopTab || 'floorplans');
       });
     }
@@ -584,12 +588,6 @@ class MobileUIManager {
           </svg>
           <span>Share via Email</span>
         </button>
-        <button class="mobile-more-item" data-action="new">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          <span>New Layout</span>
-        </button>
       </div>
       <div class="mobile-view-options">
         <h3>View Options</h3>
@@ -737,34 +735,28 @@ class MobileUIManager {
   handleToolAction(action) {
     switch (action) {
       case 'zoom-in':
-        this.canvasManager?.zoomIn();
+        this.canvasManager.zoomIn();
         break;
       case 'zoom-out':
-        this.canvasManager?.zoomOut();
+        this.canvasManager.zoomOut();
         break;
       case 'fit-view':
-        this.canvasManager?.resetViewport();
-        break;
-      case 'undo':
-        this.historyManager?.undo();
-        break;
-      case 'redo':
-        this.historyManager?.redo();
+        this.canvasManager.resetViewport();
         break;
       case 'rotate':
-        this.app.rotateSelection?.();
+        this.app.rotateSelection();
         break;
       case 'duplicate':
-        this.app.duplicateSelection?.();
-        break;
-      case 'bring-front':
-        this.app.bringToFront?.();
-        break;
-      case 'send-back':
-        this.app.sendToBack?.();
+        this.app.duplicateSelection();
         break;
       case 'delete':
-        this.app.deleteSelection?.();
+        this.app.deleteSelection();
+        break;
+      case 'bring-front':
+        this.app.bringToFront();
+        break;
+      case 'send-back':
+        this.app.sendToBack();
         break;
     }
   }

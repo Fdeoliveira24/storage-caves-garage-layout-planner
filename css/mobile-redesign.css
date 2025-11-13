@@ -174,7 +174,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 24px rgba(231, 76, 60, 0.45);
+  box-shadow: 0 8px 16px rgba(231, 76, 60, 0.25);
   cursor: pointer;
   z-index: calc(var(--z-toolbar) + 2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
