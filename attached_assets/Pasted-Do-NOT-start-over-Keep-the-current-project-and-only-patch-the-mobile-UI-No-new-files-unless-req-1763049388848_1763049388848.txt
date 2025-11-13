@@ -1,0 +1,61 @@
+Do NOT start over. Keep the current project and only patch the mobile UI.
+	•	No new files unless required.
+	•	Do not change IDs, classes, public functions, or data.
+	•	Keep image paths as they are.
+
+Fix list (mobile)
+	1.	Tabs together
+
+	•	Put Floor Plans and Items in the same top tab strip so users can switch between them in one place. Default to Floor Plans.
+
+	2.	Floor Plan cards
+
+	•	Remove the plan icon from each card.
+	•	Keep: title, size (W × L), Door: WxH, and sq ft.
+	•	Clean, minimal style. Selected state stays.
+
+	3.	Items cards
+
+	•	Keep the thumbnails and layout.
+	•	Use one background color inside the card (pick a neutral gray or the current gray). No mixed white/gray.
+
+	4.	Saved tab
+
+	•	Remove the Saved tab from the bottom bar.
+	•	Add “Saved Layouts” as a row under the More screen that opens the same list.
+
+	5.	Canvas screen (broken)
+
+	•	In the bottom bar, make the Canvas icon centered.
+	•	Replace the always-visible action bar with a toggle:
+	•	Add a small action button (or icon) near the Canvas tab that opens a compact action sheet.
+	•	Actions in the sheet: Undo, Redo, Duplicate, Delete, Rotate, Bring to Front, Send to Back.
+	•	The sheet must not cover the canvas when closed. If you keep it floating, make it draggable.
+	•	Zoom / Center: Fix the buttons so they zoom in/out smoothly and center the current floor plan. The “center” button should fit the floor plan to view and center it (do not jump to random spots).
+	•	New item placement bug: When an item is added, place it at the canvas center (same as desktop), not at the top edge.
+
+	6.	More → View Options
+Add this section and wire to the existing logic:
+
+	•	Hide Grid (toggle)
+	•	Hide Entry Label (toggle)
+	•	Hide Entry Border (toggle)
+	•	Entry Zone (radio): Bottom ✓ / Left / Right / Top
+
+	7.	Project name
+
+	•	Add “Rename Layout” to the More screen (same behavior as desktop). The new name should show in the header and be used by Export.
+
+Brand and spacing
+	•	Use Storage Caves colors: red, dark gray, light gray, white.
+	•	Keep tap targets ≥ 44px. Respect safe areas. No overlap with the canvas.
+
+Confirm in your reply
+	•	Floor Plans + Items share one tab strip.
+	•	Plan cards show door size; no icon.
+	•	Items cards use one background color.
+	•	Saved moved to More and opens the same list.
+	•	Canvas: centered icon in nav; action sheet works; zoom/center fixed; new items spawn at center.
+	•	View Options present and working.
+	•	Rename Layout present and saved.
+	•	No console errors. Only files touched for these fixes; list them and paste the final sections you changed.
