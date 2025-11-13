@@ -1634,10 +1634,15 @@ class App {
    * Save layout
    */
   async saveLayout() {
-    // Check if storage is available
-    if (!StorageUtil.isAvailable) {
-      Modal.showError('Cannot save layout - persistent storage is not available in your browser');
-      return;
+    // Show one-time warning if storage is not fully persistent
+    if (!StorageUtil.isPersistent && !window._storageWarningShown) {
+      window._storageWarningShown = true;
+      const mode = StorageUtil.mode;
+      if (mode === 'session') {
+        Modal.showInfo('Your layouts will be saved for this session, but will be cleared when you close this tab');
+      } else if (mode === 'memory') {
+        Modal.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
+      }
     }
 
     const name = await Modal.showPrompt('Save Layout', 'Enter layout name:');

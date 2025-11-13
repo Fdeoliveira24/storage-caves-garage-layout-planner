@@ -950,13 +950,18 @@ class MobileUIManager {
    * Save layout (mobile-specific implementation)
    */
   async saveMobileLayout() {
-    // Check if storage is available
-    if (!window.StorageUtil?.isAvailable) {
-      window.Modal?.showError('Cannot save layout - persistent storage is not available in your browser');
-      return;
-    }
-
     try {
+      // Show one-time warning if storage is not fully persistent
+      if (window.StorageUtil && !window.StorageUtil.isPersistent && !window._storageWarningShown) {
+        window._storageWarningShown = true;
+        const mode = window.StorageUtil.mode;
+        if (mode === 'session') {
+          window.Modal?.showInfo('Your layouts will be saved for this session, but will be cleared when you close this tab');
+        } else if (mode === 'memory') {
+          window.Modal?.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
+        }
+      }
+
       // Close More menu BEFORE showing prompt to prevent z-index blocking
       // Modal overlay (z-index 999) needs to be above More menu (z-index 1000)
       this.switchTab('canvas');
@@ -967,7 +972,7 @@ class MobileUIManager {
       // Get layout name from user
       const name = await window.Modal?.showPrompt('Save Layout', 'Enter layout name:');
       if (!name || !name.trim()) {
-        // User cancelled or entered empty name - throw to trigger finally
+        // User cancelled or entered empty name - throw to trigger catch
         throw new Error('Save cancelled');
       }
 
@@ -984,7 +989,7 @@ class MobileUIManager {
 
       const saved = window.StorageUtil.save(window.Config.STORAGE_KEYS.layouts, layouts);
       if (!saved) {
-        // Save failed - throw to trigger finally
+        // Save failed - throw to trigger catch
         window.Modal?.showError('Failed to save layout - storage error');
         throw new Error('Save failed');
       }
