@@ -94,6 +94,7 @@ class MobileUIManager {
       <div id="mobile-content" class="mobile-content">
         <div id="mobile-floor-plans-view" class="mobile-view"></div>
         <div id="mobile-items-view" class="mobile-view"></div>
+        <div id="mobile-saved-view" class="mobile-view"></div>
         <div id="mobile-more-view" class="mobile-view"></div>
       </div>
     `;
@@ -150,6 +151,12 @@ class MobileUIManager {
         </svg>
         <span>Items</span>
       </button>
+      <button class="mobile-tab" data-tab="saved">
+        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+        </svg>
+        <span>Saved</span>
+      </button>
       <button class="mobile-tab" data-tab="canvas">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
@@ -175,26 +182,62 @@ class MobileUIManager {
     this.mobileToolbar.id = 'mobile-toolbar';
     this.mobileToolbar.className = 'mobile-toolbar';
     this.mobileToolbar.innerHTML = `
-      <button class="mobile-tool-btn" data-action="undo" title="Undo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
-        </svg>
-      </button>
-      <button class="mobile-tool-btn" data-action="redo" title="Redo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
-        </svg>
-      </button>
-      <button class="mobile-tool-btn" data-action="duplicate" title="Duplicate">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-        </svg>
-      </button>
-      <button class="mobile-tool-btn mobile-tool-danger" data-action="delete" title="Delete">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-        </svg>
-      </button>
+      <div class="mobile-toolbar-row">
+        <button class="mobile-tool-btn" data-action="zoom-out" title="Zoom Out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="zoom-in" title="Zoom In">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="fit-view" title="Fit to View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+          </svg>
+        </button>
+      </div>
+      <div class="mobile-toolbar-row">
+        <button class="mobile-tool-btn" data-action="undo" title="Undo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="redo" title="Redo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="rotate" title="Rotate 90°">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="duplicate" title="Duplicate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="mobile-toolbar-row">
+        <button class="mobile-tool-btn" data-action="bring-front" title="Bring to Front">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn" data-action="send-back" title="Send to Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
+          </svg>
+        </button>
+        <button class="mobile-tool-btn mobile-tool-danger" data-action="delete" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          </svg>
+        </button>
+      </div>
     `;
     
     document.body.appendChild(this.mobileToolbar);
@@ -269,6 +312,9 @@ class MobileUIManager {
       } else if (tabName === 'items') {
         document.getElementById('mobile-items-view')?.classList.add('mobile-view-active');
         this.renderItems();
+      } else if (tabName === 'saved') {
+        document.getElementById('mobile-saved-view')?.classList.add('mobile-view-active');
+        this.renderSaved();
       } else if (tabName === 'more') {
         document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
         this.renderMore();
@@ -320,6 +366,7 @@ class MobileUIManager {
             <h3>${plan.name}</h3>
             <div class="mobile-card-meta">
               <span>${plan.widthFt}' × ${plan.heightFt}'</span>
+              <span>${plan.description}</span>
               <span>${plan.area} sq ft</span>
             </div>
           </button>
@@ -343,8 +390,8 @@ class MobileUIManager {
     const container = document.getElementById('mobile-items-view');
     if (!container || !this.itemManager) return;
     
-    // Get items from global ITEMS array (loaded from js/data/items.js)
-    const items = window.ITEMS || [];
+    // Get items from Items.getAll() (loaded from js/data/items.js)
+    const items = window.Items?.getAll() || [];
     
     container.innerHTML = `
       <div class="mobile-view-header">
@@ -355,10 +402,10 @@ class MobileUIManager {
         ${items.map(item => `
           <button class="mobile-item-card" data-item-id="${item.id}">
             <div class="mobile-card-image">
-              <img src="${item.paletteImage}" alt="${item.name}" loading="lazy">
+              <img src="${item.paletteImage}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'">
             </div>
-            <h4>${item.name}</h4>
-            <span class="mobile-item-size">${item.dimensions.width}' × ${item.dimensions.length}'</span>
+            <h4>${item.label}</h4>
+            <span class="mobile-item-size">${item.lengthFt}' × ${item.widthFt}'</span>
           </button>
         `).join('')}
       </div>
@@ -400,11 +447,18 @@ class MobileUIManager {
           </svg>
           <span>Export as PDF</span>
         </button>
-        <button class="mobile-more-item" data-action="export-json">
+        <button class="mobile-more-item mobile-json-export" data-action="export-json">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
           </svg>
           <span>Export as JSON</span>
+        </button>
+        <button class="mobile-more-item" data-action="share-email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span>Share via Email</span>
         </button>
         <button class="mobile-more-item" data-action="new">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -419,6 +473,73 @@ class MobileUIManager {
     container.querySelectorAll('.mobile-more-item').forEach(item => {
       item.addEventListener('click', () => {
         this.handleMoreAction(item.dataset.action);
+      });
+    });
+  }
+  
+  /**
+   * Render saved layouts
+   */
+  renderSaved() {
+    const container = document.getElementById('mobile-saved-view');
+    if (!container) return;
+    
+    const layouts = window.Storage?.load(window.Config?.STORAGE_KEYS?.layouts) || [];
+    
+    container.innerHTML = `
+      <div class="mobile-view-header">
+        <h2>Saved Layouts</h2>
+        <p>Load or manage saved layouts</p>
+      </div>
+      <div class="mobile-saved-list">
+        ${layouts.length === 0 ? `
+          <div class="mobile-empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+            </svg>
+            <p>No saved layouts</p>
+            <p style="font-size: 12px; margin-top: 8px;">Save your current layout from the More tab</p>
+          </div>
+        ` : layouts.map(layout => `
+          <div class="mobile-saved-item">
+            <div class="mobile-saved-info">
+              <div class="mobile-saved-name">${layout.name}</div>
+              <div class="mobile-saved-date">${new Date(layout.created).toLocaleDateString()}</div>
+            </div>
+            <div class="mobile-saved-actions">
+              <button class="mobile-btn-load" data-layout-id="${layout.id}">Load</button>
+              <button class="mobile-btn-delete" data-layout-id="${layout.id}">Delete</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    // Setup load handlers
+    container.querySelectorAll('.mobile-btn-load').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layoutId = btn.dataset.layoutId;
+        if (this.app && this.app.loadLayout) {
+          this.app.loadLayout(layoutId);
+        }
+      });
+    });
+    
+    // Setup delete handlers
+    container.querySelectorAll('.mobile-btn-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const layoutId = btn.dataset.layoutId;
+        if (this.app && this.app.deleteLayout) {
+          const confirmed = await window.Modal?.showConfirm(
+            'Delete Layout?',
+            'Are you sure you want to delete this layout? This cannot be undone.'
+          );
+          if (confirmed) {
+            this.app.deleteLayout(layoutId);
+            // Re-render after delete
+            this.renderSaved();
+          }
+        }
       });
     });
   }
@@ -446,14 +567,32 @@ class MobileUIManager {
    */
   handleToolAction(action) {
     switch (action) {
+      case 'zoom-in':
+        this.canvasManager?.zoomIn();
+        break;
+      case 'zoom-out':
+        this.canvasManager?.zoomOut();
+        break;
+      case 'fit-view':
+        this.canvasManager?.resetViewport();
+        break;
       case 'undo':
         this.historyManager?.undo();
         break;
       case 'redo':
         this.historyManager?.redo();
         break;
+      case 'rotate':
+        this.app.rotateSelection?.();
+        break;
       case 'duplicate':
         this.app.duplicateSelection?.();
+        break;
+      case 'bring-front':
+        this.app.bringToFront?.();
+        break;
+      case 'send-back':
+        this.app.sendToBack?.();
         break;
       case 'delete':
         this.app.deleteSelection?.();
@@ -469,6 +608,7 @@ class MobileUIManager {
       'export-png': '#btn-export-png',
       'export-pdf': '#btn-export-pdf',
       'export-json': '#btn-export-json',
+      'share-email': '#btn-share-email',
       'new': '#btn-new'
     };
     
