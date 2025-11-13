@@ -94,7 +94,7 @@
 }
 
 .modal-btn-primary:hover {
-  background: #1976D2;
+  background: #1976d2;
 }
 
 .modal-btn-secondary {
@@ -128,11 +128,11 @@
 }
 
 .toast-success {
-  border-color: #4CAF50;
+  border-color: #4caf50;
 }
 
 .toast-error {
-  border-color: #F44336;
+  border-color: #f44336;
 }
 
 .toast-info {

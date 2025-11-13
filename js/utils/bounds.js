@@ -1,3 +1,5 @@
+/* global Helpers, Config */
+
 /**
  * Boundary Detection Utilities
  * Handle item constraints within floor plan
@@ -23,7 +25,7 @@ const Bounds = {
 
     // Check right boundary
     if (itemBounds.left + itemBounds.width > maxX) {
-      newLeft = item.left - ((itemBounds.left + itemBounds.width) - maxX);
+      newLeft = item.left - (itemBounds.left + itemBounds.width - maxX);
     }
 
     // Check top boundary
@@ -33,7 +35,7 @@ const Bounds = {
 
     // Check bottom boundary
     if (itemBounds.top + itemBounds.height > maxY) {
-      newTop = item.top - ((itemBounds.top + itemBounds.height) - maxY);
+      newTop = item.top - (itemBounds.top + itemBounds.height - maxY);
     }
 
     item.set({ left: newLeft, top: newTop });
@@ -50,10 +52,12 @@ const Bounds = {
     const maxX = Helpers.feetToPx(floorPlan.widthFt);
     const maxY = Helpers.feetToPx(floorPlan.heightFt);
 
-    return itemBounds.left >= 0 &&
-           itemBounds.top >= 0 &&
-           itemBounds.left + itemBounds.width <= maxX &&
-           itemBounds.top + itemBounds.height <= maxY;
+    return (
+      itemBounds.left >= 0 &&
+      itemBounds.top >= 0 &&
+      itemBounds.left + itemBounds.width <= maxX &&
+      itemBounds.top + itemBounds.height <= maxY
+    );
   },
 
   /**
@@ -125,7 +129,7 @@ const Bounds = {
   itemsOverlap(item1, item2) {
     const b1 = this.getItemBounds(item1);
     const b2 = this.getItemBounds(item2);
-    
+
     return Helpers.rectanglesOverlap(b1, b2);
   },
 
@@ -136,9 +140,9 @@ const Bounds = {
     const nearby = [];
     const targetBounds = this.getItemBounds(targetItem);
 
-    allItems.forEach(item => {
+    allItems.forEach((item) => {
       if (item === targetItem) return;
-      
+
       const itemBounds = this.getItemBounds(item);
 
       // Check if edges are close
@@ -147,11 +151,21 @@ const Bounds = {
         { type: 'right', dist: Math.abs(targetBounds.right - itemBounds.right) },
         { type: 'top', dist: Math.abs(targetBounds.top - itemBounds.top) },
         { type: 'bottom', dist: Math.abs(targetBounds.bottom - itemBounds.bottom) },
-        { type: 'centerX', dist: Math.abs((targetBounds.left + targetBounds.right) / 2 - (itemBounds.left + itemBounds.right) / 2) },
-        { type: 'centerY', dist: Math.abs((targetBounds.top + targetBounds.bottom) / 2 - (itemBounds.top + itemBounds.bottom) / 2) }
+        {
+          type: 'centerX',
+          dist: Math.abs(
+            (targetBounds.left + targetBounds.right) / 2 - (itemBounds.left + itemBounds.right) / 2
+          )
+        },
+        {
+          type: 'centerY',
+          dist: Math.abs(
+            (targetBounds.top + targetBounds.bottom) / 2 - (itemBounds.top + itemBounds.bottom) / 2
+          )
+        }
       ];
 
-      edges.forEach(edge => {
+      edges.forEach((edge) => {
         if (edge.dist < threshold) {
           nearby.push({
             item,

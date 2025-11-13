@@ -1,3 +1,5 @@
+/* global Config */
+
 /**
  * Magnifier Tool
  * Provides 2.5x zoom magnifying glass over canvas
@@ -45,7 +47,7 @@ class Magnifier {
     this.magnifierCanvas.width = this.size;
     this.magnifierCanvas.height = this.size;
     this.magnifierCtx = this.magnifierCanvas.getContext('2d');
-    
+
     this.magnifierEl.appendChild(this.magnifierCanvas);
     document.body.appendChild(this.magnifierEl);
   }
@@ -85,15 +87,15 @@ class Magnifier {
   updateMagnifier(canvasX, canvasY, screenX, screenY) {
     // Position magnifier
     const offset = 20;
-    this.magnifierEl.style.left = (screenX + offset) + 'px';
-    this.magnifierEl.style.top = (screenY + offset) + 'px';
+    this.magnifierEl.style.left = screenX + offset + 'px';
+    this.magnifierEl.style.top = screenY + offset + 'px';
 
     // Clear magnifier canvas
     this.magnifierCtx.clearRect(0, 0, this.size, this.size);
 
     // Get source canvas
     const sourceCanvas = this.canvas.lowerCanvasEl;
-    
+
     // Calculate source region
     const sourceSize = this.size / this.zoom;
     const sourceX = canvasX - sourceSize / 2;
@@ -107,8 +109,14 @@ class Magnifier {
 
     this.magnifierCtx.drawImage(
       sourceCanvas,
-      sourceX, sourceY, sourceSize, sourceSize,
-      0, 0, this.size, this.size
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      0,
+      0,
+      this.size,
+      this.size
     );
 
     this.magnifierCtx.restore();

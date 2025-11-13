@@ -1,3 +1,5 @@
+/* global Items, Helpers */
+
 /**
  * Item Manager
  * Handles item library and CRUD operations
@@ -52,8 +54,8 @@ class ItemManager {
    */
   removeItem(itemId) {
     const items = this.state.get('items') || [];
-    const item = items.find(i => i.id === itemId);
-    
+    const item = items.find((i) => i.id === itemId);
+
     if (!item) return false;
 
     // Remove from canvas
@@ -62,7 +64,7 @@ class ItemManager {
     }
 
     // Remove from state
-    const updatedItems = items.filter(i => i.id !== itemId);
+    const updatedItems = items.filter((i) => i.id !== itemId);
     this.state.setState({ items: updatedItems });
 
     // Emit event
@@ -76,8 +78,8 @@ class ItemManager {
    */
   updateItem(itemId, updates) {
     const items = this.state.get('items') || [];
-    const itemIndex = items.findIndex(i => i.id === itemId);
-    
+    const itemIndex = items.findIndex((i) => i.id === itemId);
+
     if (itemIndex === -1) return false;
 
     // Update item
@@ -95,7 +97,7 @@ class ItemManager {
    */
   getItem(itemId) {
     const items = this.state.get('items') || [];
-    return items.find(i => i.id === itemId);
+    return items.find((i) => i.id === itemId);
   }
 
   /**
@@ -127,11 +129,19 @@ class ItemManager {
 
     // Create duplicate with offset (addItem expects center coordinates)
     const newItem = this.addItem(item.itemId, x, y);
-    
+
     // Copy rotation
     if (newItem && newItem.canvasObject && angle !== 0) {
       newItem.canvasObject.rotate(angle);
       this.canvasManager.getCanvas().renderAll();
+
+      // Update state to persist the angle
+      const items = this.state.get('items') || [];
+      const stateItem = items.find((i) => i.id === newItem.id);
+      if (stateItem) {
+        stateItem.angle = angle;
+        this.state.setState({ items });
+      }
     }
 
     return newItem;
@@ -178,7 +188,7 @@ class ItemManager {
    */
   clearAll() {
     const items = this.getAllItems();
-    items.forEach(item => this.removeItem(item.id));
+    items.forEach((item) => this.removeItem(item.id));
   }
 
   /**

@@ -1,3 +1,5 @@
+/* global Helpers, Config, fabric */
+
 /**
  * Measurement Tool
  * Click two points to measure distance
@@ -80,7 +82,7 @@ class MeasurementTool {
     const distancePx = Helpers.distance(p1.x, p1.y, p2.x, p2.y);
     const distanceFt = Helpers.pxToFeet(distancePx);
     const unit = this.state.get('settings.unit') || 'feet';
-    
+
     let displayDistance = distanceFt;
     let unitLabel = 'ft';
 
@@ -101,7 +103,7 @@ class MeasurementTool {
     // Draw text
     const midX = (p1.x + p2.x) / 2;
     const midY = (p1.y + p2.y) / 2;
-    
+
     this.measurementText = new fabric.Text(
       `${Helpers.formatNumber(displayDistance, 2)} ${unitLabel}`,
       {

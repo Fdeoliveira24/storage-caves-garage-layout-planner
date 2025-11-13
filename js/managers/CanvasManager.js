@@ -1,3 +1,5 @@
+/* global fabric, Helpers, Config */
+
 /**
  * Canvas Manager - Fabric.js Canvas Management
  * Handles canvas initialization, zoom, pan, rendering
@@ -14,9 +16,9 @@ class CanvasManager {
     this.gridLines = [];
     this.alignmentGuides = [];
     this.emptyStateGroup = null;
-    this.floorPlanWidth = null;  // Store floor plan dimensions for re-centering
+    this.floorPlanWidth = null; // Store floor plan dimensions for re-centering
     this.floorPlanHeight = null;
-    this.isAutoFitMode = true;  // Track if zoom is auto-fit vs manual
+    this.isAutoFitMode = true; // Track if zoom is auto-fit vs manual
   }
 
   /**
@@ -32,7 +34,37 @@ class CanvasManager {
     this.canvas = new fabric.Canvas(this.canvasId, {
       backgroundColor: '#ffffff',
       selection: true,
-      preserveObjectStacking: true
+      preserveObjectStacking: true,
+      // Professional control styling
+      selectionColor: 'rgba(99, 102, 241, 0.1)',
+      selectionBorderColor: '#6366F1',
+      selectionLineWidth: 2,
+      // Corner/control styling for better visibility
+      borderColor: '#6366F1',
+      cornerColor: '#6366F1',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
+      transparentCorners: false,
+      borderDashArray: [5, 5],
+      borderScaleFactor: 2,
+      // Rotation control styling
+      rotatingPointOffset: 40,
+      // Padding for better hit area
+      padding: 0
+    });
+
+    // Customize multi-selection (ActiveSelection) appearance
+    fabric.ActiveSelection.prototype.set({
+      borderColor: '#6366F1',
+      cornerColor: '#6366F1',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
+      transparentCorners: false,
+      borderDashArray: [5, 5],
+      borderScaleFactor: 2,
+      padding: 0
     });
 
     // Setup event listeners
@@ -60,13 +92,13 @@ class CanvasManager {
     const height = container.clientHeight || 600;
 
     this.canvas.setDimensions({ width, height });
-    
+
     // Re-center floor plan ONLY if in auto-fit mode
     // This preserves user's manual zoom level when resizing window
     if (this.isAutoFitMode && this.floorPlanWidth && this.floorPlanHeight) {
       this.centerAndFit(this.floorPlanWidth, this.floorPlanHeight);
     }
-    
+
     // Re-center empty state if it exists
     if (this.emptyStateGroup) {
       this.emptyStateGroup.set({
@@ -74,7 +106,7 @@ class CanvasManager {
         top: height / 2
       });
     }
-    
+
     this.canvas.renderAll();
   }
 
@@ -125,7 +157,7 @@ class CanvasManager {
     if (!obj || !this.floorPlanRect) return;
 
     const floorPlan = this.floorPlanRect;
-    
+
     // Handle multi-select (ActiveSelection) differently
     if (obj.type === 'activeSelection') {
       // Use the entire selection's bounding box
@@ -140,7 +172,7 @@ class CanvasManager {
         isOutOfBounds = true;
       }
       if (boundingRect.left + boundingRect.width > floorPlan.left + floorPlan.width) {
-        offsetX = (floorPlan.left + floorPlan.width) - (boundingRect.left + boundingRect.width);
+        offsetX = floorPlan.left + floorPlan.width - (boundingRect.left + boundingRect.width);
         isOutOfBounds = true;
       }
       if (boundingRect.top < floorPlan.top) {
@@ -148,7 +180,7 @@ class CanvasManager {
         isOutOfBounds = true;
       }
       if (boundingRect.top + boundingRect.height > floorPlan.top + floorPlan.height) {
-        offsetY = (floorPlan.top + floorPlan.height) - (boundingRect.top + boundingRect.height);
+        offsetY = floorPlan.top + floorPlan.height - (boundingRect.top + boundingRect.height);
         isOutOfBounds = true;
       }
 
@@ -171,14 +203,14 @@ class CanvasManager {
     // Get center position (obj.left/top are already center due to originX/Y: 'center')
     const centerX = obj.left;
     const centerY = obj.top;
-    
+
     // Use actual item rectangle dimensions from customData (not group bounding box)
     // This prevents label text from affecting boundary calculations
     const itemWidth = Helpers.feetToPx(obj.customData.widthFt);
     const itemHeight = Helpers.feetToPx(obj.customData.lengthFt);
-    
+
     // Calculate rotated bounding box dimensions
-    const angle = (obj.angle || 0) * Math.PI / 180;
+    const angle = ((obj.angle || 0) * Math.PI) / 180;
     const cos = Math.abs(Math.cos(angle));
     const sin = Math.abs(Math.sin(angle));
     const halfWidth = (itemWidth * cos + itemHeight * sin) / 2;
@@ -225,19 +257,17 @@ class CanvasManager {
     const delta = opt.e.deltaY;
     let zoom = this.canvas.getZoom();
     zoom *= 0.999 ** delta;
-    
+
     // Limit zoom to match slider range (10% - 200%)
     if (zoom > 2) zoom = 2;
     if (zoom < 0.1) zoom = 0.1;
 
-    this.canvas.zoomToPoint(
-      { x: opt.e.offsetX, y: opt.e.offsetY },
-      zoom
-    );
-    
+    const canvasPoint = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+    this.canvas.zoomToPoint(canvasPoint, zoom);
+
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
-    
+
     opt.e.preventDefault();
     opt.e.stopPropagation();
 
@@ -261,7 +291,7 @@ class CanvasManager {
     const gridSize = 80;
     const gridSpacing = 28;
     const gridColor = '#D1D5DB';
-    
+
     const gridSquares = [];
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 3; col++) {
@@ -345,7 +375,7 @@ class CanvasManager {
 
     const width = Helpers.feetToPx(floorPlan.widthFt);
     const height = Helpers.feetToPx(floorPlan.heightFt);
-    
+
     // Store dimensions for re-centering on resize
     this.floorPlanWidth = width;
     this.floorPlanHeight = height;
@@ -367,9 +397,9 @@ class CanvasManager {
     const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
     const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
     const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
-    
+
     let entryLeft, entryTop, entryWidth, entryHeight, labelLeft, labelTop;
-    
+
     if (entryZonePosition === 'left' || entryZonePosition === 'right') {
       // Vertical entry zone (left or right side)
       entryWidth = width * Config.ENTRY_ZONE_PERCENTAGE;
@@ -387,7 +417,7 @@ class CanvasManager {
       labelLeft = width / 2;
       labelTop = entryTop + entryHeight / 2;
     }
-    
+
     this.entryZoneRect = new fabric.Rect({
       left: entryLeft,
       top: entryTop,
@@ -396,15 +426,14 @@ class CanvasManager {
       fill: Config.COLORS.entryZone,
       stroke: '#D32F2F',
       strokeWidth: 2,
-      strokeDashArray: [8, 4],
       selectable: false,
       evented: false,
       opacity: showEntryBorder ? 1 : 0
     });
-    
+
     // Add entry zone label with rotation for vertical positions
-    const labelAngle = (entryZonePosition === 'left' || entryZonePosition === 'right') ? 90 : 0;
-    
+    const labelAngle = entryZonePosition === 'left' || entryZonePosition === 'right' ? 90 : 0;
+
     this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
       left: labelLeft,
       top: labelTop,
@@ -422,24 +451,21 @@ class CanvasManager {
     this.canvas.add(this.floorPlanRect);
     this.canvas.add(this.entryZoneRect);
     this.canvas.add(this.entryZoneLabel);
-    
+
     // Draw grid if enabled
     if (this.state.get('settings.showGrid')) {
       this.drawGrid(width, height);
+    } else {
+      this.gridLines.forEach((line) => this.canvas.remove(line));
+      this.gridLines = [];
     }
 
-    // Set z-order: floor plan at back, then grid, then entry zone/label
-    // First send all grid lines to back
-    this.gridLines.forEach(line => line.sendToBack());
-    // Then send floor plan to back (this puts it below the grid)
-    this.floorPlanRect.sendToBack();
-    // Bring entry zone elements to front (but still behind items)
-    this.entryZoneRect.bringForward();
-    this.entryZoneLabel.bringForward();
+    // Ensure core layers remain in the correct order
+    this.setLayerOrder();
 
     // Center and fit
     this.centerAndFit(width, height);
-    
+
     this.canvas.renderAll();
   }
 
@@ -448,16 +474,20 @@ class CanvasManager {
    */
   drawGrid(width, height) {
     // Clear existing grid
-    this.gridLines.forEach(line => this.canvas.remove(line));
+    this.gridLines.forEach((line) => this.canvas.remove(line));
     this.gridLines = [];
 
     const gridSize = Config.GRID_SIZE;
 
+    const majorLineEvery = gridSize * 5; // Highlight every 5 feet
+
     // Vertical lines
     for (let i = 0; i <= width; i += gridSize) {
+      const isMajor = i % majorLineEvery === 0;
       const line = new fabric.Line([i, 0, i, height], {
         stroke: Config.COLORS.grid,
-        strokeWidth: i % 50 === 0 ? 1.5 : 0.5,
+        strokeWidth: isMajor ? 1.25 : 0.5,
+        opacity: isMajor ? 0.35 : 0.18,
         selectable: false,
         evented: false
       });
@@ -467,16 +497,18 @@ class CanvasManager {
 
     // Horizontal lines
     for (let i = 0; i <= height; i += gridSize) {
+      const isMajor = i % majorLineEvery === 0;
       const line = new fabric.Line([0, i, width, i], {
         stroke: Config.COLORS.grid,
-        strokeWidth: i % 50 === 0 ? 1.5 : 0.5,
+        strokeWidth: isMajor ? 1.25 : 0.5,
+        opacity: isMajor ? 0.35 : 0.18,
         selectable: false,
         evented: false
       });
       this.gridLines.push(line);
       this.canvas.add(line);
     }
-    
+
     // Note: z-order is set in drawFloorPlan() after grid is drawn
   }
 
@@ -499,20 +531,52 @@ class CanvasManager {
     const offsetY = (canvasHeight - height * scale) / 2;
 
     this.canvas.absolutePan({ x: -offsetX / scale, y: -offsetY / scale });
-    
+
     // Mark as auto-fit mode (will be preserved during window resize)
     this.isAutoFitMode = true;
-    
+
     // Emit zoom event to update UI
     this.eventBus.emit('canvas:zoomed', scale);
   }
 
   /**
    * Add item to canvas
+   * Always returns a group immediately (synchronous)
+   * If image available, swaps rectangle with image asynchronously
    */
   addItem(itemData, x, y) {
+    // Create base group with rectangle immediately
+    const group = this._createBaseGroup(itemData, x, y);
+
+    // Add to canvas and render
+    this.canvas.add(group);
+    this.canvas.renderAll();
+
+    // If image available, start async load to swap rectangle with image
+    if (Config.USE_IMAGES && itemData.canvasImage) {
+      fabric.Image.fromURL(
+        itemData.canvasImage,
+        (img) => {
+          if (!img) {
+            console.warn('[CanvasManager] Failed to load image for item:', itemData.id);
+            return; // Keep rectangle fallback
+          }
+          this._swapGroupImage(group, img, itemData);
+        },
+        { crossOrigin: 'anonymous' }
+      );
+    }
+
+    return group;
+  }
+
+  /**
+   * Create base group with rectangle and label
+   * @private
+   */
+  _createBaseGroup(itemData, x, y) {
     const width = Helpers.feetToPx(itemData.widthFt);
-    const height = Helpers.feetToPx(itemData.lengthFt); // Vertical by default
+    const height = Helpers.feetToPx(itemData.lengthFt);
 
     // Create rectangle centered at origin
     const rect = new fabric.Rect({
@@ -553,15 +617,20 @@ class CanvasManager {
       evented: true,
       hasControls: true,
       hasBorders: true,
-      lockScalingX: true,
-      lockScalingY: true,
+      lockScalingX: false,
+      lockScalingY: false,
       lockSkewingX: true,
       lockSkewingY: true,
       borderColor: '#6366F1',
       borderScaleFactor: 2,
+      borderDashArray: [5, 5],
       cornerColor: '#6366F1',
-      cornerSize: 12,
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
       transparentCorners: false,
+      rotatingPointOffset: 40,
+      padding: 0,
       shadow: new fabric.Shadow({
         color: 'rgba(0,0,0,0.3)',
         blur: 10,
@@ -570,33 +639,67 @@ class CanvasManager {
       })
     });
 
-    // Hide all control handles EXCEPT rotation (mtr)
     group.setControlsVisibility({
-      mt: false,   // middle top
-      mb: false,   // middle bottom
-      ml: false,   // middle left
-      mr: false,   // middle right
-      bl: false,   // bottom left
-      br: false,   // bottom right
-      tl: false,   // top left
-      tr: false,   // top right
-      mtr: true    // rotation handle - KEEP VISIBLE
+      mt: false,
+      mb: false,
+      ml: false,
+      mr: false,
+      bl: true,
+      br: true,
+      tl: true,
+      tr: true,
+      mtr: true
     });
 
-    // Store custom data on group
-    group.customData = {
-      id: itemData.id,
-      itemId: itemData.itemId || itemData.id,
-      label: itemData.label,
-      lengthFt: itemData.lengthFt,
-      widthFt: itemData.widthFt,
-      category: itemData.category,
-      locked: false
+    group.label = label;
+
+    const keepLabelUpright = () => {
+      if (!group.label) return;
+      group.label.set('angle', -group.angle);
+      group.label.setCoords();
     };
 
-    this.canvas.add(group);
+    group.on('rotating', keepLabelUpright);
+    group.on('rotated', keepLabelUpright);
+
+    // Store custom data on group
+    group.customData = { ...itemData };
 
     return group;
+  }
+
+  /**
+   * Swap rectangle in group with loaded image
+   * @private
+   */
+  _swapGroupImage(group, img, itemData) {
+    if (!group || !img) return;
+
+    const width = Helpers.feetToPx(itemData.widthFt);
+    const height = Helpers.feetToPx(itemData.lengthFt);
+
+    // Scale image to match dimensions
+    img.set({
+      left: -width / 2,
+      top: -height / 2,
+      originX: 'left',
+      originY: 'top'
+    });
+    img.scaleToWidth(width);
+    img.scaleY = height / img.height;
+
+    // Find and remove the rectangle (first child, index 0)
+    const rectChild = group.item(0);
+    if (rectChild && rectChild.type === 'rect') {
+      group.remove(rectChild);
+    }
+
+    // Add image at the beginning (so label stays on top)
+    group.insertAt(img, 0);
+    group.addWithUpdate();
+
+    // Re-render canvas
+    this.canvas.renderAll();
   }
 
   /**
@@ -611,8 +714,13 @@ class CanvasManager {
    */
   clearItems() {
     const objects = this.canvas.getObjects();
-    objects.forEach(obj => {
-      if (obj.customData && !obj.customData.isLabel && obj !== this.floorPlanRect && obj !== this.entryZoneRect) {
+    objects.forEach((obj) => {
+      if (
+        obj.customData &&
+        !obj.customData.isLabel &&
+        obj !== this.floorPlanRect &&
+        obj !== this.entryZoneRect
+      ) {
         this.canvas.remove(obj);
       }
     });
@@ -635,10 +743,10 @@ class CanvasManager {
    */
   clear() {
     this.canvas.clear();
-    
+
     // RESET VIEWPORT TRANSFORM (zoom and pan)
     this.resetViewport();
-    
+
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
@@ -654,20 +762,20 @@ class CanvasManager {
    */
   resetViewport() {
     // [CanvasManager] Resetting viewport to default state
-    
+
     // Reset viewport transform to identity matrix
     this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
     this.canvas.setZoom(1);
     this.canvas.requestRenderAll();
-    
+
     // Update zoom UI elements
     this.eventBus.emit('canvas:zoomed', 1);
-    
+
     const zoomPercentage = document.getElementById('zoom-percentage');
     if (zoomPercentage) {
       zoomPercentage.textContent = '100%';
     }
-    
+
     const zoomSlider = document.getElementById('zoom-slider');
     const zoomSliderValue = document.getElementById('zoom-slider-value');
     if (zoomSlider) {
@@ -692,15 +800,12 @@ class CanvasManager {
     const canvas = this.canvas;
     let zoom = canvas.getZoom();
     zoom = Math.min(zoom * 1.1, 2); // Max 200%
-    
-    canvas.zoomToPoint(
-      new fabric.Point(canvas.width / 2, canvas.height / 2),
-      zoom
-    );
-    
+
+    canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
-    
+
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
@@ -711,15 +816,12 @@ class CanvasManager {
     const canvas = this.canvas;
     let zoom = canvas.getZoom();
     zoom = Math.max(zoom / 1.1, 0.1); // Min 10%
-    
-    canvas.zoomToPoint(
-      new fabric.Point(canvas.width / 2, canvas.height / 2),
-      zoom
-    );
-    
+
+    canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
-    
+
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
@@ -731,23 +833,23 @@ class CanvasManager {
     // Clamp to slider range
     const clampedPercent = Math.max(10, Math.min(200, percent));
     const zoom = clampedPercent / 100;
-    
+
     // Get current viewport center
     const vpt = canvas.viewportTransform;
     const centerX = (canvas.width / 2 - vpt[4]) / vpt[0];
     const centerY = (canvas.height / 2 - vpt[5]) / vpt[3];
-    
+
     // Calculate new viewport transform to keep the same center point
     const newVpt = [zoom, 0, 0, zoom, 0, 0];
     newVpt[4] = canvas.width / 2 - centerX * zoom;
     newVpt[5] = canvas.height / 2 - centerY * zoom;
-    
+
     canvas.setViewportTransform(newVpt);
     canvas.requestRenderAll();
-    
+
     // User manually zoomed - exit auto-fit mode
     this.isAutoFitMode = false;
-    
+
     this.eventBus.emit('canvas:zoomed', zoom);
   }
 
@@ -770,19 +872,34 @@ class CanvasManager {
   toggleGrid() {
     const currentState = this.state.get('settings.showGrid');
     this.state.set('settings.showGrid', !currentState);
-    
+
     const floorPlan = this.state.get('floorPlan');
     if (floorPlan) {
       if (!currentState) {
         const width = Helpers.feetToPx(floorPlan.widthFt);
         const height = Helpers.feetToPx(floorPlan.heightFt);
         this.drawGrid(width, height);
+        this.setLayerOrder();
       } else {
-        this.gridLines.forEach(line => this.canvas.remove(line));
+        this.gridLines.forEach((line) => this.canvas.remove(line));
         this.gridLines = [];
       }
       this.canvas.renderAll();
     }
+  }
+
+  /**
+   * Toggle item labels visibility
+   */
+  toggleItemLabels(show) {
+    const objects = this.canvas.getObjects();
+    objects.forEach((obj) => {
+      if (obj.type === 'group' && obj.label) {
+        obj.label.set({ visible: show, opacity: show ? 1 : 0 });
+        obj.label.setCoords();
+      }
+    });
+    this.canvas.requestRenderAll();
   }
 
   /**
@@ -792,6 +909,30 @@ class CanvasManager {
     const floorPlan = this.state.get('floorPlan');
     if (floorPlan) {
       this.drawFloorPlan(floorPlan);
+    }
+  }
+
+  /**
+   * Keep core canvas layers (floor plan, grid, entry zone) in correct order
+   * Floor plan base (0) -> grid (1) -> entry zone fill (2) -> label (3)
+   */
+  setLayerOrder() {
+    if (!this.canvas) return;
+
+    if (this.floorPlanRect) {
+      this.floorPlanRect.moveTo(0);
+    }
+
+    if (this.gridLines.length > 0) {
+      this.gridLines.forEach((line) => line.moveTo(1));
+    }
+
+    if (this.entryZoneRect) {
+      this.entryZoneRect.moveTo(2);
+    }
+
+    if (this.entryZoneLabel) {
+      this.entryZoneLabel.moveTo(3);
     }
   }
 }

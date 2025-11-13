@@ -1,8 +1,10 @@
+/* global App */
+
 /**
  * Main Entry Point
  * Initialize application when DOM is ready
  */
-(function() {
+(function () {
   'use strict';
 
   // Wait for DOM to be ready
@@ -14,10 +16,10 @@
 
   function initApp() {
     console.log('DOM ready, starting application...');
-    
+
     // Create and initialize app
     const app = new App();
-    app.init().catch(error => {
+    app.init().catch((error) => {
       console.error('Failed to initialize application:', error);
       showError('Failed to initialize application. Please refresh the page.');
     });

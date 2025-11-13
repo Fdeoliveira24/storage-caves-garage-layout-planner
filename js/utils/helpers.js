@@ -1,3 +1,5 @@
+/* global Config */
+
 /**
  * Utility Helper Functions
  */
@@ -64,11 +66,11 @@ const Helpers = {
    */
   throttle(func, limit) {
     let inThrottle;
-    return function(...args) {
+    return function (...args) {
       if (!inThrottle) {
         func.apply(this, args);
         inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
+        setTimeout(() => (inThrottle = false), limit);
       }
     };
   },
@@ -112,7 +114,7 @@ const Helpers = {
    * Calculate angle between two points (in degrees)
    */
   angleBetweenPoints(x1, y1, x2, y2) {
-    return Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+    return (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
   },
 
   /**
@@ -126,10 +128,7 @@ const Helpers = {
    * Check if two rectangles overlap
    */
   rectanglesOverlap(r1, r2) {
-    return !(r1.right < r2.left || 
-             r1.left > r2.right || 
-             r1.bottom < r2.top || 
-             r1.top > r2.bottom);
+    return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
   }
 };
 

@@ -26,9 +26,9 @@ class EventBus {
    */
   off(eventName, callback) {
     if (!this.events[eventName]) return;
-    
-    this.events[eventName] = this.events[eventName].filter(cb => cb !== callback);
-    
+
+    this.events[eventName] = this.events[eventName].filter((cb) => cb !== callback);
+
     if (this.events[eventName].length === 0) {
       delete this.events[eventName];
     }
@@ -41,8 +41,8 @@ class EventBus {
    */
   emit(eventName, data) {
     if (!this.events[eventName]) return;
-    
-    this.events[eventName].forEach(callback => {
+
+    this.events[eventName].forEach((callback) => {
       try {
         callback(data);
       } catch (error) {

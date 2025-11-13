@@ -1,3 +1,5 @@
+/* global turf, Helpers */
+
 /**
  * Geometry Utilities using Turf.js
  * Complex geometric calculations and validations
@@ -10,13 +12,15 @@ const Geometry = {
     const bounds = rect.getBoundingRect();
     return {
       type: 'Polygon',
-      coordinates: [[
-        [bounds.left, bounds.top],
-        [bounds.left + bounds.width, bounds.top],
-        [bounds.left + bounds.width, bounds.top + bounds.height],
-        [bounds.left, bounds.top + bounds.height],
-        [bounds.left, bounds.top] // Close the loop
-      ]]
+      coordinates: [
+        [
+          [bounds.left, bounds.top],
+          [bounds.left + bounds.width, bounds.top],
+          [bounds.left + bounds.width, bounds.top + bounds.height],
+          [bounds.left, bounds.top + bounds.height],
+          [bounds.left, bounds.top] // Close the loop
+        ]
+      ]
     };
   },
 
@@ -105,17 +109,19 @@ const Geometry = {
   _pointInPolygonFallback(point, polygon) {
     const coords = polygon.coordinates[0];
     let inside = false;
-    
+
     for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-      const xi = coords[i][0], yi = coords[i][1];
-      const xj = coords[j][0], yj = coords[j][1];
-      
-      const intersect = ((yi > point.y) !== (yj > point.y)) &&
-        (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
-      
+      const xi = coords[i][0],
+        yi = coords[i][1];
+      const xj = coords[j][0],
+        yj = coords[j][1];
+
+      const intersect =
+        yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
+
       if (intersect) inside = !inside;
     }
-    
+
     return inside;
   }
 };

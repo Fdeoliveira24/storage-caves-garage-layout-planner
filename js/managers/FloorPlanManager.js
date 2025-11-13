@@ -1,3 +1,5 @@
+/* global Config, Validation */
+
 /**
  * Floor Plan Manager
  * Handles floor plan CRUD operations and validation
@@ -13,8 +15,8 @@ class FloorPlanManager {
    * Set active floor plan
    */
   setFloorPlan(floorPlanId) {
-    const floorPlan = FloorPlans.getById(floorPlanId);
-    
+    const floorPlan = this._getFloorPlanById(floorPlanId);
+
     if (!floorPlan) {
       console.error('Floor plan not found:', floorPlanId);
       return false;
@@ -55,7 +57,16 @@ class FloorPlanManager {
    * Get all floor plan templates
    */
   getAllFloorPlans() {
-    return FloorPlans.getAll();
+    return Config.FLOOR_PLANS || [];
+  }
+
+  /**
+   * Get floor plan by ID from Config
+   * @private
+   */
+  _getFloorPlanById(id) {
+    const floorPlans = Config.FLOOR_PLANS || [];
+    return floorPlans.find((fp) => fp.id === id);
   }
 
   /**
@@ -73,7 +84,7 @@ class FloorPlanManager {
   getOccupiedArea() {
     const items = this.state.get('items') || [];
     return items.reduce((total, item) => {
-      return total + (item.lengthFt * item.widthFt);
+      return total + item.lengthFt * item.widthFt;
     }, 0);
   }
 

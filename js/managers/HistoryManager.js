@@ -1,3 +1,5 @@
+/* global Config, Helpers */
+
 /**
  * History Manager - Undo/Redo System
  * Manages state history stack (50 levels)

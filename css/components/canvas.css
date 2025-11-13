@@ -2,12 +2,17 @@
 .canvas-wrapper {
   position: relative;
   z-index: 1;
-  background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-              linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-              linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background:
+    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0px;
 }
 
 .canvas-wrapper canvas {
@@ -41,4 +46,19 @@
   pointer-events: all;
   background-color: white;
   box-shadow: var(--shadow-md);
+}
+
+/* ================================
+   FABRIC.JS CONTROL CUSTOMIZATION
+   Professional Selection Handles
+   ================================ */
+
+/* Selection border styling */
+.canvas-container .upper-canvas {
+  outline: none;
+}
+
+/* Override Fabric.js default control styles with modern, professional look */
+.canvas-container canvas[class*='canvas'] {
+  outline: none;
 }

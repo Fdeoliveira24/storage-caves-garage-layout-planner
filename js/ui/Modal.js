@@ -7,7 +7,7 @@ class Modal {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
-      
+
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.innerHTML = `
@@ -22,16 +22,16 @@ class Modal {
           <button class="modal-btn modal-btn-primary" data-action="confirm">Confirm</button>
         </div>
       `;
-      
+
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
-      
+
       const handleClose = (confirmed) => {
         document.removeEventListener('keydown', keyHandler);
         overlay.remove();
         resolve(confirmed);
       };
-      
+
       const keyHandler = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -43,19 +43,19 @@ class Modal {
           handleClose(false);
         }
       };
-      
+
       modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
         handleClose(true);
       });
-      
+
       modal.querySelector('[data-action="cancel"]').addEventListener('click', () => {
         handleClose(false);
       });
-      
+
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) handleClose(false);
       });
-      
+
       document.addEventListener('keydown', keyHandler);
     });
   }
@@ -65,7 +65,7 @@ class Modal {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
-      
+
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.innerHTML = `
@@ -81,20 +81,20 @@ class Modal {
           <button class="modal-btn modal-btn-primary" data-action="ok">OK</button>
         </div>
       `;
-      
+
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
-      
+
       const input = modal.querySelector('.modal-input');
       input.focus();
       input.select();
-      
+
       const handleClose = (value) => {
         document.removeEventListener('keydown', keyHandler);
         overlay.remove();
         resolve(value);
       };
-      
+
       const keyHandler = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -106,21 +106,110 @@ class Modal {
           handleClose(null);
         }
       };
-      
+
       modal.querySelector('[data-action="ok"]').addEventListener('click', () => {
         handleClose(input.value || null);
       });
-      
+
       modal.querySelector('[data-action="cancel"]').addEventListener('click', () => {
         handleClose(null);
       });
-      
+
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) handleClose(null);
       });
-      
+
       document.addEventListener('keydown', keyHandler);
     });
+  }
+
+  static show(title, content) {
+    return new Promise((resolve) => {
+      // Guard: Close any existing modal before opening new one
+      if (Modal._currentModal) {
+        console.warn('Modal already open, closing previous modal');
+        Modal.close();
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.style.display = 'flex';
+
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+
+      // Create modal structure
+      const header = document.createElement('div');
+      header.className = 'modal-header';
+      header.innerHTML = `<h3 class="modal-title">${title}</h3>`;
+
+      const body = document.createElement('div');
+      body.className = 'modal-body';
+
+      // Append content (can be string or DOM element)
+      if (typeof content === 'string') {
+        body.innerHTML = content;
+      } else {
+        body.appendChild(content);
+      }
+
+      const footer = document.createElement('div');
+      footer.className = 'modal-footer';
+      footer.innerHTML = `
+        <button class="modal-btn modal-btn-secondary" data-action="close">Close</button>
+      `;
+
+      modal.appendChild(header);
+      modal.appendChild(body);
+      modal.appendChild(footer);
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      const handleClose = () => {
+        document.removeEventListener('keydown', keyHandler);
+        overlay.remove();
+        Modal._currentModal = null;
+        resolve(true);
+      };
+
+      const keyHandler = (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          handleClose();
+        }
+      };
+
+      // Store reference for Modal.close() - including keyHandler for proper cleanup
+      Modal._currentModal = {
+        overlay,
+        resolve,
+        keyHandler
+      };
+
+      footer.querySelector('[data-action="close"]').addEventListener('click', handleClose);
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) handleClose();
+      });
+
+      document.addEventListener('keydown', keyHandler);
+    });
+  }
+
+  static close() {
+    if (Modal._currentModal) {
+      const { overlay, resolve, keyHandler } = Modal._currentModal;
+
+      // Clean up event listener if keyHandler exists
+      if (keyHandler) {
+        document.removeEventListener('keydown', keyHandler);
+      }
+
+      overlay.remove();
+      Modal._currentModal = null;
+      resolve(true);
+    }
   }
 
   static showToast(message, type = 'success', duration = 3000) {
@@ -130,13 +219,13 @@ class Modal {
       container.className = 'toast-container';
       document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);

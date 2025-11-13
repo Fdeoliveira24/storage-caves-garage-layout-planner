@@ -1,3 +1,5 @@
+/* global Config */
+
 /**
  * Validation Utilities
  * Input validation and data checking

@@ -1,3 +1,5 @@
+/* global Bounds */
+
 /**
  * Selection Manager
  * Handles item selection, multi-select, and grouping
@@ -17,7 +19,7 @@ class SelectionManager {
   selectItem(item) {
     this.canvas.setActiveObject(item);
     this.canvas.renderAll();
-    
+
     this.state.setState({ selection: [item] });
     this.eventBus.emit('item:selected', item);
   }
@@ -28,7 +30,7 @@ class SelectionManager {
   deselectAll() {
     this.canvas.discardActiveObject();
     this.canvas.renderAll();
-    
+
     this.state.setState({ selection: null });
     this.eventBus.emit('selection:cleared');
   }
@@ -38,13 +40,13 @@ class SelectionManager {
    */
   getSelection() {
     const active = this.canvas.getActiveObject();
-    
+
     if (!active) return [];
-    
+
     if (active.type === 'activeSelection') {
       return active.getObjects();
     }
-    
+
     return [active];
   }
 
@@ -53,7 +55,7 @@ class SelectionManager {
    */
   selectMultiple(items) {
     if (items.length === 0) return;
-    
+
     if (items.length === 1) {
       this.selectItem(items[0]);
       return;
@@ -62,10 +64,10 @@ class SelectionManager {
     const selection = new fabric.ActiveSelection(items, {
       canvas: this.canvas
     });
-    
+
     this.canvas.setActiveObject(selection);
     this.canvas.renderAll();
-    
+
     this.state.setState({ selection: items });
     this.eventBus.emit('items:selected', items);
   }
@@ -74,10 +76,13 @@ class SelectionManager {
    * Select all items
    */
   selectAll() {
-    const objects = this.canvas.getObjects().filter(obj => {
-      return obj.customData && !obj.customData.isLabel && 
-             obj !== this.canvasManager.floorPlanRect &&
-             obj !== this.canvasManager.entryZoneRect;
+    const objects = this.canvas.getObjects().filter((obj) => {
+      return (
+        obj.customData &&
+        !obj.customData.isLabel &&
+        obj !== this.canvasManager.floorPlanRect &&
+        obj !== this.canvasManager.entryZoneRect
+      );
     });
 
     this.selectMultiple(objects);
@@ -88,8 +93,8 @@ class SelectionManager {
    */
   deleteSelected() {
     const selected = this.getSelection();
-    
-    selected.forEach(item => {
+
+    selected.forEach((item) => {
       if (item.customData && item.customData.id) {
         this.eventBus.emit('item:delete:requested', item.customData.id);
       }
@@ -103,8 +108,8 @@ class SelectionManager {
    */
   duplicateSelected() {
     const selected = this.getSelection();
-    
-    selected.forEach(item => {
+
+    selected.forEach((item) => {
       if (item.customData && item.customData.id) {
         this.eventBus.emit('item:duplicate:requested', item.customData.id);
       }
@@ -118,25 +123,27 @@ class SelectionManager {
     const selected = this.getSelection();
     if (selected.length === 0) return;
 
-    this.clipboard = selected.map(item => {
-      if (item.customData) {
-        // Use Fabric's getCenterPoint() for accurate center even when rotated
-        const center = item.getCenterPoint();
-        
-        return {
-          itemId: item.customData.itemId,
-          id: item.customData.id,
-          label: item.customData.label,
-          widthFt: item.customData.widthFt,
-          lengthFt: item.customData.lengthFt,
-          category: item.customData.category,
-          x: center.x,
-          y: center.y,
-          angle: item.angle || 0
-        };
-      }
-      return null;
-    }).filter(item => item !== null);
+    this.clipboard = selected
+      .map((item) => {
+        if (item.customData) {
+          // Use Fabric's getCenterPoint() for accurate center even when rotated
+          const center = item.getCenterPoint();
+
+          return {
+            itemId: item.customData.itemId,
+            id: item.customData.id,
+            label: item.customData.label,
+            widthFt: item.customData.widthFt,
+            lengthFt: item.customData.lengthFt,
+            category: item.customData.category,
+            x: center.x,
+            y: center.y,
+            angle: item.angle || 0
+          };
+        }
+        return null;
+      })
+      .filter((item) => item !== null);
   }
 
   /**
@@ -145,7 +152,7 @@ class SelectionManager {
   pasteSelected() {
     if (!this.clipboard || this.clipboard.length === 0) return;
 
-    this.clipboard.forEach(item => {
+    this.clipboard.forEach((item) => {
       this.eventBus.emit('item:paste:requested', item);
     });
   }
@@ -155,11 +162,26 @@ class SelectionManager {
    */
   rotateSelected(angle) {
     const selected = this.getSelection();
-    
-    selected.forEach(item => {
+
+    selected.forEach((item) => {
       const currentAngle = item.angle || 0;
       item.rotate(currentAngle + angle);
+
+      // Update state if item has customData
+      if (item.customData && item.customData.id) {
+        const items = this.state.get('items') || [];
+        const stateItem = items.find((i) => i.id === item.customData.id);
+        if (stateItem) {
+          stateItem.angle = item.angle;
+        }
+      }
     });
+
+    // Update state with modified items
+    if (selected.length > 0 && selected[0].customData) {
+      const items = this.state.get('items') || [];
+      this.state.setState({ items });
+    }
 
     this.canvas.renderAll();
     this.eventBus.emit('items:rotated', selected);
@@ -170,8 +192,8 @@ class SelectionManager {
    */
   moveSelected(dx, dy) {
     const selected = this.getSelection();
-    
-    selected.forEach(item => {
+
+    selected.forEach((item) => {
       item.set({
         left: item.left + dx,
         top: item.top + dy
@@ -180,6 +202,12 @@ class SelectionManager {
     });
 
     this.canvas.renderAll();
+
+    // Emit canvas:object:modified for each moved item so history, validation, and state updates occur
+    selected.forEach((item) => {
+      this.eventBus.emit('canvas:object:modified', item);
+    });
+
     this.eventBus.emit('items:moved', selected);
   }
 
@@ -190,11 +218,11 @@ class SelectionManager {
     const selected = this.getSelection();
     if (selected.length < 2) return;
 
-    const bounds = selected.map(item => Bounds.getItemBounds(item));
+    const bounds = selected.map((item) => Bounds.getItemBounds(item));
 
     switch (alignment) {
       case 'left':
-        const minLeft = Math.min(...bounds.map(b => b.left));
+        const minLeft = Math.min(...bounds.map((b) => b.left));
         selected.forEach((item, i) => {
           item.set({ left: item.left + (minLeft - bounds[i].left) });
           item.setCoords();
@@ -202,7 +230,7 @@ class SelectionManager {
         break;
 
       case 'right':
-        const maxRight = Math.max(...bounds.map(b => b.right));
+        const maxRight = Math.max(...bounds.map((b) => b.right));
         selected.forEach((item, i) => {
           item.set({ left: item.left + (maxRight - bounds[i].right) });
           item.setCoords();
@@ -210,7 +238,7 @@ class SelectionManager {
         break;
 
       case 'top':
-        const minTop = Math.min(...bounds.map(b => b.top));
+        const minTop = Math.min(...bounds.map((b) => b.top));
         selected.forEach((item, i) => {
           item.set({ top: item.top + (minTop - bounds[i].top) });
           item.setCoords();
@@ -218,7 +246,7 @@ class SelectionManager {
         break;
 
       case 'bottom':
-        const maxBottom = Math.max(...bounds.map(b => b.bottom));
+        const maxBottom = Math.max(...bounds.map((b) => b.bottom));
         selected.forEach((item, i) => {
           item.set({ top: item.top + (maxBottom - bounds[i].bottom) });
           item.setCoords();
@@ -226,7 +254,8 @@ class SelectionManager {
         break;
 
       case 'center':
-        const avgCenterX = bounds.reduce((sum, b) => sum + (b.left + b.right) / 2, 0) / bounds.length;
+        const avgCenterX =
+          bounds.reduce((sum, b) => sum + (b.left + b.right) / 2, 0) / bounds.length;
         selected.forEach((item, i) => {
           const itemCenterX = (bounds[i].left + bounds[i].right) / 2;
           item.set({ left: item.left + (avgCenterX - itemCenterX) });
@@ -235,7 +264,8 @@ class SelectionManager {
         break;
 
       case 'middle':
-        const avgCenterY = bounds.reduce((sum, b) => sum + (b.top + b.bottom) / 2, 0) / bounds.length;
+        const avgCenterY =
+          bounds.reduce((sum, b) => sum + (b.top + b.bottom) / 2, 0) / bounds.length;
         selected.forEach((item, i) => {
           const itemCenterY = (bounds[i].top + bounds[i].bottom) / 2;
           item.set({ top: item.top + (avgCenterY - itemCenterY) });
@@ -253,7 +283,7 @@ class SelectionManager {
    */
   bringToFront() {
     const selected = this.getSelection();
-    selected.forEach(item => item.bringToFront());
+    selected.forEach((item) => item.bringToFront());
     this.canvas.renderAll();
   }
 
@@ -262,13 +292,13 @@ class SelectionManager {
    */
   sendToBack() {
     const selected = this.getSelection();
-    
+
     // Send items to layer 4 (above grid at 3, but below other items)
     // Layers: 0=floor, 1=entry zone, 2=entry label, 3=grid, 4+=items
-    selected.forEach(item => {
+    selected.forEach((item) => {
       item.moveTo(4);
     });
-    
+
     // Ensure floor plan elements stay in correct order
     if (this.canvasManager.floorPlanRect) {
       this.canvasManager.floorPlanRect.moveTo(0);
@@ -279,10 +309,10 @@ class SelectionManager {
     if (this.canvasManager.entryZoneLabel) {
       this.canvasManager.entryZoneLabel.moveTo(2);
     }
-    
+
     // Keep grid above floor plan but below items
-    this.canvasManager.gridLines.forEach(line => line.moveTo(3));
-    
+    this.canvasManager.gridLines.forEach((line) => line.moveTo(3));
+
     this.canvas.renderAll();
   }
 }

@@ -1,352 +1,560 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Garage Layout Planner - Professional Storage Planning Tool</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Garage Layout Planner - Professional Storage Planning Tool 1.6</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/main.css">
-</head>
-<body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="header">
-      <button id="mobile-menu-toggle" class="mobile-menu-toggle" title="Toggle menu" style="display: none;">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/></svg>
-      </button>
-      <h1>Garage Layout Planner</h1>
-      <div class="project-name-container">
-        <span id="project-name" class="project-name">Untitled Layout</span>
-        <button id="btn-rename-project" class="btn-rename" title="Rename project">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/></svg>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="header">
+        <button
+          id="mobile-menu-toggle"
+          class="mobile-menu-toggle"
+          title="Toggle menu"
+          style="display: none"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+          </svg>
         </button>
-      </div>
-    </header>
-
-    <!-- Sidebar Backdrop (mobile only) -->
-    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <button id="sidebar-close" class="sidebar-close" style="display: none;" title="Close menu">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
-        </button>
-        <div class="sidebar-tabs">
-          <div class="sidebar-tab active" data-tab="floorplans">Floor Plans</div>
-          <div class="sidebar-tab" data-tab="items">Items</div>
-          <div class="sidebar-tab" data-tab="saved">Saved</div>
+        <h1>Garage Layout Planner</h1>
+        <div class="project-name-container">
+          <span id="project-name" class="project-name">Untitled Layout</span>
+          <button id="btn-rename-project" class="btn-rename" title="Rename project">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
+              />
+            </svg>
+          </button>
         </div>
+      </header>
 
-        <div class="sidebar-content">
-          <!-- Floor Plans Tab -->
-          <div id="floorplan-tab" class="tab-content">
-            <div id="floorplan-list"></div>
+      <!-- Sidebar Backdrop (mobile only) -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <button id="sidebar-close" class="sidebar-close" style="display: none" title="Close menu">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+              />
+            </svg>
+          </button>
+          <div class="sidebar-tabs">
+            <div class="sidebar-tab active" data-tab="floorplans">Floor Plans</div>
+            <div class="sidebar-tab" data-tab="items">Items</div>
+            <div class="sidebar-tab" data-tab="saved">Saved</div>
           </div>
 
-          <!-- Items Tab -->
-          <div id="items-tab" class="tab-content hidden">
-            <div id="item-palette"></div>
-          </div>
+          <div class="sidebar-content">
+            <!-- Floor Plans Tab -->
+            <div id="floorplan-tab" class="tab-content">
+              <div id="floorplan-list"></div>
+            </div>
 
-          <!-- Saved Layouts Tab -->
-          <div id="saved-tab" class="tab-content hidden">
-            <div id="saved-layouts-list"></div>
-          </div>
-        </div>
-      </aside>
+            <!-- Items Tab -->
+            <div id="items-tab" class="tab-content hidden">
+              <div id="item-palette"></div>
+            </div>
 
-      <!-- Canvas Area -->
-      <div class="canvas-container">
-        <!-- Toolbar -->
-        <div class="toolbar">
-          <!-- File Operations -->
-          <div class="toolbar-group">
-            <button id="btn-new" class="btn">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
-              New
-            </button>
-            <button id="btn-save" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/></svg>
-            </button>
+            <!-- Saved Layouts Tab -->
+            <div id="saved-tab" class="tab-content hidden">
+              <div id="saved-layouts-list"></div>
+            </div>
           </div>
+        </aside>
 
-          <!-- History -->
-          <div class="toolbar-group">
-            <button id="btn-undo" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"/></svg>
-            </button>
-            <button id="btn-redo" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"/></svg>
-            </button>
-          </div>
-
-          <!-- Edit -->
-          <div class="toolbar-group">
-            <button id="btn-duplicate" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg>
-            </button>
-            <button id="btn-delete" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/></svg>
-            </button>
-            <button id="btn-rotate" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"/></svg>
-            </button>
-          </div>
-
-          <!-- Z-Order -->
-          <div class="toolbar-group">
-            <button id="btn-bring-front" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,15V20H20V15H15M16,8V11H13V8H16M11,16H8V13H11V16Z"/></svg>
-            </button>
-            <button id="btn-send-back" class="btn btn-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z"/></svg>
-            </button>
-          </div>
-
-          <!-- Zoom -->
-          <div class="toolbar-group">
-            <div class="dropdown">
-              <button id="btn-zoom" class="btn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5,14H14.71L14.43,13.73C15.41,12.59 16,11.11 16,9.5A6.5,6.5 0 0,0 9.5,3A6.5,6.5 0 0,0 3,9.5A6.5,6.5 0 0,0 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71V15.5L19,20.5L20.5,19L15.5,14M9.5,14C7,14 5,12 5,9.5C5,7 7,5 9.5,5C12,5 14,7 14,9.5C14,12 12,14 9.5,14Z"/></svg>
-                <span id="zoom-percentage">100%</span>
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px;"><path d="M7,10L12,15L17,10H7Z"/></svg>
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+          <!-- Toolbar -->
+          <div class="toolbar">
+            <!-- File Operations -->
+            <div class="toolbar-group">
+              <button id="btn-new" class="btn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                </svg>
+                New
               </button>
-              <div class="dropdown-menu">
-                <div class="zoom-slider-container">
-                  <label for="zoom-slider" class="zoom-slider-label">
-                    <span>Zoom</span>
-                    <span id="zoom-slider-value">100%</span>
-                  </label>
-                  <input 
-                    type="range" 
-                    id="zoom-slider" 
-                    class="zoom-slider" 
-                    min="10" 
-                    max="200" 
-                    value="100" 
-                    step="5"
+              <button id="btn-save" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"
                   />
+                </svg>
+              </button>
+            </div>
+
+            <!-- History -->
+            <div class="toolbar-group">
+              <button id="btn-undo" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"
+                  />
+                </svg>
+              </button>
+              <button id="btn-redo" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Edit -->
+            <div class="toolbar-group">
+              <button id="btn-duplicate" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </button>
+              <button id="btn-delete" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                  />
+                </svg>
+              </button>
+              <button id="btn-rotate" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Z-Order -->
+            <div class="toolbar-group">
+              <button id="btn-bring-front" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,15V20H20V15H15M16,8V11H13V8H16M11,16H8V13H11V16Z"
+                  />
+                </svg>
+              </button>
+              <button id="btn-send-back" class="btn btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Zoom -->
+            <div class="toolbar-group">
+              <div class="dropdown">
+                <button id="btn-zoom" class="btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M15.5,14H14.71L14.43,13.73C15.41,12.59 16,11.11 16,9.5A6.5,6.5 0 0,0 9.5,3A6.5,6.5 0 0,0 3,9.5A6.5,6.5 0 0,0 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71V15.5L19,20.5L20.5,19L15.5,14M9.5,14C7,14 5,12 5,9.5C5,7 7,5 9.5,5C12,5 14,7 14,9.5C14,12 12,14 9.5,14Z"
+                    />
+                  </svg>
+                  <span id="zoom-percentage">100%</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style="width: 14px; height: 14px; margin-left: 4px"
+                  >
+                    <path d="M7,10L12,15L17,10H7Z" />
+                  </svg>
+                </button>
+                <div class="dropdown-menu">
+                  <div class="zoom-slider-container">
+                    <label for="zoom-slider" class="zoom-slider-label">
+                      <span>Zoom</span>
+                      <span id="zoom-slider-value">100%</span>
+                    </label>
+                    <input
+                      type="range"
+                      id="zoom-slider"
+                      class="zoom-slider"
+                      min="10"
+                      max="200"
+                      value="100"
+                      step="5"
+                    />
+                  </div>
+                  <button id="btn-zoom-reset" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19M12,7V11H8V13H12V17H14V13H18V11H14V7H12Z"
+                      />
+                    </svg>
+                    Fit to Screen
+                  </button>
                 </div>
-                <button id="btn-zoom-reset" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19M12,7V11H8V13H12V17H14V13H18V11H14V7H12Z"/></svg>
-                  Fit to Screen
-                </button>
               </div>
             </div>
-          </div>
 
-          <!-- View -->
-          <div class="toolbar-group">
-            <div class="dropdown">
-              <button id="btn-view" class="btn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/></svg>
-                View
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px;"><path d="M7,10L12,15L17,10H7Z"/></svg>
+            <!-- View -->
+            <div class="toolbar-group">
+              <div class="dropdown">
+                <button id="btn-view" class="btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
+                    />
+                  </svg>
+                  View
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style="width: 14px; height: 14px; margin-left: 4px"
+                  >
+                    <path d="M7,10L12,15L17,10H7Z" />
+                  </svg>
+                </button>
+                <span
+                  id="entry-zone-warning"
+                  class="toolbar-badge"
+                  style="display: none"
+                  title="Items blocking entry zone"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
+                  </svg>
+                </span>
+                <div class="dropdown-menu">
+                  <button id="btn-toggle-grid" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.89,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"
+                      />
+                    </svg>
+                    <span id="grid-toggle-text">Hide Grid</span>
+                  </button>
+
+                  <button id="btn-toggle-entry-label" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M9,10V12H7V10H9M13,10V12H11V10H13M17,10V12H15V10H17M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H19M19,5H5V19H19V5Z"
+                      />
+                    </svg>
+                    <span id="entry-label-toggle-text">Hide Entry Label</span>
+                  </button>
+
+                  <button id="btn-entry-zone-top" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7,10L12,15L17,10H7Z" />
+                    </svg>
+                    Entry Zone: Bottom
+                  </button>
+                  <button id="btn-entry-zone-bottom" class="dropdown-item" style="display: none">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7,15L12,10L17,15H7Z" />
+                    </svg>
+                    Entry Zone: Top
+                  </button>
+                  <button id="btn-entry-zone-left" class="dropdown-item" style="display: none">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
+                    </svg>
+                    Entry Zone: Left
+                  </button>
+                  <button id="btn-entry-zone-right" class="dropdown-item" style="display: none">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                    </svg>
+                    Entry Zone: Right
+                  </button>
+                  <button id="btn-toggle-entry-border" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                    <span id="entry-border-toggle-text">Hide Entry Border</span>
+                  </button>
+                  <button id="btn-toggle-labels" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z" />
+                    </svg>
+                    <span id="labels-toggle-text">Hide Labels</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export -->
+            <div class="toolbar-group">
+              <div class="dropdown">
+                <button id="btn-export" class="btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"
+                    />
+                  </svg>
+                  Export
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style="width: 14px; height: 14px; margin-left: 4px"
+                  >
+                    <path d="M7,10L12,15L17,10H7Z" />
+                  </svg>
+                </button>
+                <div class="dropdown-menu">
+                  <button id="btn-export-json" class="dropdown-item" style="display: none">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M5,3H7V5H5V10A2,2 0 0,1 3,12A2,2 0 0,1 5,14V19H7V21H5C3.93,20.73 3,20.1 3,19V15A2,2 0 0,0 1,13H0V11H1A2,2 0 0,0 3,9V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V9A2,2 0 0,0 23,11H24V13H23A2,2 0 0,0 21,15V19A2,2 0 0,1 19,21H17V19H19V14A2,2 0 0,1 21,12A2,2 0 0,1 19,10V5H17V3H19M12,15A1,1 0 0,1 13,16A1,1 0 0,1 12,17A1,1 0 0,1 11,16A1,1 0 0,1 12,15M8,15A1,1 0 0,1 9,16A1,1 0 0,1 8,17A1,1 0 0,1 7,16A1,1 0 0,1 8,15M16,15A1,1 0 0,1 17,16A1,1 0 0,1 16,17A1,1 0 0,1 15,16A1,1 0 0,1 16,15Z"
+                      />
+                    </svg>
+                    Export as JSON
+                  </button>
+                  <button id="btn-export-png" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"
+                      />
+                    </svg>
+                    Export as PNG
+                  </button>
+                  <button id="btn-export-pdf" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.5,15C15.5,16.38 14.38,17.5 13,17.5H11.5V19H10V13H13A2.5,2.5 0 0,1 15.5,15.5M13,16.5A1,1 0 0,0 14,15.5A1,1 0 0,0 13,14.5H11.5V16.5M13,9V3.5L18.5,9"
+                      />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button id="btn-share-email" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"
+                      />
+                    </svg>
+                    Share via Email
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Import -->
+            <div class="toolbar-group" style="display: none">
+              <button id="btn-import-json" class="btn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13.5V18H10.5V15H8L12,11Z"
+                  />
+                </svg>
+                Import
               </button>
-              <span id="entry-zone-warning" class="toolbar-badge" style="display:none;" title="Items blocking entry zone">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"/></svg>
-              </span>
-              <div class="dropdown-menu">
-                <button id="btn-toggle-grid" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.89,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"/></svg>
-                  <span id="grid-toggle-text">Hide Grid</span>
-                </button>
-
-                <button id="btn-toggle-entry-label" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9,10V12H7V10H9M13,10V12H11V10H13M17,10V12H15V10H17M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H19M19,5H5V19H19V5Z"/></svg>
-                  <span id="entry-label-toggle-text">Hide Entry Label</span>
-                </button>
-
-                <button id="btn-entry-zone-top" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7,10L12,15L17,10H7Z"/></svg>
-                  Entry Zone: Bottom
-                </button>
-                <button id="btn-entry-zone-bottom" class="dropdown-item" style="display:none;">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7,15L12,10L17,15H7Z"/></svg>
-                  Entry Zone: Top
-                </button>
-                <button id="btn-entry-zone-left" class="dropdown-item" style="display:none;">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"/></svg>
-                  Entry Zone: Left
-                </button>
-                <button id="btn-entry-zone-right" class="dropdown-item" style="display:none;">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/></svg>
-                  Entry Zone: Right
-                </button>
-                <button id="btn-toggle-entry-border" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
-                  <span id="entry-border-toggle-text">Hide Entry Border</span>
-                </button>
-              </div>
+              <!-- Hidden file input -->
+              <input type="file" id="json-file-input" accept=".json,application/json" style="display: none" />
             </div>
           </div>
 
-          <!-- Export -->
-          <div class="toolbar-group">
-            <div class="dropdown">
-              <button id="btn-export" class="btn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"/></svg>
-                Export
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;margin-left:4px;"><path d="M7,10L12,15L17,10H7Z"/></svg>
-              </button>
-              <div class="dropdown-menu">
-                <button id="btn-export-json" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5,3H7V5H5V10A2,2 0 0,1 3,12A2,2 0 0,1 5,14V19H7V21H5C3.93,20.73 3,20.1 3,19V15A2,2 0 0,0 1,13H0V11H1A2,2 0 0,0 3,9V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V9A2,2 0 0,0 23,11H24V13H23A2,2 0 0,0 21,15V19A2,2 0 0,1 19,21H17V19H19V14A2,2 0 0,1 21,12A2,2 0 0,1 19,10V5H17V3H19M12,15A1,1 0 0,1 13,16A1,1 0 0,1 12,17A1,1 0 0,1 11,16A1,1 0 0,1 12,15M8,15A1,1 0 0,1 9,16A1,1 0 0,1 8,17A1,1 0 0,1 7,16A1,1 0 0,1 8,15M16,15A1,1 0 0,1 17,16A1,1 0 0,1 16,17A1,1 0 0,1 15,16A1,1 0 0,1 16,15Z"/></svg>
-                  Export as JSON
-                </button>
-                <button id="btn-export-png" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/></svg>
-                  Export as PNG
-                </button>
-                <button id="btn-export-pdf" class="dropdown-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.5,15C15.5,16.38 14.38,17.5 13,17.5H11.5V19H10V13H13A2.5,2.5 0 0,1 15.5,15.5M13,16.5A1,1 0 0,0 14,15.5A1,1 0 0,0 13,14.5H11.5V16.5M13,9V3.5L18.5,9"/></svg>
-                  Export as PDF
-                </button>
-              </div>
-            </div>
+          <!-- Canvas -->
+          <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
           </div>
-        </div>
 
-        <!-- Canvas -->
-        <div class="canvas-wrapper">
-          <canvas id="canvas"></canvas>
+          <!-- Info Bar -->
+          <div class="info-bar" id="info-panel"></div>
         </div>
+      </div>
 
-        <!-- Info Bar -->
-        <div class="info-bar" id="info-panel"></div>
+      <!-- Mobile Bottom Toolbar -->
+      <div class="mobile-toolbar" style="display: none">
+        <button id="mobile-btn-new" class="btn" title="New">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+          </svg>
+          <span>New</span>
+        </button>
+
+        <button id="mobile-btn-undo" class="btn" title="Undo">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"
+            />
+          </svg>
+          <span>Undo</span>
+        </button>
+
+        <button id="mobile-btn-redo" class="btn" title="Redo">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"
+            />
+          </svg>
+          <span>Redo</span>
+        </button>
+
+        <button id="mobile-btn-rotate" class="btn" title="Rotate">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"
+            />
+          </svg>
+          <span>Rotate</span>
+        </button>
+
+        <button id="mobile-btn-duplicate" class="btn" title="Duplicate">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+            />
+          </svg>
+          <span>Copy</span>
+        </button>
+
+        <button id="mobile-btn-delete" class="btn" title="Delete">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+            />
+          </svg>
+          <span>Delete</span>
+        </button>
+
+        <button id="mobile-btn-more" class="btn btn-primary" title="More">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+          <span>More</span>
+        </button>
       </div>
     </div>
 
-    <!-- Mobile Bottom Toolbar -->
-    <div class="mobile-toolbar" style="display: none;">
-      <button id="mobile-btn-undo" class="btn" title="Undo">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"/></svg>
-        <span>Undo</span>
-      </button>
-      <button id="mobile-btn-redo" class="btn" title="Redo">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"/></svg>
-        <span>Redo</span>
-      </button>
-      <button id="mobile-btn-delete" class="btn" title="Delete">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/></svg>
-        <span>Delete</span>
-      </button>
-      <button id="mobile-btn-more" class="btn btn-primary" title="More">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/></svg>
-        <span>More</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- External Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-  <script>
-    if (typeof fabric !== 'undefined' && fabric.Text) {
-      const originalToObject = fabric.Text.prototype.toObject;
-      fabric.Text.prototype.toObject = function(propertiesToInclude) {
-        return originalToObject.call(this, propertiesToInclude);
-      };
-      if (fabric.Text.prototype.textBaseline === 'alphabetical') {
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script>
+      if (typeof fabric !== 'undefined' && fabric.Text) {
+        const originalToObject = fabric.Text.prototype.toObject;
+        fabric.Text.prototype.toObject = function (propertiesToInclude) {
+          return originalToObject.call(this, propertiesToInclude);
+        };
         fabric.Text.prototype.textBaseline = 'alphabetic';
       }
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- Core -->
-  <script src="js/core/Config.js"></script>
-  <script src="js/core/EventBus.js"></script>
-  <script src="js/core/State.js"></script>
+      (function () {
+        const proto = window.CanvasRenderingContext2D
+          ? CanvasRenderingContext2D.prototype
+          : null;
+        if (!proto) return;
+        const descriptor = Object.getOwnPropertyDescriptor(proto, 'textBaseline');
+        if (!descriptor || !descriptor.configurable) return;
 
-  <!-- Data -->
-  <script src="js/data/floorPlans.js"></script>
-  <script src="js/data/items.js"></script>
-  <script src="js/data/icons.js"></script>
-
-  <!-- Utils -->
-  <script src="js/utils/helpers.js"></script>
-  <script src="js/utils/storage.js"></script>
-  <script src="js/utils/bounds.js"></script>
-  <script src="js/utils/geometry.js"></script>
-  <script src="js/utils/validation.js"></script>
-
-  <!-- UI -->
-  <script src="js/ui/Modal.js?v=2.4.0"></script>
-
-  <!-- Managers -->
-  <script src="js/managers/HistoryManager.js?v=2.4.0"></script>
-  <script src="js/managers/CanvasManager.js?v=2.4.0"></script>
-  <script src="js/managers/FloorPlanManager.js?v=2.4.0"></script>
-  <script src="js/managers/ItemManager.js?v=2.4.0"></script>
-  <script src="js/managers/SelectionManager.js?v=2.4.0"></script>
-  <script src="js/managers/ExportManager.js?v=2.4.0"></script>
-
-  <!-- App -->
-  <script src="js/core/App.js?v=2.4.0"></script>
-
-  <!-- Initialize -->
-  <script>
-    // Tab switching
-    document.querySelectorAll('.sidebar-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        const tabName = tab.dataset.tab;
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.add('hidden');
+        Object.defineProperty(proto, 'textBaseline', {
+          get: descriptor.get,
+          set(value) {
+            const normalized = value === 'alphabetical' ? 'alphabetic' : value;
+            descriptor.set.call(this, normalized);
+          }
         });
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-        if (tabName === 'floorplans') {
-          document.getElementById('floorplan-tab').classList.remove('hidden');
-        } else if (tabName === 'items') {
-          document.getElementById('items-tab').classList.remove('hidden');
-        }
+    <!-- Core -->
+    <script src="js/core/Config.js"></script>
+    <script src="js/core/EventBus.js"></script>
+    <script src="js/core/State.js"></script>
+
+    <!-- Data -->
+    <script src="js/data/items.js"></script>
+    <script src="js/data/icons.js"></script>
+
+    <!-- Utils -->
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/bounds.js"></script>
+    <script src="js/utils/geometry.js"></script>
+    <script src="js/utils/validation.js"></script>
+
+    <!-- UI -->
+    <script src="js/ui/Modal.js?v=2.4.0"></script>
+
+    <!-- Managers -->
+    <script src="js/managers/HistoryManager.js?v=2.4.0"></script>
+    <script src="js/managers/CanvasManager.js?v=2.4.0"></script>
+    <script src="js/managers/FloorPlanManager.js?v=2.4.0"></script>
+    <script src="js/managers/ItemManager.js?v=2.4.0"></script>
+    <script src="js/managers/SelectionManager.js?v=2.4.0"></script>
+    <script src="js/managers/ExportManager.js?v=2.4.0"></script>
+
+    <!-- App -->
+    <script src="js/core/App.js?v=2.4.0"></script>
+
+    <!-- Initialize -->
+    <script>
+      // Tab switching
+      document.querySelectorAll('.sidebar-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.sidebar-tab').forEach((t) => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          const tabName = tab.dataset.tab;
+          document.querySelectorAll('.tab-content').forEach((content) => {
+            content.classList.add('hidden');
+          });
+
+          if (tabName === 'floorplans') {
+            document.getElementById('floorplan-tab').classList.remove('hidden');
+          } else if (tabName === 'items') {
+            document.getElementById('items-tab').classList.remove('hidden');
+          }
+        });
       });
-    });
 
-    // View dropdown toggle
-    document.getElementById('btn-view')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = e.target.closest('.dropdown');
-      const menu = dropdown.querySelector('.dropdown-menu');
-      menu.classList.toggle('show');
-    });
-
-    // Export dropdown toggle
-    document.getElementById('btn-export')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = e.target.closest('.dropdown');
-      const menu = dropdown.querySelector('.dropdown-menu');
-      menu.classList.toggle('show');
-    });
-
-    // Zoom dropdown toggle
-    document.getElementById('btn-zoom')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dropdown = e.target.closest('.dropdown');
-      const menu = dropdown.querySelector('.dropdown-menu');
-      menu.classList.toggle('show');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-        menu.classList.remove('show');
+      // View dropdown toggle
+      document.getElementById('btn-view')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = e.target.closest('.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        menu.classList.toggle('show');
       });
-    });
 
-    // Initialize app
-    const app = new App();
-    app.init();
+      // Export dropdown toggle
+      document.getElementById('btn-export')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = e.target.closest('.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        menu.classList.toggle('show');
+      });
 
-    // Make app globally available for debugging
-    window.app = app;
-  </script>
-</body>
+      // Zoom dropdown toggle
+      document.getElementById('btn-zoom')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = e.target.closest('.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        menu.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+          menu.classList.remove('show');
+        });
+      });
+
+      // Initialize app
+      const app = new App();
+      app.init();
+
+      // Make app globally available for debugging
+      window.app = app;
+    </script>
+  </body>
 </html>

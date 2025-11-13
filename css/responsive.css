@@ -15,15 +15,17 @@
 @media (max-width: 1024px) {
   /* Sidebar becomes collapsible */
   .sidebar {
-    transition: transform 0.3s ease, width 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      width 0.3s ease;
   }
-  
+
   .sidebar.collapsed {
     width: 0;
     transform: translateX(-100%);
     overflow: hidden;
   }
-  
+
   /* Hamburger menu button */
   .mobile-menu-toggle {
     display: inline-flex;
@@ -38,44 +40,44 @@
     cursor: pointer;
     transition: background var(--transition-fast);
   }
-  
+
   .mobile-menu-toggle:hover {
     background: var(--color-bg-hover);
   }
-  
+
   .mobile-menu-toggle svg {
     width: 20px;
     height: 20px;
     color: var(--color-text);
   }
-  
+
   /* Canvas expands when sidebar collapsed */
   .main-content {
     transition: padding-left 0.3s ease;
   }
-  
+
   /* Compact toolbar */
   .toolbar {
     padding: 8px 12px;
     gap: 8px;
   }
-  
+
   .toolbar-group {
     gap: 6px;
   }
-  
+
   /* Touch-friendly button sizes */
   .btn {
     min-width: 40px;
     min-height: 40px;
     padding: 8px 12px;
   }
-  
+
   .btn-icon {
     min-width: 44px;
     min-height: 44px;
   }
-  
+
   /* Dropdown menus touch-optimized */
   .dropdown-item {
     padding: 12px 16px;
@@ -93,21 +95,21 @@
     padding: 8px 12px;
     gap: 12px;
   }
-  
+
   .project-name-container {
     flex: 1;
     max-width: none;
   }
-  
+
   #project-name {
     font-size: 15px;
   }
-  
+
   #btn-rename-project {
     width: 32px;
     height: 32px;
   }
-  
+
   /* Sidebar becomes full-screen drawer */
   .sidebar {
     position: fixed;
@@ -124,11 +126,11 @@
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .sidebar.active {
     transform: translateX(0);
   }
-  
+
   /* Sidebar backdrop */
   .sidebar-backdrop {
     display: none;
@@ -143,12 +145,12 @@
     opacity: 0;
     transition: opacity 0.3s ease;
   }
-  
+
   .sidebar-backdrop.active {
     display: block;
     opacity: 1;
   }
-  
+
   /* Sidebar close button */
   .sidebar-close {
     position: absolute;
@@ -166,17 +168,17 @@
     z-index: 10;
     transition: background var(--transition-fast);
   }
-  
+
   .sidebar-close:hover {
     background: var(--color-bg-hover);
   }
-  
+
   .sidebar-close svg {
     width: 20px;
     height: 20px;
     color: var(--color-text);
   }
-  
+
   /* Toolbar simplified */
   .toolbar {
     padding: 6px 8px;
@@ -185,21 +187,21 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  
+
   .toolbar::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* Hide non-essential toolbar items */
   .toolbar-group:not(:first-child):not(:last-child) {
     display: none;
   }
-  
+
   /* Canvas full height */
   .canvas-container {
     flex: 1;
   }
-  
+
   /* Info bar bottom fixed, compact */
   .info-bar {
     position: fixed;
@@ -215,30 +217,37 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  
+
   .info-bar::-webkit-scrollbar {
     display: none;
   }
-  
+
   .info-bar__divider {
     margin: 0 8px;
   }
-  
+
   /* Item palette 2-column grid */
   .items-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-  
+
   .item-card {
     padding: 12px;
     min-height: 80px;
   }
-  
+
   /* Floor plan cards touch-friendly */
   .floor-plan-card {
     padding: 14px;
     min-height: 100px;
+  }
+}
+
+/* Tablet: Canvas padding for fixed info bar */
+@media (max-width: 767px) and (min-width: 481px) {
+  .canvas-container {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -252,17 +261,17 @@
     padding: 6px 10px;
     gap: 8px;
   }
-  
+
   #project-name {
     font-size: 14px;
     max-width: 140px;
   }
-  
+
   /* Hide desktop toolbar completely */
   .toolbar {
     display: none;
   }
-  
+
   /* Mobile bottom toolbar */
   .mobile-toolbar {
     display: flex;
@@ -276,64 +285,65 @@
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
     z-index: 100;
     padding: 6px 12px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     gap: 8px;
     align-items: center;
     justify-content: space-around;
   }
-  
+
   .mobile-toolbar .btn {
     flex: 1;
-    max-width: 72px;
+    max-width: 60px;
     min-height: 44px;
-    padding: 8px;
+    padding: 6px 2px;
     flex-direction: column;
     gap: 2px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
   }
-  
+
   .mobile-toolbar .btn svg {
     width: 20px;
     height: 20px;
   }
-  
+
   .mobile-toolbar .btn-primary {
     flex: 1.2;
   }
-  
+
   /* Canvas adjusted for bottom toolbar */
   .canvas-container {
-    padding-bottom: 56px;
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   }
-  
+
   /* Sidebar full width on mobile */
   .sidebar {
     max-width: 100%;
     width: 100%;
   }
-  
+
   /* Item palette single column for smallest screens */
   .items-grid {
     grid-template-columns: 1fr;
   }
-  
+
   /* Info bar hidden on mobile (toolbar shows essential info) */
   .info-bar {
     display: none;
   }
-  
+
   /* Compact sidebar tabs */
   .sidebar-tabs {
     gap: 4px;
     padding: 8px;
   }
-  
+
   .sidebar-tab {
     padding: 10px 14px;
     font-size: 13px;
     min-height: 44px;
   }
-  
+
   /* Dropdown menus full-width on mobile */
   .dropdown-menu {
     left: 0;
@@ -352,21 +362,21 @@
     height: 44px;
     padding: 6px 10px;
   }
-  
+
   .mobile-toolbar {
     height: 48px;
     padding: 4px 10px;
   }
-  
+
   .mobile-toolbar .btn {
     min-height: 40px;
     font-size: 9px;
   }
-  
+
   .sidebar {
     max-width: 280px;
   }
-  
+
   .canvas-container {
     padding-bottom: 48px;
   }
@@ -386,29 +396,28 @@
     min-width: 44px;
     min-height: 44px;
   }
-  
+
   /* Remove hover states on touch devices */
   .btn:hover,
   .dropdown-item:hover,
   .sidebar-tab:hover {
     background: transparent;
   }
-  
+
   /* Active states for touch feedback */
   .btn:active {
     transform: scale(0.97);
   }
-  
+
   /* Smooth scrolling */
   * {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Prevent text selection during touch interactions */
   .canvas-container,
   .toolbar,
   .mobile-toolbar {
-    -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
   }
@@ -424,7 +433,6 @@
 .dropdown-menu {
   will-change: transform, opacity;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 /* Reduce motion for accessibility */
@@ -436,4 +444,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ================================
+   MOBILE DRAWER SCROLL LOCK
+   ================================ */
+/* Prevent body scroll when mobile sidebar is open */
+body.drawer-open {
+  overflow: hidden;
 }
