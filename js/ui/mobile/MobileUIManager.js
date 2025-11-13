@@ -883,8 +883,6 @@ class MobileUIManager {
 
     switch (action) {
       case 'toggle-grid':
-        settings.showGrid = !settings.showGrid;
-        this.state.set('settings', settings);
         if (this.canvasManager && this.canvasManager.toggleGrid) {
           this.canvasManager.toggleGrid();
         }
