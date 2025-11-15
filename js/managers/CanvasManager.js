@@ -13,12 +13,24 @@ class CanvasManager {
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
+    this.floorPlanGroup = null;
+    this.floorPlanLocked = false;
+    this.floorPlanPosition = this.state.get('layout.floorPlanPosition') || null;
+    this.floorPlanBounds = this.state.get('layout.floorPlanBounds') || null;
     this.gridLines = [];
     this.alignmentGuides = [];
-    this.emptyStateGroup = null;
+    this.emptyStateEl = null;
+    this.canvasWrapper = null;
     this.floorPlanWidth = null; // Store floor plan dimensions for re-centering
     this.floorPlanHeight = null;
     this.isAutoFitMode = true; // Track if zoom is auto-fit vs manual
+    const storedLockState = this.state.get('layout.floorPlanLocked');
+    if (typeof storedLockState === 'boolean') {
+      this.floorPlanLocked = storedLockState;
+    }
+
+    this._floorPlanMoveHandler = this._handleFloorPlanMove.bind(this);
+    this.enforceFloorBounds = false; // Items can be placed anywhere by default
   }
 
   /**
@@ -73,6 +85,8 @@ class CanvasManager {
     // Listen to window resize
     window.addEventListener('resize', () => this.resizeCanvas());
 
+    this.canvasWrapper = canvasEl.parentElement;
+
     // CRITICAL: Resize canvas synchronously BEFORE any viewport operations
     // This ensures centerAndFit() uses the correct canvas dimensions, not the default 300x150
     this.resizeCanvas();
@@ -99,15 +113,186 @@ class CanvasManager {
       this.centerAndFit(this.floorPlanWidth, this.floorPlanHeight);
     }
 
-    // Re-center empty state if it exists
-    if (this.emptyStateGroup) {
-      this.emptyStateGroup.set({
-        left: width / 2,
-        top: height / 2,
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Position floor plan group, optionally forcing canvas center
+   * @param {boolean} forceCenter
+   * @private
+   */
+  _positionFloorPlanGroup(forceCenter = false) {
+    if (!this.floorPlanGroup || !this.canvas) return;
+
+    const canvasCenter = this.canvas.getCenter();
+    const persistedPosition = this.state.get('layout.floorPlanPosition');
+    let targetPosition = this.floorPlanPosition || persistedPosition;
+
+    if (!targetPosition || forceCenter) {
+      targetPosition = { left: canvasCenter.left, top: canvasCenter.top };
+    }
+
+    this.floorPlanGroup.set({
+      left: targetPosition.left,
+      top: targetPosition.top,
+    });
+    this.floorPlanGroup.setCoords();
+    this.floorPlanPosition = { ...targetPosition };
+    this._updateFloorPlanBounds();
+    this.ensureStaticLayersBehind();
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Handle floor plan drag events
+   * @private
+   */
+  _handleFloorPlanMove() {
+    if (!this.floorPlanGroup) return;
+    this.floorPlanPosition = {
+      left: this.floorPlanGroup.left,
+      top: this.floorPlanGroup.top,
+    };
+    this.floorPlanGroup.setCoords();
+    this.ensureStaticLayersBehind();
+    this._emitFloorPlanStateChanged();
+  }
+
+  /**
+   * Lock/unlock floor plan movement
+   */
+  setFloorPlanLocked(isLocked = true) {
+    this.floorPlanLocked = isLocked;
+    if (!this.floorPlanGroup) return;
+    this.floorPlanGroup.set({
+      lockMovementX: isLocked,
+      lockMovementY: isLocked,
+      selectable: !isLocked,
+      evented: !isLocked,
+    });
+    this.floorPlanGroup.setCoords();
+    this.canvas.requestRenderAll();
+    this.eventBus.emit('floorplan:lock:toggled', isLocked);
+  }
+
+  /**
+   * Reset floor plan position to canvas center
+   */
+  resetFloorPlanPosition() {
+    this.floorPlanPosition = null;
+    this._positionFloorPlanGroup(true);
+    // Ensure viewport recenters on the floor plan so it becomes visible
+    this.centerAndFit();
+    this._emitFloorPlanStateChanged();
+  }
+
+  /**
+   * Get current floor plan position
+   */
+  getFloorPlanPosition() {
+    return this.floorPlanPosition;
+  }
+
+  /**
+   * Get current floor plan bounds
+   */
+  getFloorPlanBounds() {
+    return this.floorPlanBounds ? { ...this.floorPlanBounds } : null;
+  }
+
+  /**
+   * Check if a canvas coordinate lies within the current floor plan bounds
+   */
+  isPointInsideFloorPlan(x, y) {
+    const bounds = this.floorPlanBounds || this._updateFloorPlanBounds();
+    if (!bounds) return false;
+    return (
+      x >= bounds.left &&
+      x <= bounds.left + bounds.width &&
+      y >= bounds.top &&
+      y <= bounds.top + bounds.height
+    );
+  }
+
+  /**
+   * Update item styling based on whether it's inside the floor plan
+   * @private
+   */
+  _updateItemFloorPlanState(obj, suppressRender = false) {
+    if (!obj || obj === this.floorPlanGroup || obj.type === 'activeSelection') return;
+    if (!obj.customData) return;
+
+    const inside = this.isPointInsideFloorPlan(obj.left, obj.top);
+    if (obj.customData._insideFloorPlan === inside) return;
+
+    obj.customData._insideFloorPlan = inside;
+
+    if (!obj._originalBorderColor) {
+      obj._originalBorderColor = obj.borderColor || '#6366F1';
+    }
+    if (!obj._originalShadow) {
+      obj._originalShadow = obj.shadow;
+    }
+
+    if (inside) {
+      obj.set({
+        borderColor: '#22C55E',
+        shadow: new fabric.Shadow({
+          color: 'rgba(34,197,94,0.4)',
+          blur: 18,
+          offsetX: 0,
+          offsetY: 0,
+        }),
+      });
+    } else {
+      obj.set({
+        borderColor: obj._originalBorderColor,
+        shadow: obj._originalShadow || null,
       });
     }
 
-    this.canvas.renderAll();
+    obj.setCoords();
+    if (!suppressRender) {
+      this.canvas.requestRenderAll();
+    }
+  }
+
+  _refreshItemFloorPlanStates() {
+    if (!this.canvas) return;
+    const objects = this.canvas.getObjects() || [];
+    objects.forEach((obj) => {
+      if (obj.customData && obj !== this.floorPlanGroup) {
+        this._updateItemFloorPlanState(obj, true);
+      }
+    });
+    this.canvas.requestRenderAll();
+  }
+
+  /**
+   * Update cached floor plan bounds
+   * @private
+   */
+  _updateFloorPlanBounds() {
+    if (!this.floorPlanGroup) {
+      this.floorPlanBounds = null;
+      return null;
+    }
+    this.floorPlanBounds = this.floorPlanGroup.getBoundingRect(true);
+    return this.floorPlanBounds;
+  }
+
+  /**
+   * Emit floor plan state (position + bounds)
+   * @private
+   */
+  _emitFloorPlanStateChanged() {
+    if (!this.floorPlanGroup) return;
+    const bounds = this._updateFloorPlanBounds();
+    this._refreshItemFloorPlanStates();
+    this.eventBus.emit('floorplan:moved', {
+      position: this.floorPlanPosition ? { ...this.floorPlanPosition } : null,
+      bounds: bounds ? { ...bounds } : null,
+    });
   }
 
   /**
@@ -116,13 +301,13 @@ class CanvasManager {
   setupEventListeners() {
     // Object moving
     this.canvas.on('object:moving', (e) => {
-      this.constrainToFloorPlan(e.target);
+      this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:moving', e.target);
     });
 
     // Object moved
     this.canvas.on('object:modified', (e) => {
-      this.constrainToFloorPlan(e.target);
+      this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:modified', e.target);
     });
 
@@ -145,109 +330,6 @@ class CanvasManager {
     this.canvas.on('mouse:wheel', (opt) => {
       this.handleMouseWheel(opt);
     });
-  }
-
-  /**
-   * Constrain object to floor plan bounds
-   * Objects use center origin, so left/top represent center coordinates
-   * Uses actual item rectangle dimensions (not group bounding box with label)
-   * Handles both single items and multi-select (ActiveSelection)
-   */
-  constrainToFloorPlan(obj) {
-    if (!obj || !this.floorPlanRect) return;
-
-    const floorPlan = this.floorPlanRect;
-
-    // Handle multi-select (ActiveSelection) differently
-    if (obj.type === 'activeSelection') {
-      // Use the entire selection's bounding box
-      const boundingRect = obj.getBoundingRect(true);
-      let isOutOfBounds = false;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      // Check bounds and calculate needed offset
-      if (boundingRect.left < floorPlan.left) {
-        offsetX = floorPlan.left - boundingRect.left;
-        isOutOfBounds = true;
-      }
-      if (boundingRect.left + boundingRect.width > floorPlan.left + floorPlan.width) {
-        offsetX = floorPlan.left + floorPlan.width - (boundingRect.left + boundingRect.width);
-        isOutOfBounds = true;
-      }
-      if (boundingRect.top < floorPlan.top) {
-        offsetY = floorPlan.top - boundingRect.top;
-        isOutOfBounds = true;
-      }
-      if (boundingRect.top + boundingRect.height > floorPlan.top + floorPlan.height) {
-        offsetY = floorPlan.top + floorPlan.height - (boundingRect.top + boundingRect.height);
-        isOutOfBounds = true;
-      }
-
-      if (isOutOfBounds) {
-        obj.set({
-          left: obj.left + offsetX,
-          top: obj.top + offsetY,
-        });
-        obj.setCoords();
-        this.canvas.renderAll();
-      }
-      return;
-    }
-
-    // Handle single items with customData
-    if (!obj.customData) return;
-
-    let isOutOfBounds = false;
-
-    // Get center position (obj.left/top are already center due to originX/Y: 'center')
-    const centerX = obj.left;
-    const centerY = obj.top;
-
-    // Use actual item rectangle dimensions from customData (not group bounding box)
-    // This prevents label text from affecting boundary calculations
-    const itemWidth = Helpers.feetToPx(obj.customData.widthFt);
-    const itemHeight = Helpers.feetToPx(obj.customData.lengthFt);
-
-    // Calculate rotated bounding box dimensions
-    const angle = ((obj.angle || 0) * Math.PI) / 180;
-    const cos = Math.abs(Math.cos(angle));
-    const sin = Math.abs(Math.sin(angle));
-    const halfWidth = (itemWidth * cos + itemHeight * sin) / 2;
-    const halfHeight = (itemWidth * sin + itemHeight * cos) / 2;
-
-    let newX = centerX;
-    let newY = centerY;
-
-    // Constrain left
-    if (centerX - halfWidth < floorPlan.left) {
-      newX = floorPlan.left + halfWidth;
-      isOutOfBounds = true;
-    }
-
-    // Constrain right
-    if (centerX + halfWidth > floorPlan.left + floorPlan.width) {
-      newX = floorPlan.left + floorPlan.width - halfWidth;
-      isOutOfBounds = true;
-    }
-
-    // Constrain top
-    if (centerY - halfHeight < floorPlan.top) {
-      newY = floorPlan.top + halfHeight;
-      isOutOfBounds = true;
-    }
-
-    // Constrain bottom
-    if (centerY + halfHeight > floorPlan.top + floorPlan.height) {
-      newY = floorPlan.top + floorPlan.height - halfHeight;
-      isOutOfBounds = true;
-    }
-
-    if (isOutOfBounds) {
-      obj.set({ left: newX, top: newY });
-      obj.setCoords();
-      this.canvas.renderAll();
-    }
   }
 
   /**
@@ -278,80 +360,37 @@ class CanvasManager {
    * Show empty state message
    */
   showEmptyState() {
-    // Remove existing empty state if any
-    if (this.emptyStateGroup) {
-      this.canvas.remove(this.emptyStateGroup);
-      this.emptyStateGroup = null;
+    if (!this.canvasWrapper) return;
+
+    if (!this.emptyStateEl) {
+      const el = document.createElement('div');
+      el.className = 'canvas-empty-state';
+      el.innerHTML = `
+        <div class="canvas-empty-card">
+          <svg class="canvas-empty-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <rect x="8" y="12" width="48" height="40" rx="8" ry="8" />
+            <rect x="14" y="18" width="12" height="28" rx="4" ry="4" />
+            <rect x="30" y="24" width="20" height="16" rx="4" ry="4" />
+            <path d="M30 45h20" stroke-linecap="round" stroke-width="3" />
+          </svg>
+          <h3>Start Planning Your Space</h3>
+          <p>Select a floor plan from the sidebar to begin</p>
+        </div>
+      `;
+
+      this.canvasWrapper.appendChild(el);
+      this.emptyStateEl = el;
+    } else {
+      this.emptyStateEl.classList.remove('canvas-empty-state--hidden');
     }
-
-    const canvasWidth = this.canvas.getWidth();
-    const canvasHeight = this.canvas.getHeight();
-
-    // Create grid icon using basic shapes
-    const gridSize = 80;
-    const gridSpacing = 28;
-    const gridColor = '#D1D5DB';
-
-    const gridSquares = [];
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
-        const square = new fabric.Rect({
-          left: col * gridSpacing - gridSize / 2,
-          top: row * gridSpacing - gridSize / 2,
-          width: 20,
-          height: 20,
-          fill: gridColor,
-          rx: 3,
-          ry: 3,
-        });
-        gridSquares.push(square);
-      }
-    }
-
-    // Create title text
-    const title = new fabric.Text('Start Planning Your Space', {
-      left: 0,
-      top: gridSize / 2 + 20,
-      fontSize: 24,
-      fontWeight: '600',
-      fill: '#18181B',
-      originX: 'center',
-      originY: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-    });
-
-    // Create subtitle text
-    const subtitle = new fabric.Text('Select a floor plan from the sidebar', {
-      left: 0,
-      top: gridSize / 2 + 55,
-      fontSize: 15,
-      fill: '#71717A',
-      originX: 'center',
-      originY: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-    });
-
-    // Group all elements
-    this.emptyStateGroup = new fabric.Group([...gridSquares, title, subtitle], {
-      left: canvasWidth / 2,
-      top: canvasHeight / 2,
-      originX: 'center',
-      originY: 'center',
-      selectable: false,
-      evented: false,
-    });
-
-    this.canvas.add(this.emptyStateGroup);
-    this.canvas.renderAll();
   }
 
   /**
    * Hide empty state message
    */
   hideEmptyState() {
-    if (this.emptyStateGroup) {
-      this.canvas.remove(this.emptyStateGroup);
-      this.canvas.renderAll();
+    if (this.emptyStateEl) {
+      this.emptyStateEl.classList.add('canvas-empty-state--hidden');
     }
   }
 
@@ -362,16 +401,15 @@ class CanvasManager {
     // Hide empty state
     this.hideEmptyState();
 
-    // Clear existing floor plan
-    if (this.floorPlanRect) {
-      this.canvas.remove(this.floorPlanRect);
+    // Clear existing floor plan group
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
+      this.canvas.remove(this.floorPlanGroup);
+      this.floorPlanGroup = null;
     }
-    if (this.entryZoneRect) {
-      this.canvas.remove(this.entryZoneRect);
-    }
-    if (this.entryZoneLabel) {
-      this.canvas.remove(this.entryZoneLabel);
-    }
+    this.floorPlanRect = null;
+    this.entryZoneRect = null;
+    this.entryZoneLabel = null;
 
     const width = Helpers.feetToPx(floorPlan.widthFt);
     const height = Helpers.feetToPx(floorPlan.heightFt);
@@ -448,17 +486,42 @@ class CanvasManager {
       opacity: showEntryLabel ? 0.8 : 0,
     });
 
-    this.canvas.add(this.floorPlanRect);
-    this.canvas.add(this.entryZoneRect);
-    this.canvas.add(this.entryZoneLabel);
+    const floorPlanElements = [this.floorPlanRect, this.entryZoneRect];
+    if (this.entryZoneLabel) {
+      floorPlanElements.push(this.entryZoneLabel);
+    }
 
-    // Draw grid if enabled
     if (this.state.get('settings.showGrid')) {
-      this.drawGrid(width, height);
+      this.gridLines = this._createGridLines(width, height);
+      floorPlanElements.push(...this.gridLines);
     } else {
-      this.gridLines.forEach((line) => this.canvas.remove(line));
       this.gridLines = [];
     }
+
+    this.floorPlanGroup = new fabric.Group(floorPlanElements, {
+      left: 0,
+      top: 0,
+      originX: 'center',
+      originY: 'center',
+      selectable: !this.floorPlanLocked,
+      evented: !this.floorPlanLocked,
+      hasBorders: false,
+      hasControls: false,
+    });
+
+    this.floorPlanGroup.lockScalingX = true;
+    this.floorPlanGroup.lockScalingY = true;
+    this.floorPlanGroup.lockRotation = true;
+    this.floorPlanGroup.lockSkewingX = true;
+    this.floorPlanGroup.lockSkewingY = true;
+    this.floorPlanGroup.customData = { isFloorPlan: true };
+
+    this.floorPlanGroup.on('moving', this._floorPlanMoveHandler);
+
+    this.canvas.add(this.floorPlanGroup);
+    this.setFloorPlanLocked(this.floorPlanLocked);
+    this._positionFloorPlanGroup();
+    this._emitFloorPlanStateChanged();
 
     // Ensure core layers remain in the correct order
     this.setLayerOrder();
@@ -470,46 +533,41 @@ class CanvasManager {
   }
 
   /**
-   * Draw grid
+   * Build grid lines for the floor plan group
+   * @private
    */
-  drawGrid(width, height) {
-    // Clear existing grid
-    this.gridLines.forEach((line) => this.canvas.remove(line));
-    this.gridLines = [];
-
+  _createGridLines(width, height) {
+    const lines = [];
     const gridSize = Config.GRID_SIZE;
+    const majorLineEvery = gridSize * 5;
 
-    const majorLineEvery = gridSize * 5; // Highlight every 5 feet
-
-    // Vertical lines
     for (let i = 0; i <= width; i += gridSize) {
       const isMajor = i % majorLineEvery === 0;
-      const line = new fabric.Line([i, 0, i, height], {
-        stroke: Config.COLORS.grid,
-        strokeWidth: isMajor ? 1.25 : 0.5,
-        opacity: isMajor ? 0.35 : 0.18,
-        selectable: false,
-        evented: false,
-      });
-      this.gridLines.push(line);
-      this.canvas.add(line);
+      lines.push(
+        new fabric.Line([i, 0, i, height], {
+          stroke: Config.COLORS.grid,
+          strokeWidth: isMajor ? 1.25 : 0.5,
+          opacity: isMajor ? 0.35 : 0.18,
+          selectable: false,
+          evented: false,
+        }),
+      );
     }
 
-    // Horizontal lines
     for (let i = 0; i <= height; i += gridSize) {
       const isMajor = i % majorLineEvery === 0;
-      const line = new fabric.Line([0, i, width, i], {
-        stroke: Config.COLORS.grid,
-        strokeWidth: isMajor ? 1.25 : 0.5,
-        opacity: isMajor ? 0.35 : 0.18,
-        selectable: false,
-        evented: false,
-      });
-      this.gridLines.push(line);
-      this.canvas.add(line);
+      lines.push(
+        new fabric.Line([0, i, width, i], {
+          stroke: Config.COLORS.grid,
+          strokeWidth: isMajor ? 1.25 : 0.5,
+          opacity: isMajor ? 0.35 : 0.18,
+          selectable: false,
+          evented: false,
+        }),
+      );
     }
 
-    // Note: z-order is set in drawFloorPlan() after grid is drawn
+    return lines;
   }
 
   /**
@@ -536,10 +594,19 @@ class CanvasManager {
     this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // Reset transform
     this.canvas.setZoom(scale);
 
-    const offsetX = (canvasWidth - width * scale) / 2;
-    const offsetY = (canvasHeight - height * scale) / 2;
+    let planCenter;
+    if (this.floorPlanGroup) {
+      planCenter = this.floorPlanGroup.getCenterPoint();
+    } else {
+      planCenter = new fabric.Point(width / 2, height / 2);
+    }
 
-    this.canvas.absolutePan({ x: -offsetX / scale, y: -offsetY / scale });
+    const panPoint = new fabric.Point(
+      planCenter.x - canvasWidth / (2 * scale),
+      planCenter.y - canvasHeight / (2 * scale),
+    );
+
+    this.canvas.absolutePan(panPoint);
 
     // Mark as auto-fit mode (will be preserved during window resize)
     this.isAutoFitMode = true;
@@ -559,6 +626,7 @@ class CanvasManager {
 
     // Add to canvas and render
     this.canvas.add(group);
+    this._updateItemFloorPlanState(group);
     this.canvas.renderAll();
 
     // If image available, start async load to swap rectangle with image
@@ -587,37 +655,90 @@ class CanvasManager {
     const width = Helpers.feetToPx(itemData.widthFt);
     const height = Helpers.feetToPx(itemData.lengthFt);
 
-    // Create rectangle centered at origin
-    const rect = new fabric.Rect({
-      left: -width / 2,
-      top: -height / 2,
-      width: width,
-      height: height,
-      fill: itemData.color || '#2196F3',
-      stroke: '#333',
-      strokeWidth: 2,
-      rx: 4,
-      ry: 4,
+    const isMezzanine = itemData.category === 'mezzanine';
+    const isShape = itemData.category === 'shapes';
+    const shapeType = itemData.shapeType || (isShape ? 'rectangle' : 'rectangle');
+    const baseFillColor = itemData.color || '#2196F3';
+    const mezzanineFill = new fabric.Pattern({
+      source: (() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(236, 239, 244, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height);
+        ctx.lineTo(canvas.width, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+        return canvas;
+      })(),
+      repeat: 'repeat',
     });
+
+    const fillStyle = isMezzanine ? mezzanineFill : baseFillColor;
+    const strokeColor = isMezzanine ? '#9CA3AF' : itemData.strokeColor || '#111827';
+    const strokeWidth = isMezzanine ? 1.5 : 2;
+
+    let baseShape;
+    if (shapeType === 'circle') {
+      const diameter = Math.min(width, height);
+      baseShape = new fabric.Circle({
+        left: -diameter / 2,
+        top: -diameter / 2,
+        radius: diameter / 2,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+      });
+    } else if (shapeType === 'triangle') {
+      baseShape = new fabric.Triangle({
+        left: -width / 2,
+        top: -height / 2,
+        width: width,
+        height: height,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+      });
+    } else {
+      baseShape = new fabric.Rect({
+        left: -width / 2,
+        top: -height / 2,
+        width: width,
+        height: height,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+        strokeDashArray: null,
+        rx: isMezzanine ? 6 : 4,
+        ry: isMezzanine ? 6 : 4,
+      });
+    }
 
     // Create label at center
     const label = new fabric.Text(itemData.label, {
       left: 0,
       top: 0,
       fontSize: 11,
-      fill: '#ffffff',
+      fill: isMezzanine ? '#374151' : '#ffffff',
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontWeight: 'bold',
+      fontWeight: isMezzanine ? '600' : 'bold',
       originX: 'center',
       originY: 'center',
       shadow: new fabric.Shadow({
-        color: 'rgba(0,0,0,0.5)',
-        blur: 3,
+        color: isMezzanine ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
+        blur: isMezzanine ? 0 : 3,
       }),
     });
 
     // Group rectangle and label together with CENTER origin
-    const group = new fabric.Group([rect, label], {
+    const group = new fabric.Group([baseShape, label], {
       left: x,
       top: y,
       originX: 'center',
@@ -698,9 +819,9 @@ class CanvasManager {
     img.scaleY = height / img.height;
 
     // Find and remove the rectangle (first child, index 0)
-    const rectChild = group.item(0);
-    if (rectChild && rectChild.type === 'rect') {
-      group.remove(rectChild);
+    const shapeChild = group.item(0);
+    if (shapeChild && ['rect', 'circle', 'triangle'].includes(shapeChild.type)) {
+      group.remove(shapeChild);
     }
 
     // Add image at the beginning (so label stays on top)
@@ -727,8 +848,7 @@ class CanvasManager {
       if (
         obj.customData &&
         !obj.customData.isLabel &&
-        obj !== this.floorPlanRect &&
-        obj !== this.entryZoneRect
+        obj !== this.floorPlanGroup
       ) {
         this.canvas.remove(obj);
       }
@@ -756,11 +876,20 @@ class CanvasManager {
     // RESET VIEWPORT TRANSFORM (zoom and pan)
     this.resetViewport();
 
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
+      this.floorPlanGroup = null;
+    }
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
+    this.floorPlanPosition = null;
+    this.floorPlanBounds = null;
     this.gridLines = [];
-    this.emptyStateGroup = null;
+    if (this.emptyStateEl) {
+      this.emptyStateEl.remove();
+      this.emptyStateEl = null;
+    }
     this.floorPlanWidth = null;
     this.floorPlanHeight = null;
   }
@@ -899,20 +1028,7 @@ class CanvasManager {
   toggleGrid() {
     const currentState = this.state.get('settings.showGrid');
     this.state.set('settings.showGrid', !currentState);
-
-    const floorPlan = this.state.get('floorPlan');
-    if (floorPlan) {
-      if (!currentState) {
-        const width = Helpers.feetToPx(floorPlan.widthFt);
-        const height = Helpers.feetToPx(floorPlan.heightFt);
-        this.drawGrid(width, height);
-        this.setLayerOrder();
-      } else {
-        this.gridLines.forEach((line) => this.canvas.remove(line));
-        this.gridLines = [];
-      }
-      this.canvas.renderAll();
-    }
+    this.redrawFloorPlan();
   }
 
   /**
@@ -946,20 +1062,8 @@ class CanvasManager {
   setLayerOrder() {
     if (!this.canvas) return;
 
-    if (this.floorPlanRect) {
-      this.floorPlanRect.moveTo(0);
-    }
-
-    if (this.gridLines.length > 0) {
-      this.gridLines.forEach((line) => line.moveTo(1));
-    }
-
-    if (this.entryZoneRect) {
-      this.entryZoneRect.moveTo(2);
-    }
-
-    if (this.entryZoneLabel) {
-      this.entryZoneLabel.moveTo(3);
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.moveTo(0);
     }
   }
 
@@ -970,16 +1074,10 @@ class CanvasManager {
   ensureStaticLayersBehind() {
     if (!this.canvas) return;
 
-    const objects = this.canvas.getObjects();
-    const staticObjects = objects.filter(
-      (obj) =>
-        obj.customData?.isFloorPlan ||
-        obj.customData?.isGrid ||
-        obj.customData?.isEntryZone ||
-        obj.customData?.isEntryLabel,
-    );
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.sendToBack();
+    }
 
-    staticObjects.forEach((obj) => obj.sendToBack());
     this.canvas.renderAll();
   }
 }

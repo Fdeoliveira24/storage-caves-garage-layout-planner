@@ -268,4 +268,6 @@ const Storage = (() => {
 // Make available globally
 if (typeof window !== 'undefined') {
   window.Storage = Storage;
+  // Alias for backward compatibility
+  window.StorageUtil = Storage;
 }

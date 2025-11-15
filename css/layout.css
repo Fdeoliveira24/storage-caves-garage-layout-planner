@@ -29,6 +29,17 @@ body {
   flex-shrink: 0;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo {
+  height: 36px;
+  width: auto;
+}
+
 .header h1 {
   font-size: 16px;
   font-weight: 600;
@@ -40,12 +51,90 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.project-name-container:hover {
+  background: rgb(148 163 184 / 12%);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.toolbar-group .btn-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon:hover,
+.btn-icon[aria-pressed='true'] {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.mobile-menu-toggle {
+  display: none;
 }
 
 .project-name {
   font-size: 14px;
   color: var(--color-text-secondary);
   font-weight: 500;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%, -6px);
+  background: rgb(255 255 255 / 96%);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 12%);
+  border: 1px solid rgb(148 163 184 / 30%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  transition-delay: 0s;
+  z-index: 20;
+}
+
+.tooltip:hover::after,
+.tooltip:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition-delay: 1s;
 }
 
 .btn-rename {
@@ -87,17 +176,20 @@ body {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  transition: transform var(--transition-fast), width var(--transition-fast);
 }
 
 .sidebar-tabs {
   display: flex;
   border-bottom: 1px solid var(--color-border);
   padding: 0 16px;
+  min-height: 53px;
+  align-items: stretch;
   background: var(--color-bg-panel);
 }
 
 .sidebar-tab {
-  padding: 12px 16px;
+  padding: 0 16px;
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -106,6 +198,9 @@ body {
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  min-height: 53px;
 }
 
 .sidebar-tab:hover {
@@ -117,17 +212,25 @@ body {
   border-bottom-color: var(--color-primary);
 }
 
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
+.app-container.sidebar-collapsed .sidebar {
+  width: 0;
+  min-width: 0;
+  border: none;
+  transform: translateX(-100%);
+  transition: transform var(--transition-fast), width var(--transition-fast);
 }
 
-.tab-content {
-  padding: 16px;
+.app-container.sidebar-collapsed .sidebar,
+.app-container.sidebar-collapsed .sidebar * {
+  pointer-events: none;
 }
 
-.tab-content.hidden {
-  display: none;
+.app-container.sidebar-collapsed .sidebar-backdrop {
+  display: none !important;
+}
+
+.app-container.sidebar-collapsed .main-content {
+  margin-left: 0;
 }
 
 /* Canvas Container */
@@ -137,6 +240,43 @@ body {
   flex-direction: column;
   background: var(--color-bg);
   overflow: hidden;
+}
+
+.app-container.sidebar-collapsed .canvas-container {
+  padding-left: 0;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-hover);
+}
+
+.tab-content {
+  padding: 16px;
+}
+
+.tab-content.hidden {
+  display: none;
 }
 
 /* Toolbar - Minimal & Floating */

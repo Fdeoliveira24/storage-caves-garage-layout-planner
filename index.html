@@ -12,18 +12,11 @@
     <div class="app-container">
       <!-- Header -->
       <header class="header">
-        <button
-          id="mobile-menu-toggle"
-          class="mobile-menu-toggle"
-          title="Toggle menu"
-          style="display: none"
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
-          </svg>
-        </button>
-        <h1>Garage Layout Planner</h1>
-        <div class="project-name-container">
+        <div class="header-left">
+          <img src="assets/images/logo/Storage-Caves-Logo.png" alt="Storage Caves Logo" class="app-logo" />
+          <h1>Garage Layout Planner</h1>
+        </div>
+        <div class="project-name-container" title="Double-click to rename project">
           <span id="project-name" class="project-name">Untitled Layout</span>
           <button id="btn-rename-project" class="btn-rename" title="Rename project">
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -79,78 +72,77 @@
           <div class="toolbar">
             <!-- File Operations -->
             <div class="toolbar-group">
-              <button id="btn-new" class="btn">
+              <button id="btn-toggle-sidebar" class="btn btn-icon tooltip" data-tooltip="Hide sidebar" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="3" ry="3" fill="none" stroke="currentColor" stroke-width="1.8" />
+                  <rect x="6" y="6" width="3.5" height="12" rx="1.75" ry="1.75" fill="currentColor" />
+                </svg>
+              </button>
+              <button id="btn-new" class="btn tooltip" data-tooltip="Start new layout">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
                 </svg>
                 New
               </button>
-              <button id="btn-save" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"
-                  />
+              <button id="btn-save" class="btn btn-icon tooltip" data-tooltip="Save layout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
               </button>
             </div>
 
             <!-- History -->
             <div class="toolbar-group">
-              <button id="btn-undo" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z"
-                  />
+              <button id="btn-undo" class="btn btn-icon tooltip" data-tooltip="Undo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 101.94-10.34L1 10"></path>
                 </svg>
               </button>
-              <button id="btn-redo" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z"
-                  />
+              <button id="btn-redo" class="btn btn-icon tooltip" data-tooltip="Redo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path>
                 </svg>
               </button>
             </div>
 
             <!-- Edit -->
             <div class="toolbar-group">
-              <button id="btn-duplicate" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
-                  />
+              <button id="btn-duplicate" class="btn btn-icon tooltip" data-tooltip="Duplicate selected">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
                 </svg>
               </button>
-              <button id="btn-delete" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
-                  />
+              <button id="btn-delete" class="btn btn-icon tooltip" data-tooltip="Delete selected">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
                 </svg>
               </button>
-              <button id="btn-rotate" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M15.55 5.55L11 1v3.07C7.06 4.56 4 7.92 4 12s3.05 7.44 7 7.93v-2.02c-2.84-.48-5-2.94-5-5.91s2.16-5.43 5-5.91V10l4.55-4.45zM19.93 11c-.17-1.39-.72-2.73-1.62-3.89l-1.42 1.42c.54.75.88 1.6 1.02 2.47h2.02zM13 17.9v2.02c1.39-.17 2.74-.71 3.9-1.61l-1.44-1.44c-.75.54-1.59.89-2.46 1.03zm3.89-2.42l1.42 1.41c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.48 1.72-1.02 2.48z"
-                  />
+              <button id="btn-rotate" class="btn btn-icon tooltip" data-tooltip="Rotate 90°">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path>
                 </svg>
               </button>
             </div>
 
             <!-- Z-Order -->
             <div class="toolbar-group">
-              <button id="btn-bring-front" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,15V20H20V15H15M16,8V11H13V8H16M11,16H8V13H11V16Z"
-                  />
+              <button id="btn-bring-front" class="btn btn-icon tooltip" data-tooltip="Bring to front">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="17 11 12 6 7 11"></polyline>
+                  <polyline points="17 18 12 13 7 18"></polyline>
                 </svg>
               </button>
-              <button id="btn-send-back" class="btn btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z"
-                  />
+              <button id="btn-send-back" class="btn btn-icon tooltip" data-tooltip="Send to back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="7 13 12 18 17 13"></polyline>
+                  <polyline points="7 6 12 11 17 6"></polyline>
                 </svg>
               </button>
             </div>
@@ -158,11 +150,12 @@
             <!-- Zoom -->
             <div class="toolbar-group">
               <div class="dropdown">
-                <button id="btn-zoom" class="btn">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M15.5,14H14.71L14.43,13.73C15.41,12.59 16,11.11 16,9.5A6.5,6.5 0 0,0 9.5,3A6.5,6.5 0 0,0 3,9.5A6.5,6.5 0 0,0 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71V15.5L19,20.5L20.5,19L15.5,14M9.5,14C7,14 5,12 5,9.5C5,7 7,5 9.5,5C12,5 14,7 14,9.5C14,12 12,14 9.5,14Z"
-                    />
+                <button id="btn-zoom" class="btn tooltip" data-tooltip="Zoom controls">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
                   </svg>
                   <span id="zoom-percentage">100%</span>
                   <svg
@@ -189,11 +182,12 @@
                       step="5"
                     />
                   </div>
-                  <button id="btn-zoom-reset" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19M12,7V11H8V13H12V17H14V13H18V11H14V7H12Z"
-                      />
+                  <button id="btn-zoom-reset" class="dropdown-item tooltip" data-tooltip="Fit layout to screen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M8 3H5a2 2 0 00-2 2v3"></path>
+                      <path d="M16 3h3a2 2 0 012 2v3"></path>
+                      <path d="M8 21H5a2 2 0 01-2-2v-3"></path>
+                      <path d="M16 21h3a2 2 0 002-2v-3"></path>
                     </svg>
                     Fit to Screen
                   </button>
@@ -204,11 +198,10 @@
             <!-- View -->
             <div class="toolbar-group">
               <div class="dropdown">
-                <button id="btn-view" class="btn">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
-                    />
+                <button id="btn-view" class="btn tooltip" data-tooltip="View options">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                   View
                   <svg
@@ -219,72 +212,80 @@
                     <path d="M7,10L12,15L17,10H7Z" />
                   </svg>
                 </button>
-                <span
-                  id="entry-zone-warning"
-                  class="toolbar-badge"
-                  style="display: none"
-                  title="Items blocking entry zone"
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
-                  </svg>
-                </span>
                 <div class="dropdown-menu">
-                  <button id="btn-toggle-grid" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.89,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"
-                      />
+                  <button id="btn-toggle-grid" class="dropdown-item tooltip" data-tooltip="Toggle canvas grid">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                      <line x1="3" y1="15" x2="21" y2="15"></line>
+                      <line x1="9" y1="3" x2="9" y2="21"></line>
+                      <line x1="15" y1="3" x2="15" y2="21"></line>
                     </svg>
                     <span id="grid-toggle-text">Hide Grid</span>
                   </button>
 
-                  <button id="btn-toggle-entry-label" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M9,10V12H7V10H9M13,10V12H11V10H13M17,10V12H15V10H17M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H19M19,5H5V19H19V5Z"
-                      />
+                  <button id="btn-toggle-entry-label" class="dropdown-item tooltip" data-tooltip="Toggle entry zone label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                      <line x1="9" y1="20" x2="15" y2="20"></line>
+                      <line x1="12" y1="4" x2="12" y2="20"></line>
                     </svg>
                     <span id="entry-label-toggle-text">Hide Entry Label</span>
                   </button>
 
-                  <button id="btn-entry-zone-top" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7,10L12,15L17,10H7Z" />
+                  <button id="btn-entry-zone-top" class="dropdown-item tooltip" data-tooltip="Set entry zone to bottom">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="18 15 12 9 6 15"></polyline>
                     </svg>
                     Entry Zone: Bottom
                   </button>
-                  <button id="btn-entry-zone-bottom" class="dropdown-item" style="display: none">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M7,15L12,10L17,15H7Z" />
+                  <button id="btn-entry-zone-bottom" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to top">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                     Entry Zone: Top
                   </button>
-                  <button id="btn-entry-zone-left" class="dropdown-item" style="display: none">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z" />
+                  <button id="btn-entry-zone-left" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                     Entry Zone: Left
                   </button>
-                  <button id="btn-entry-zone-right" class="dropdown-item" style="display: none">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                  <button id="btn-entry-zone-right" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 6 15 12 9 18"></polyline>
                     </svg>
                     Entry Zone: Right
                   </button>
-                  <button id="btn-toggle-entry-border" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                      />
+                  <button id="btn-toggle-entry-border" class="dropdown-item tooltip" data-tooltip="Toggle entry zone border">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     </svg>
                     <span id="entry-border-toggle-text">Hide Entry Border</span>
                   </button>
-                  <button id="btn-toggle-labels" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z"
-                      />
+
+                  <button id="btn-floorplan-lock" class="dropdown-item tooltip" data-tooltip="Lock or unlock floor plan">
+                    <svg id="floorplan-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                      <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                      <line x1="12" y1="16" x2="12" y2="18"></line>
+                      <circle cx="12" cy="16" r="1"></circle>
+                    </svg>
+                    <span id="floorplan-lock-text">Unlock Floor Plan</span>
+                  </button>
+
+                  <button id="btn-floorplan-center" class="dropdown-item tooltip" data-tooltip="Re-center floor plan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
+                    </svg>
+                    Re-center Floor Plan
+                  </button>
+
+                  <button id="btn-toggle-labels" class="dropdown-item tooltip" data-tooltip="Toggle item labels">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L3 13.99V3h10.99l6.6 6.6a2 2 0 010 2.83z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
                     </svg>
                     <span id="labels-toggle-text">Hide Labels</span>
                   </button>
@@ -295,11 +296,11 @@
             <!-- Export -->
             <div class="toolbar-group">
               <div class="dropdown">
-                <button id="btn-export" class="btn">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                      d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z"
-                    />
+                <button id="btn-export" class="btn tooltip" data-tooltip="Export layout">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
                   Export
                   <svg
@@ -311,35 +312,31 @@
                   </svg>
                 </button>
                 <div class="dropdown-menu">
-                  <button id="btn-export-json" class="dropdown-item" style="display: none">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M5,3H7V5H5V10A2,2 0 0,1 3,12A2,2 0 0,1 5,14V19H7V21H5C3.93,20.73 3,20.1 3,19V15A2,2 0 0,0 1,13H0V11H1A2,2 0 0,0 3,9V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V9A2,2 0 0,0 23,11H24V13H23A2,2 0 0,0 21,15V19A2,2 0 0,1 19,21H17V19H19V14A2,2 0 0,1 21,12A2,2 0 0,1 19,10V5H17V3H19M12,15A1,1 0 0,1 13,16A1,1 0 0,1 12,17A1,1 0 0,1 11,16A1,1 0 0,1 12,15M8,15A1,1 0 0,1 9,16A1,1 0 0,1 8,17A1,1 0 0,1 7,16A1,1 0 0,1 8,15M16,15A1,1 0 0,1 17,16A1,1 0 0,1 16,17A1,1 0 0,1 15,16A1,1 0 0,1 16,15Z"
-                      />
+                  <button id="btn-export-json" class="dropdown-item tooltip" data-tooltip="Export layout as JSON">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
                     </svg>
                     Export as JSON
                   </button>
-                  <button id="btn-export-png" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"
-                      />
+                  <button id="btn-export-png" class="dropdown-item tooltip" data-tooltip="Export layout as PNG image">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
                     Export as PNG
                   </button>
-                  <button id="btn-export-pdf" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.5,15C15.5,16.38 14.38,17.5 13,17.5H11.5V19H10V13H13A2.5,2.5 0 0,1 15.5,15.5M13,16.5A1,1 0 0,0 14,15.5A1,1 0 0,0 13,14.5H11.5V16.5M13,9V3.5L18.5,9"
-                      />
+                  <button id="btn-export-pdf" class="dropdown-item tooltip" data-tooltip="Export layout as PDF">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>
                     Export as PDF
                   </button>
-                  <button id="btn-share-email" class="dropdown-item">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path
-                        d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"
-                      />
+                  <button id="btn-share-email" class="dropdown-item tooltip" data-tooltip="Share layout via email">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                      <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
                     Share via Email
                   </button>
@@ -348,8 +345,8 @@
             </div>
 
             <!-- Import -->
-            <div class="toolbar-group" style="display: none">
-              <button id="btn-import-json" class="btn">
+            <div class="toolbar-group">
+              <button id="btn-import-json" class="btn tooltip" data-tooltip="Import layout (JSON)">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path
                     d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13.5V18H10.5V15H8L12,11Z"
@@ -379,6 +376,15 @@
 
       <!-- Mobile Bottom Toolbar -->
       <div class="mobile-toolbar" style="display: none">
+        <button
+          id="mobile-menu-toggle"
+          class="btn btn-icon"
+          title="Toggle menu"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+          </svg>
+        </button>
         <button id="mobile-btn-new" class="btn" title="New">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />

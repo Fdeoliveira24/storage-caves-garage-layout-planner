@@ -117,7 +117,8 @@ class ItemManager {
   /**
    * Duplicate item
    */
-  duplicateItem(itemId) {
+  duplicateItem(itemId, options = {}) {
+    const { centerOverride = null, canvasObject: canvasObjectOverride = null } = options;
     const item = this.getItem(itemId);
     if (!item) return null;
 
@@ -126,7 +127,22 @@ class ItemManager {
     let y = item.y + 20;
     let angle = item.angle || 0;
 
-    if (item.canvasObject) {
+    if (
+      canvasObjectOverride &&
+      typeof canvasObjectOverride.getCenterPoint === 'function'
+    ) {
+      const center = canvasObjectOverride.getCenterPoint();
+      x = center.x + 20;
+      y = center.y + 20;
+      angle = canvasObjectOverride.angle || 0;
+    } else if (
+      centerOverride &&
+      typeof centerOverride.x === 'number' &&
+      typeof centerOverride.y === 'number'
+    ) {
+      x = centerOverride.x + 20;
+      y = centerOverride.y + 20;
+    } else if (item.canvasObject && typeof item.canvasObject.getCenterPoint === 'function') {
       // Use Fabric's getCenterPoint() for accurate center even when rotated
       const center = item.canvasObject.getCenterPoint();
       x = center.x + 20;
@@ -210,6 +226,13 @@ class ItemManager {
    */
   getItemsByCategory(category) {
     return Items.getByCategory(category);
+  }
+
+  /**
+   * Get all placed items (from state)
+   */
+  getItems() {
+    return this.state.get('items') || [];
   }
 
   /**

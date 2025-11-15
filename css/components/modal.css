@@ -134,6 +134,14 @@ body.modal-open {
   gap: var(--spacing-sm);
 }
 
+/* Mobile: Position toast at top below header */
+@media (width <= 767px) {
+  .toast-container {
+    inset: calc(var(--mobile-header-height, 56px) + var(--spacing-sm)) var(--spacing-sm) auto var(--spacing-sm);
+    flex-direction: column;
+  }
+}
+
 .toast {
   background: white;
   padding: var(--spacing-md) var(--spacing-lg);
@@ -142,6 +150,15 @@ body.modal-open {
   border-left: 4px solid;
   min-width: 300px;
   animation: slide-in-right 0.3s;
+}
+
+/* Mobile: Adjust toast width and animation */
+@media (width <= 767px) {
+  .toast {
+    min-width: auto;
+    width: 100%;
+    animation: slide-in-top 0.3s;
+  }
 }
 
 .toast-success {
@@ -164,6 +181,18 @@ body.modal-open {
 
   to {
     transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-top {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
     opacity: 1;
   }
 }

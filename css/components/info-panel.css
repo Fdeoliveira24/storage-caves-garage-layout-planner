@@ -30,6 +30,15 @@
   font-weight: 500;
 }
 
+.info-bar__segment--warning {
+  color: #d32f2f;
+}
+
+.info-bar__segment--warning .info-bar__value {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
 .info-bar__divider {
   width: 1px;
   height: 16px;

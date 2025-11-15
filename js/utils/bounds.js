@@ -64,25 +64,54 @@ const Bounds = {
    * Check if item is in entry zone
    * Supports all 4 entry zone positions (top, bottom, left, right)
    */
-  isInEntryZone(item, floorPlan, entryZonePosition) {
-    if (!floorPlan) return false;
+  isInEntryZone(item, floorPlan, entryZonePosition, canvasBounds) {
+    if (!floorPlan || !item) return false;
 
-    const itemBounds = item.getBoundingRect();
+    const bounds = canvasBounds || floorPlan?.canvasBounds;
+    const position = entryZonePosition || 'bottom';
+    const itemBounds = item.getBoundingRect(true);
+
+    if (bounds) {
+      const zoneHeight = bounds.height * Config.ENTRY_ZONE_PERCENTAGE;
+      const zoneWidth = bounds.width * Config.ENTRY_ZONE_PERCENTAGE;
+
+      if (position === 'bottom') {
+        const entryZoneStart = bounds.top + bounds.height - zoneHeight;
+        return itemBounds.top + itemBounds.height > entryZoneStart;
+      }
+      if (position === 'top') {
+        const entryZoneEnd = bounds.top + zoneHeight;
+        return itemBounds.top < entryZoneEnd;
+      }
+      if (position === 'left') {
+        const entryZoneEnd = bounds.left + zoneWidth;
+        return itemBounds.left < entryZoneEnd;
+      }
+      if (position === 'right') {
+        const entryZoneStart = bounds.left + bounds.width - zoneWidth;
+        return itemBounds.left + itemBounds.width > entryZoneStart;
+      }
+
+      return false;
+    }
+
+    // Fallback to legacy origin-based detection
     const floorPlanWidth = Helpers.feetToPx(floorPlan.widthFt);
     const floorPlanHeight = Helpers.feetToPx(floorPlan.heightFt);
-    const position = entryZonePosition || 'bottom';
 
-    // Calculate entry zone bounds based on position
     if (position === 'bottom') {
       const entryZoneStart = floorPlanHeight * (1 - Config.ENTRY_ZONE_PERCENTAGE);
       return itemBounds.top + itemBounds.height > entryZoneStart;
-    } else if (position === 'top') {
+    }
+    if (position === 'top') {
       const entryZoneEnd = floorPlanHeight * Config.ENTRY_ZONE_PERCENTAGE;
       return itemBounds.top < entryZoneEnd;
-    } else if (position === 'left') {
+    }
+    if (position === 'left') {
       const entryZoneEnd = floorPlanWidth * Config.ENTRY_ZONE_PERCENTAGE;
       return itemBounds.left < entryZoneEnd;
-    } else if (position === 'right') {
+    }
+    if (position === 'right') {
       const entryZoneStart = floorPlanWidth * (1 - Config.ENTRY_ZONE_PERCENTAGE);
       return itemBounds.left + itemBounds.width > entryZoneStart;
     }

@@ -70,42 +70,173 @@
 .category-items {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 
 .palette-item {
-  padding: 12px;
-  border: 1.5px solid;
+  padding: 16px;
+  border: 1px solid #d4d4d4;
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: center;
-  transition: all var(--transition-base);
+  transition: border-color var(--transition-base), transform var(--transition-base);
   position: relative;
   background: var(--color-bg-panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .palette-item:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-width: 2px;
+  border-color: var(--color-border-hover);
 }
 
 .palette-item:active {
   transform: translateY(0);
 }
 
+.palette-item-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 600;
+  transition: transform var(--transition-fast);
+}
+
+.palette-item-image {
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform var(--transition-fast);
+}
+
+.palette-item-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform var(--transition-fast);
+}
+
+.palette-item-placeholder {
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgb(148 163 184 / 70%);
+  background: repeating-linear-gradient(
+    135deg,
+    rgb(226 232 240 / 60%) 0,
+    rgb(226 232 240 / 60%) 10px,
+    rgb(148 163 184 / 30%) 10px,
+    rgb(148 163 184 / 30%) 20px
+  );
+  transition: transform var(--transition-fast);
+}
+
+.palette-item-placeholder--mezzanine {
+  border-color: rgb(107 114 128 / 60%);
+  background: repeating-linear-gradient(
+    135deg,
+    rgb(209 213 219 / 40%) 0,
+    rgb(209 213 219 / 40%) 12px,
+    rgb(148 163 184 / 35%) 12px,
+    rgb(148 163 184 / 35%) 24px
+  );
+}
+
+.palette-shape-preview {
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(148 163 184 / 50%);
+  background: linear-gradient(180deg, rgb(248 250 252 / 95%), rgb(241 245 249 / 95%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.palette-shape-preview::before {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 64px;
+  background: var(--shape-color, #475569);
+  border-radius: 12px;
+  transition: transform var(--transition-fast);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 60%), 0 4px 8px rgb(15 23 42 / 8%);
+}
+
+.palette-shape-preview--circle::before {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+}
+
+.palette-shape-preview--rectangle::before {
+  width: 72px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.palette-shape-preview--triangle::before {
+  width: 62px;
+  height: 54px;
+  border-radius: 0;
+  clip-path: polygon(50% 4%, 0% 100%, 100% 100%);
+}
+
+.palette-shape-preview--square::before {
+  width: 58px;
+  height: 58px;
+}
+
+.palette-item:hover .palette-shape-preview::before {
+  transform: scale(1.05);
+}
+
+.palette-item:hover .palette-item-icon,
+.palette-item:hover .palette-item-image,
+.palette-item:hover .palette-item-image img,
+.palette-item:hover .palette-item-placeholder {
+  transform: scale(1.03);
+}
+
 .palette-item .item-label {
   font-weight: 600;
-  font-size: 12px;
-  color: #18181b;
-  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--color-text-primary);
   line-height: 1.3;
 }
 
 .palette-item .item-size {
-  font-size: 11px;
-  color: #71717a;
+  font-size: 12px;
+  color: var(--color-text-secondary);
   font-weight: 500;
+}
+
+.palette-item[data-category='mezzanine'] {
+  border-style: dashed;
+  background: linear-gradient(
+    135deg,
+    rgb(248 250 252 / 90%) 0%,
+    rgb(241 245 249 / 90%) 100%
+  );
+}
+
+.palette-item[data-category='mezzanine'] .item-label {
+  color: #374151;
 }
 
 /* Saved Layouts */

@@ -4,9 +4,26 @@
 class Modal {
   static showConfirm(title, message) {
     return new Promise((resolve) => {
+      // Guard: Prevent multiple confirms from opening simultaneously
+      if (Modal._currentConfirm) {
+        console.warn('[Modal] Confirm already open, returning false');
+        resolve(false);
+        return;
+      }
+
+      // CRITICAL FIX: Remove any orphaned modal overlays before creating new one
+      const existingOverlays = document.querySelectorAll('.modal-overlay');
+      if (existingOverlays.length > 0) {
+        console.warn('[Modal] Found', existingOverlays.length, 'existing overlays, removing them');
+        existingOverlays.forEach(o => o.remove());
+      }
+
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
+
+      // Mark that a confirm is currently open
+      Modal._currentConfirm = true;
 
       const modal = document.createElement('div');
       modal.className = 'modal';
@@ -28,6 +45,8 @@ class Modal {
 
       const handleClose = (confirmed) => {
         document.removeEventListener('keydown', keyHandler);
+        // Clear the confirm guard flag
+        Modal._currentConfirm = false;
         overlay.remove();
         resolve(confirmed);
       };
@@ -62,6 +81,25 @@ class Modal {
 
   static showPrompt(title, message, defaultValue = '') {
     return new Promise((resolve) => {
+      console.log('[Modal] showPrompt called with title:', title, '| Stack trace:', new Error().stack);
+      
+      // Guard: Prevent multiple prompts from opening simultaneously
+      if (Modal._currentPrompt) {
+        console.warn('[Modal] ⚠️ BLOCKED: Prompt already open, returning null');
+        console.warn('[Modal] Blocked prompt was:', title);
+        resolve(null);
+        return;
+      }
+
+      console.log('[Modal] ✓ Opening prompt:', title);
+      
+      // CRITICAL FIX: Remove any orphaned modal overlays before creating new one
+      const existingOverlays = document.querySelectorAll('.modal-overlay');
+      if (existingOverlays.length > 0) {
+        console.warn('[Modal] Found', existingOverlays.length, 'existing overlays, removing them');
+        existingOverlays.forEach(o => o.remove());
+      }
+      
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
@@ -70,6 +108,9 @@ class Modal {
       const scrollY = window.scrollY;
       document.body.style.top = `-${scrollY}px`;
       document.body.classList.add('modal-open');
+
+      // Mark that a prompt is currently open
+      Modal._currentPrompt = true;
 
       const modal = document.createElement('div');
       modal.className = 'modal';
@@ -112,6 +153,7 @@ class Modal {
       input.select();
 
       const handleClose = (value) => {
+        console.log('[Modal] Closing prompt, value:', value);
         document.removeEventListener('keydown', keyHandler);
         input.removeEventListener('focus', handleInputFocus);
         input.removeEventListener('blur', handleInputBlur);
@@ -121,7 +163,20 @@ class Modal {
         document.body.style.top = '';
         window.scrollTo(0, scrollY);
         
-        overlay.remove();
+        // Clear the prompt guard flag
+        Modal._currentPrompt = false;
+        // Track last prompt close time (used by mobile tap guards)
+        Modal._lastPromptClosedAt = Date.now();
+        console.log('[Modal] ✓ Prompt closed, guard flag cleared');
+        
+        // Check if overlay still exists before removing
+        if (overlay && overlay.parentNode) {
+          console.log('[Modal] Removing overlay from DOM');
+          overlay.remove();
+        } else {
+          console.warn('[Modal] ⚠️ Overlay already removed or not in DOM');
+        }
+        
         resolve(value);
       };
 

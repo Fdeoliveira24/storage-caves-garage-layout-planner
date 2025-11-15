@@ -4,23 +4,25 @@
  */
 class State {
   constructor() {
+    this.initialSettings = {
+      unit: 'feet',
+      showGrid: true,
+      snapToGrid: false,
+      showLabels: true,
+      showDimensions: true,
+      showRuler: false,
+      entryZonePosition: 'bottom',
+      showEntryZoneLabel: true,
+      showEntryZoneBorder: true,
+      showItemLabels: true,
+    };
+
     this.state = {
       floorPlan: null,
       items: [],
       selection: null,
       history: [],
-      settings: {
-        unit: 'feet',
-        showGrid: true,
-        snapToGrid: false,
-        showLabels: true,
-        showDimensions: true,
-        showRuler: false,
-        entryZonePosition: 'bottom',
-        showEntryZoneLabel: true,
-        showEntryZoneBorder: true,
-        showItemLabels: true,
-      },
+      settings: { ...this.initialSettings },
       ui: {
         sidebarOpen: true,
         infoPanelOpen: true,
@@ -34,6 +36,11 @@ class State {
         created: null,
         modified: null,
         version: '1.0.0',
+      },
+      layout: {
+        floorPlanPosition: null,
+        floorPlanBounds: null,
+        floorPlanLocked: false,
       },
     };
 
@@ -102,7 +109,7 @@ class State {
    * Reset state to initial values
    */
   reset() {
-    const settings = { ...this.state.settings };
+    const settings = { ...this.initialSettings };
 
     this.state = {
       floorPlan: null,
@@ -123,6 +130,11 @@ class State {
         created: new Date().toISOString(),
         modified: new Date().toISOString(),
         version: '1.0.0',
+      },
+      layout: {
+        floorPlanPosition: null,
+        floorPlanBounds: null,
+        floorPlanLocked: false,
       },
     };
 
@@ -160,6 +172,10 @@ class State {
       settings: {
         ...this.state.settings,
         ...(savedState.settings || {}),
+      },
+      layout: {
+        ...this.state.layout,
+        ...(savedState.layout || {}),
       },
       metadata: {
         ...this.state.metadata,

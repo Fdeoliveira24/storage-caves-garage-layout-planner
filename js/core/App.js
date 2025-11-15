@@ -14,11 +14,12 @@ class App {
     this.selectionManager = null;
     this.exportManager = null;
     this.historyManager = null;
+    this.sidebarCollapsed = false;
     this.mobileUIManager = null;
     this.autosaveInterval = null;
+    this.duplicateBatchDepth = 0;
 
     // Cached DOM references for performance
-    this.entryZoneWarningBadge = null;
     this.entryZoneCheckDebounce = null;
   }
 
@@ -38,6 +39,7 @@ class App {
 
     // Ensure viewport starts at default state
     this.canvasManager.resetViewport();
+    this.canvasManager.showEmptyState();
 
     // Initialize managers
     this.floorPlanManager = new FloorPlanManager(this.state, this.eventBus, this.canvasManager);
@@ -70,9 +72,8 @@ class App {
     // Load last autosave if exists
     const autosaveLoaded = this.loadAutosave();
 
-    // Show empty state only if no autosave was loaded
-    if (!autosaveLoaded) {
-      this.canvasManager.showEmptyState();
+    if (autosaveLoaded) {
+      this.canvasManager.hideEmptyState();
     }
 
     // Sync project name from state to UI
@@ -121,9 +122,33 @@ class App {
       this.itemManager.removeItem(itemId);
     });
 
-    this.eventBus.on('item:duplicate:requested', (itemId) => {
-      this.itemManager.duplicateItem(itemId);
+    this.eventBus.on('item:duplicate:requested', (payload) => {
+      if (payload && typeof payload === 'object') {
+        this.itemManager.duplicateItem(payload.itemId, {
+          canvasObject: payload.canvasObject,
+          centerOverride: payload.center,
+        });
+      } else {
+        this.itemManager.duplicateItem(payload);
+      }
       this.checkEntryZoneViolations();
+    });
+
+    this.eventBus.on('items:duplicate:batch:start', () => {
+      this.duplicateBatchDepth += 1;
+      if (this.historyManager) {
+        this.historyManager.enabled = false;
+      }
+    });
+
+    this.eventBus.on('items:duplicate:batch:end', () => {
+      if (this.duplicateBatchDepth > 0) {
+        this.duplicateBatchDepth -= 1;
+      }
+      if (this.duplicateBatchDepth === 0 && this.historyManager) {
+        this.historyManager.enabled = true;
+        this.historyManager.save();
+      }
     });
 
     this.eventBus.on('item:paste:requested', (itemData) => {
@@ -174,6 +199,22 @@ class App {
       this.historyManager.save();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
+    });
+
+    this.eventBus.on('floorplan:moved', (payload) => {
+      if (payload?.position) {
+        this.state.set('layout.floorPlanPosition', payload.position);
+      }
+      if (payload?.bounds) {
+        this.state.set('layout.floorPlanBounds', payload.bounds);
+      }
+      this.updateInfoPanel();
+      this.debouncedCheckEntryZone();
+    });
+
+    this.eventBus.on('floorplan:lock:toggled', (locked) => {
+      this.state.set('layout.floorPlanLocked', locked);
+      this.syncViewDropdownUI();
     });
 
     // Selection events
@@ -313,6 +354,7 @@ class App {
     this.updateInfoPanel();
     this.setupToolbarHandlers();
     this.setupTabSwitching();
+    this.setupSidebarToggle();
     this.syncViewDropdownUI();
   }
 
@@ -381,6 +423,30 @@ class App {
     if (labelsToggleText) {
       labelsToggleText.textContent = showItemLabels ? 'Hide Labels' : 'Show Labels';
     }
+
+    const lockToggleText = document.getElementById('floorplan-lock-text');
+    const lockIcon = document.getElementById('floorplan-lock-icon');
+    const locked = this.state.get('layout.floorPlanLocked') !== false;
+
+    if (lockToggleText) {
+      lockToggleText.textContent = locked ? 'Unlock Floor Plan' : 'Lock Floor Plan';
+    }
+
+    if (lockIcon) {
+      const lockedMarkup = `
+        <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+        <path d="M7 11V7a5 5 0 0110 0v4"></path>
+        <line x1="12" y1="16" x2="12" y2="18"></line>
+        <circle cx="12" cy="16" r="1"></circle>
+      `;
+      const unlockedMarkup = `
+        <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+        <path d="M17 11V7a5 5 0 10-9.33-3"></path>
+        <line x1="12" y1="16" x2="12" y2="18"></line>
+        <circle cx="12" cy="16" r="1"></circle>
+      `;
+      lockIcon.innerHTML = locked ? lockedMarkup : unlockedMarkup;
+    }
   }
 
   /**
@@ -413,6 +479,13 @@ class App {
         }
       });
     });
+  }
+
+  setupSidebarToggle() {
+    const toggleBtn = document.getElementById('btn-toggle-sidebar');
+    if (!toggleBtn) return;
+
+    toggleBtn.addEventListener('click', () => this.toggleSidebar());
   }
 
   /**
@@ -467,17 +540,37 @@ class App {
               ${category.items
                 .map((item) => {
                   const hasImage = Config.USE_IMAGES && item.paletteImage;
+                  const accentColor = item.color || '#6366F1';
+                  const isMezzanine = item.category === 'mezzanine';
+                  const isShape = item.category === 'shapes';
+                  let visualMarkup;
+
                   if (hasImage) {
-                    return `
-                      <div class="palette-item" data-id="${item.id}" style="background-color: ${item.color}20; border-color: ${item.color}">
-                        <img src="${item.paletteImage}" loading="lazy" decoding="async" class="item-preview" style="display:block;max-width:60px;margin:auto;">
-                        <div class="item-label">${item.label}</div>
-                        <div class="item-size">${item.lengthFt}' × ${item.widthFt}'</div>
+                    visualMarkup = `
+                      <div class="palette-item-image">
+                        <img src="${item.paletteImage}" loading="lazy" decoding="async" alt="${item.label}">
+                      </div>
+                    `;
+                  } else if (isMezzanine) {
+                    visualMarkup = `
+                      <div class="palette-item-placeholder palette-item-placeholder--mezzanine" aria-hidden="true"></div>
+                    `;
+                  } else if (isShape) {
+                    const shapeType = item.shapeType || 'rectangle';
+                    visualMarkup = `
+                      <div class="palette-shape-preview palette-shape-preview--${shapeType}" style="--shape-color: ${accentColor};" aria-hidden="true"></div>
+                    `;
+                  } else {
+                    visualMarkup = `
+                      <div class="palette-item-icon" style="background-color: ${accentColor}22; color: ${accentColor}">
+                        ${item.label.charAt(0)}
                       </div>
                     `;
                   }
+
                   return `
-                    <div class="palette-item" data-id="${item.id}" style="background-color: ${item.color}20; border-color: ${item.color}">
+                    <div class="palette-item" data-id="${item.id}" data-category="${item.category || catName}">
+                      ${visualMarkup}
                       <div class="item-label">${item.label}</div>
                       <div class="item-size">${item.lengthFt}' × ${item.widthFt}'</div>
                     </div>
@@ -501,11 +594,35 @@ class App {
           return;
         }
 
-        // Add item to center of canvas
-        const centerX = Helpers.feetToPx(floorPlan.widthFt) / 2;
-        const centerY = Helpers.feetToPx(floorPlan.heightFt) / 2;
+        let targetX;
+        let targetY;
 
-        this.itemManager.addItem(itemId, centerX, centerY);
+        if (this.canvasManager && typeof this.canvasManager.getFloorPlanPosition === 'function') {
+          const planCenter = this.canvasManager.getFloorPlanPosition();
+          if (planCenter) {
+            targetX = planCenter.left;
+            targetY = planCenter.top;
+          }
+        }
+
+        if (targetX === undefined || targetY === undefined) {
+          const bounds =
+            typeof this.canvasManager.getFloorPlanBounds === 'function'
+              ? this.canvasManager.getFloorPlanBounds()
+              : null;
+          if (bounds) {
+            targetX = bounds.left + bounds.width / 2;
+            targetY = bounds.top + bounds.height / 2;
+          }
+        }
+
+        if (targetX === undefined || targetY === undefined) {
+          // Fallback to geometric center using plan dimensions
+          targetX = Helpers.feetToPx(floorPlan.widthFt) / 2;
+          targetY = Helpers.feetToPx(floorPlan.heightFt) / 2;
+        }
+
+        this.itemManager.addItem(itemId, targetX, targetY);
       });
     });
   }
@@ -516,21 +633,28 @@ class App {
   setupToolbarHandlers() {
     // Rename project
     const renameBtn = document.getElementById('btn-rename-project');
-    if (renameBtn) {
-      renameBtn.addEventListener('click', async () => {
-        const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
-        const newName = await Modal.showPrompt(
-          'Rename Project',
-          'Enter project name:',
-          currentName,
-        );
+    const projectNameLabel = document.getElementById('project-name');
+    const handleDesktopRename = async () => {
+      if (document.body.classList.contains('mobile-layout')) {
+        console.log('[App] Desktop rename blocked - mobile mode active');
+        return;
+      }
 
-        if (newName && newName.trim() !== '') {
-          // Delegate to updateProjectName helper to keep behavior consistent
-          this.updateProjectName(newName.trim());
-          Modal.showSuccess('Project renamed successfully');
-        }
-      });
+      const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
+      const newName = await Modal.showPrompt('Rename Project', 'Enter project name:', currentName);
+
+      if (newName && newName.trim() !== '') {
+        this.updateProjectName(newName.trim());
+        Modal.showSuccess('Project renamed successfully');
+      }
+    };
+
+    if (renameBtn) {
+      renameBtn.addEventListener('click', handleDesktopRename);
+    }
+
+    if (projectNameLabel) {
+      projectNameLabel.addEventListener('dblclick', handleDesktopRename);
     }
 
     // New layout
@@ -566,6 +690,7 @@ class App {
 
           this.renderFloorPlanList();
           this.updateInfoPanel();
+          this.syncViewDropdownUI();
           Modal.showSuccess('New layout started');
         }
       });
@@ -686,10 +811,7 @@ class App {
     if (toggleGridBtn) {
       toggleGridBtn.addEventListener('click', () => {
         this.canvasManager.toggleGrid();
-        const showGrid = this.state.get('settings.showGrid');
-        document.getElementById('grid-toggle-text').textContent = showGrid
-          ? 'Hide Grid'
-          : 'Show Grid';
+        this.syncViewDropdownUI();
       });
     }
 
@@ -737,9 +859,7 @@ class App {
         const showLabel = this.state.get('settings.showEntryZoneLabel') !== false;
         this.state.set('settings.showEntryZoneLabel', !showLabel);
         this.canvasManager.redrawFloorPlan();
-        document.getElementById('entry-label-toggle-text').textContent = showLabel
-          ? 'Show Entry Label'
-          : 'Hide Entry Label';
+        this.syncViewDropdownUI();
       });
     }
 
@@ -749,9 +869,7 @@ class App {
         const showBorder = this.state.get('settings.showEntryZoneBorder') !== false;
         this.state.set('settings.showEntryZoneBorder', !showBorder);
         this.canvasManager.redrawFloorPlan();
-        document.getElementById('entry-border-toggle-text').textContent = showBorder
-          ? 'Show Entry Border'
-          : 'Hide Entry Border';
+        this.syncViewDropdownUI();
       });
     }
 
@@ -764,6 +882,21 @@ class App {
           ? 'Show Labels'
           : 'Hide Labels';
         this.canvasManager.toggleItemLabels(!showLabels);
+      });
+    }
+
+    const floorPlanLockBtn = document.getElementById('btn-floorplan-lock');
+    if (floorPlanLockBtn) {
+      floorPlanLockBtn.addEventListener('click', () => {
+        const locked = this.state.get('layout.floorPlanLocked') !== false;
+        this.canvasManager.setFloorPlanLocked(!locked);
+      });
+    }
+
+    const floorPlanCenterBtn = document.getElementById('btn-floorplan-center');
+    if (floorPlanCenterBtn) {
+      floorPlanCenterBtn.addEventListener('click', () => {
+        this.canvasManager.resetFloorPlanPosition();
       });
     }
   }
@@ -782,10 +915,21 @@ class App {
     const segments = [];
 
     if (floorPlan) {
+      const floorPlanName =
+        floorPlan.name || floorPlan.label || floorPlan.id || floorPlan.slug || 'Floor Plan';
+      const floorDetails = [];
+      if (floorPlan.widthFt && floorPlan.heightFt) {
+        floorDetails.push(`${floorPlan.widthFt}' × ${floorPlan.heightFt}'`);
+      }
+      if (floorPlan.area) {
+        floorDetails.push(`${floorPlan.area} sq ft`);
+      }
+      const floorValue = [floorPlanName, floorDetails.join(' | ')].filter(Boolean).join(' • ');
+
       segments.push(`
         <div class="info-bar__segment">
           <span class="info-bar__label">Floor:</span>
-          <span class="info-bar__value">${floorPlan.widthFt}' × ${floorPlan.heightFt}' (${floorPlan.area} sq ft)</span>
+          <span class="info-bar__value">${floorValue}</span>
         </div>
       `);
 
@@ -819,19 +963,51 @@ class App {
         `);
       }
 
-      const posX = ((item.left - (floorPlan?.canvasBounds?.left || 0)) / 10).toFixed(1);
-      const posY = ((item.top - (floorPlan?.canvasBounds?.top || 0)) / 10).toFixed(1);
+      if (typeof itemData._insideFloorPlan !== 'undefined') {
+        segments.push(`
+          <div class="info-bar__segment">
+            <span class="info-bar__label">Inside Floor:</span>
+            <span class="info-bar__value">${itemData._insideFloorPlan ? 'Yes' : 'No'}</span>
+          </div>
+        `);
+      }
+    }
 
+    const entryViolation = this.state.get('ui.entryZoneViolation');
+    if (entryViolation && floorPlan) {
       segments.push(`
-        <div class="info-bar__segment">
-          <span class="info-bar__label">Position:</span>
-          <span class="info-bar__value">${posX}' from left, ${posY}' from top</span>
+        <div class="info-bar__segment info-bar__segment--warning" title="Items blocking entry zone">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;margin-right:4px">
+            <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
+          </svg>
+          <span class="info-bar__value">Entry zone blocked</span>
         </div>
       `);
     }
 
     const divider = '<span class="info-bar__divider"></span>';
     panel.innerHTML = segments.join(divider);
+  }
+
+  toggleSidebar(forceState) {
+    const container = document.querySelector('.app-container');
+    if (!container) return;
+
+    const shouldCollapse =
+      typeof forceState === 'boolean' ? forceState : !container.classList.contains('sidebar-collapsed');
+
+    container.classList.toggle('sidebar-collapsed', shouldCollapse);
+    this.sidebarCollapsed = shouldCollapse;
+
+    const toggleBtn = document.getElementById('btn-toggle-sidebar');
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-pressed', String(shouldCollapse));
+      toggleBtn.title = shouldCollapse ? 'Show sidebar' : 'Hide sidebar';
+    }
+
+    requestAnimationFrame(() => {
+      this.canvasManager?.resizeCanvas?.();
+    });
   }
 
   /**
@@ -904,23 +1080,43 @@ class App {
       }
 
       const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+      const layoutState = this.state.get('layout') || {};
+      const floorPlanBounds = layoutState.floorPlanBounds;
 
       // Check if any item is in the entry zone
       const hasViolation = items.some((item) => {
-        if (!item || !item.canvasObject) return false;
-        return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition);
+        if (
+          !item ||
+          !item.canvasObject ||
+          typeof item.canvasObject.getBoundingRect !== 'function'
+        ) {
+          return false;
+        }
+        return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition, floorPlanBounds);
       });
 
-      // Update state and UI
-      this.state.set('ui.entryZoneViolation', hasViolation);
       this.updateEntryZoneWarning(hasViolation);
-
       return hasViolation;
     } catch (error) {
       console.warn('[App] Error checking entry zone violations:', error);
       this.updateEntryZoneWarning(false);
       return false;
     }
+  }
+
+  /**
+   * Update entry zone warning UI (desktop + stored state)
+   * @param {boolean} isBlocked
+   */
+  updateEntryZoneWarning(isBlocked) {
+    this.state.set('ui.entryZoneViolation', !!isBlocked);
+
+    const warningEl = document.getElementById('entry-zone-warning');
+    if (warningEl) {
+      warningEl.classList.toggle('hidden', !isBlocked);
+    }
+
+    this.updateInfoPanel();
   }
 
   /**
@@ -933,20 +1129,6 @@ class App {
     this.entryZoneCheckDebounce = setTimeout(() => {
       this.checkEntryZoneViolations();
     }, 16);
-  }
-
-  /**
-   * Update entry zone warning badge visibility
-   */
-  updateEntryZoneWarning(show) {
-    // Cache badge reference if not already cached
-    if (!this.entryZoneWarningBadge) {
-      this.entryZoneWarningBadge = document.getElementById('entry-zone-warning');
-    }
-
-    if (this.entryZoneWarningBadge) {
-      this.entryZoneWarningBadge.style.display = show ? 'flex' : 'none';
-    }
   }
 
   /**
@@ -1071,6 +1253,7 @@ class App {
 
           this.renderFloorPlanList();
           this.updateInfoPanel();
+          this.syncViewDropdownUI();
           Modal.showSuccess('New layout started');
         }
       });
@@ -1113,8 +1296,13 @@ class App {
     if (mobileBtnDuplicate) {
       mobileBtnDuplicate.addEventListener('click', () => {
         const selection = this.canvasManager.getCanvas().getActiveObject();
-        if (selection && selection.customData) {
-          this.eventBus.emit('item:duplicate:requested', selection.customData.id);
+        if (selection && selection.type === 'activeSelection') {
+          this.selectionManager.duplicateSelected();
+        } else if (selection && selection.customData) {
+          this.eventBus.emit('item:duplicate:requested', {
+            itemId: selection.customData.id,
+            canvasObject: selection,
+          });
         } else {
           Modal.showError('Please select an item to duplicate');
         }
@@ -1564,6 +1752,15 @@ class App {
 
       const savedState = savedData.state;
 
+      // Remove serialized Fabric references (cannot be revived from JSON)
+      if (Array.isArray(savedState.items)) {
+        savedState.items = savedState.items.map((item) => {
+          const sanitized = { ...item };
+          delete sanitized.canvasObject;
+          return sanitized;
+        });
+      }
+
       // Must have a floor plan to restore
       if (!savedState.floorPlan) {
         console.log('[App] No floor plan in autosave, skipping');
@@ -1634,6 +1831,13 @@ class App {
    * Save layout
    */
   async saveLayout() {
+    // CRITICAL: Prevent desktop handler from running on mobile
+    // Mobile has its own saveMobileLayout handler
+    if (document.body.classList.contains('mobile-layout')) {
+      console.log('[App] Desktop saveLayout blocked - mobile mode active');
+      return;
+    }
+
     // Show one-time warning if storage is not fully persistent
     if (!StorageUtil.isPersistent && !window._storageWarningShown) {
       window._storageWarningShown = true;

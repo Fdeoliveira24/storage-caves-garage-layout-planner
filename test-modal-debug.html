@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modal Debug Test</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; }
+        .test-section { margin: 20px 0; padding: 20px; border: 2px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        #console-output { 
+            background: #000; 
+            color: #0f0; 
+            padding: 10px; 
+            font-family: monospace; 
+            height: 300px; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Modal Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Buttons</h2>
+        <button id="test-1">Test Single Click</button>
+        <button id="test-2">Test Double Click (Rapid)</button>
+        <button id="test-3">Test From Two Sources</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console-output"></div>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <script>
+        // Intercept console.log
+        const consoleDiv = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            consoleDiv.innerHTML += '<div style="color: #0f0">[LOG] ' + args.join(' ') + '</div>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            consoleDiv.innerHTML += '<div style="color: #ff0">[WARN] ' + args.join(' ') + '</div>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+        }
+
+        // Simulate Modal class
+        class Modal {
+            static showPrompt(title, message, defaultValue = '') {
+                return new Promise((resolve) => {
+                    console.log('[Modal] showPrompt called with title:', title);
+                    console.log('[Modal] Stack:', new Error().stack.split('\n').slice(1, 3).join(' | '));
+                    
+                    if (Modal._currentPrompt) {
+                        console.warn('[Modal] ⚠️ BLOCKED: Prompt already open');
+                        resolve(null);
+                        return;
+                    }
+
+                    console.log('[Modal] ✓ Opening prompt');
+                    Modal._currentPrompt = true;
+
+                    // Simulate modal with real prompt
+                    setTimeout(() => {
+                        const result = prompt(message, defaultValue);
+                        Modal._currentPrompt = false;
+                        console.log('[Modal] ✓ Prompt closed, returned:', result);
+                        resolve(result);
+                    }, 100);
+                });
+            }
+        }
+
+        // Test 1: Single click
+        document.getElementById('test-1').addEventListener('click', async () => {
+            console.log('\n=== TEST 1: Single Click ===');
+            const result = await Modal.showPrompt('Test 1', 'Enter something:');
+            console.log('Result:', result);
+        });
+
+        // Test 2: Rapid double click
+        document.getElementById('test-2').addEventListener('click', async () => {
+            console.log('\n=== TEST 2: Rapid Double Click ===');
+            Modal.showPrompt('Test 2A', 'First prompt:');
+            Modal.showPrompt('Test 2B', 'Second prompt:'); // Should be blocked
+        });
+
+        // Test 3: Two different event listeners on same element
+        document.getElementById('test-3').addEventListener('click', async () => {
+            console.log('\n=== TEST 3: First Handler ===');
+            await Modal.showPrompt('Test 3A', 'First handler:');
+        });
+        
+        document.getElementById('test-3').addEventListener('click', async () => {
+            console.log('\n=== TEST 3: Second Handler ===');
+            await Modal.showPrompt('Test 3B', 'Second handler:');
+        });
+
+        console.log('🔍 Debug test page loaded. Try the buttons above.');
+    </script>
+</body>
+</html>

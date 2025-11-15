@@ -5,6 +5,7 @@
     "FabricJS",
     "px",
     "viewport",
+    "viewports",
     "eslint",
     "prettier",
     "jsPDF",
@@ -14,6 +15,15 @@
     "rgba",
     "Replit",
     "grayscale",
-    "Envato"
+    "Envato",
+    "blinkmacsystemfont",
+    "Canva",
+    "Flexbox",
+    "Ungroup",
+    "ungroup",
+    "longpress",
+    "evented",
+    "recenters",
+    "bbox"
   ]
 }

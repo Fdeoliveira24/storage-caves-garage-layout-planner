@@ -80,8 +80,7 @@ class SelectionManager {
       return (
         obj.customData &&
         !obj.customData.isLabel &&
-        obj !== this.canvasManager.floorPlanRect &&
-        obj !== this.canvasManager.entryZoneRect
+        obj !== this.canvasManager.floorPlanGroup
       );
     });
 
@@ -108,12 +107,31 @@ class SelectionManager {
    */
   duplicateSelected() {
     const selected = this.getSelection();
+    if (selected.length === 0) return;
 
-    selected.forEach((item) => {
-      if (item.customData && item.customData.id) {
-        this.eventBus.emit('item:duplicate:requested', item.customData.id);
-      }
+    const ids = selected
+      .filter((item) => item.customData && item.customData.id)
+      .map((item) => item.customData.id);
+
+    // Release active selection so Fabric restores absolute coordinates
+    this.canvas.discardActiveObject();
+    this.canvas.renderAll();
+
+    if (ids.length === 0) return;
+
+    this.eventBus.emit('items:duplicate:batch:start', { ids });
+
+    ids.forEach((id) => {
+      const canvasObject = this.canvas
+        .getObjects()
+        .find((obj) => obj.customData && obj.customData.id === id);
+      this.eventBus.emit('item:duplicate:requested', {
+        itemId: id,
+        canvasObject,
+      });
     });
+
+    this.eventBus.emit('items:duplicate:batch:end', { ids });
   }
 
   /**
@@ -290,19 +308,7 @@ class SelectionManager {
   bringToFront() {
     const selected = this.getSelection();
     selected.forEach((item) => item.bringToFront());
-    
-    // Ensure floor plan elements stay in correct order after bringing items forward
-    if (this.canvasManager.floorPlanRect) {
-      this.canvasManager.floorPlanRect.moveTo(0);
-    }
-    if (this.canvasManager.entryZoneRect) {
-      this.canvasManager.entryZoneRect.moveTo(1);
-    }
-    if (this.canvasManager.entryZoneLabel) {
-      this.canvasManager.entryZoneLabel.moveTo(2);
-    }
-    this.canvasManager.gridLines.forEach((line) => line.moveTo(3));
-    
+    this.canvasManager.ensureStaticLayersBehind();
     this.canvas.renderAll();
   }
 
@@ -318,20 +324,7 @@ class SelectionManager {
       item.moveTo(4);
     });
 
-    // Ensure floor plan elements stay in correct order
-    if (this.canvasManager.floorPlanRect) {
-      this.canvasManager.floorPlanRect.moveTo(0);
-    }
-    if (this.canvasManager.entryZoneRect) {
-      this.canvasManager.entryZoneRect.moveTo(1);
-    }
-    if (this.canvasManager.entryZoneLabel) {
-      this.canvasManager.entryZoneLabel.moveTo(2);
-    }
-
-    // Keep grid above floor plan but below items
-    this.canvasManager.gridLines.forEach((line) => line.moveTo(3));
-
+    this.canvasManager.ensureStaticLayersBehind();
     this.canvas.renderAll();
   }
 }

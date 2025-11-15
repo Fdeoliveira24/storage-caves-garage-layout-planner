@@ -96,12 +96,19 @@ class MobileUIManager {
     // Mobile content area with project header and top tabs
     this.mobileContainer.innerHTML = `
       <div id="mobile-project-header" class="mobile-project-header">
-        <button id="mobile-menu-btn" class="mobile-menu-btn" title="Open menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-        <h1 id="mobile-project-name" class="mobile-project-name">Untitled Layout</h1>
+        <div class="mobile-project-brand">
+          <img
+            src="assets/images/logo/Storage-Caves-Logo.png"
+            alt="Storage Caves Logo"
+            class="mobile-project-logo"
+          />
+          <button id="mobile-project-name" class="mobile-project-name" title="Rename layout" type="button">
+            <span id="mobile-project-name-text">Untitled Layout</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 17.01V19h1.99l6.06-6.05-1.99-1.99L7 17.01zm11.11-6.05a.996.996 0 0 0 0-1.41l-2.66-2.66a.996.996 0 0 0-1.41 0l-1.35 1.35 4.07 4.07 1.35-1.35z"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <div id="mobile-top-tabs" class="mobile-top-tabs">
         <div class="mobile-top-tabs-strip">
@@ -146,7 +153,11 @@ class MobileUIManager {
 
     desktopElements.forEach((selector) => {
       const el = document.querySelector(selector);
-      if (el) el.classList.add('mobile-hide-desktop');
+      if (el) {
+        el.classList.add('mobile-hide-desktop');
+        // CRITICAL: Disable pointer events to prevent click bubbling
+        el.style.pointerEvents = 'none';
+      }
     });
   }
 
@@ -158,11 +169,21 @@ class MobileUIManager {
     this.tabBar.id = 'mobile-tab-bar';
     this.tabBar.className = 'mobile-tab-bar';
     this.tabBar.innerHTML = `
-      <button class="mobile-tab" data-action="new-layout">
+      <button class="mobile-tab" data-action="toggle-top-tabs">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          <circle cx="11" cy="11" r="6"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <span>New</span>
+        <span>Browse</span>
+      </button>
+      <button class="mobile-tab" data-action="toggle-actions">
+        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+        <span>Actions</span>
       </button>
       <button class="mobile-tab mobile-tab-active mobile-tab-canvas" data-tab="canvas">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -172,9 +193,17 @@ class MobileUIManager {
       </button>
       <button class="mobile-tab" data-tab="more">
         <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+          <circle cx="5" cy="12" r="2"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+          <circle cx="19" cy="12" r="2"></circle>
         </svg>
         <span>More</span>
+      </button>
+      <button class="mobile-tab" data-action="new-layout">
+        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>New</span>
       </button>
     `;
 
@@ -185,26 +214,12 @@ class MobileUIManager {
    * Create mobile toolbar for canvas actions
    */
   createMobileToolbar() {
-    const fab = document.createElement('button');
-    fab.id = 'mobile-fab';
-    fab.className = 'mobile-fab';
-    fab.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-      </svg>
-    `;
-
     this.mobileToolbar = document.createElement('div');
     this.mobileToolbar.id = 'mobile-action-panel';
     this.mobileToolbar.className = 'mobile-action-panel';
     this.mobileToolbar.innerHTML = `
       <div class="mobile-action-panel-header">
-        <h3>Canvas Actions</h3>
-        <button class="mobile-action-close" aria-label="Close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+        <h2>Canvas Tools</h2>
       </div>
       <div class="mobile-action-panel-grid">
         <button class="mobile-action-btn" data-action="zoom-in">
@@ -255,20 +270,48 @@ class MobileUIManager {
           </svg>
           <span>Send Back</span>
         </button>
+        <button class="mobile-action-btn" data-action="toggle-floorplan-lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span class="mobile-floorplan-lock-label">Lock Floor Plan</span>
+        </button>
+        <button class="mobile-action-btn" data-action="recenter-floorplan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+          </svg>
+          <span>Re-center Floor Plan</span>
+        </button>
       </div>
     `;
 
-    fab.addEventListener('click', () => {
-      this.mobileToolbar.classList.toggle('mobile-action-panel-open');
-    });
-
-    const closeBtn = this.mobileToolbar.querySelector('.mobile-action-close');
-    closeBtn.addEventListener('click', () => {
-      this.mobileToolbar.classList.remove('mobile-action-panel-open');
-    });
-
-    document.body.appendChild(fab);
     document.body.appendChild(this.mobileToolbar);
+    this.updateFloorPlanControls();
+  }
+
+  toggleActionPanel() {
+    if (!this.mobileToolbar) return;
+    if (this.mobileToolbar.classList.contains('mobile-action-panel-open')) {
+      this.closeActionPanel();
+    } else {
+      this.openActionPanel();
+    }
+  }
+
+  openActionPanel() {
+    if (!this.mobileToolbar) return;
+    this.closeTopTabs();
+    this.updateFloorPlanControls();
+    this.mobileToolbar.classList.add('mobile-action-panel-open');
+    const actionTab = this.tabBar?.querySelector('[data-action="toggle-actions"]');
+    actionTab?.classList.add('mobile-tab-active');
+  }
+
+  closeActionPanel() {
+    if (!this.mobileToolbar) return;
+    this.mobileToolbar.classList.remove('mobile-action-panel-open');
+    const actionTab = this.tabBar?.querySelector('[data-action="toggle-actions"]');
+    actionTab?.classList.remove('mobile-tab-active');
   }
 
   /**
@@ -284,12 +327,17 @@ class MobileUIManager {
     if (this.mobileToolbar) {
       this.mobileToolbar.addEventListener('click', (e) => {
         const btn = e.target.closest('.mobile-action-btn');
-        if (btn) this.handleToolAction(btn.dataset.action);
+        if (btn && !btn.disabled && btn.getAttribute('aria-disabled') !== 'true') {
+          this.handleToolAction(btn.dataset.action);
+        }
       });
     }
 
     // Listen to manager events
-    this.eventBus.on('floorplan:changed', () => this.onFloorPlanSelected());
+    this.eventBus.on('floorplan:changed', () => {
+      this.onFloorPlanSelected();
+      this.updateFloorPlanControls();
+    });
     this.eventBus.on('item:added', () => this.onItemAdded());
   }
 
@@ -297,39 +345,33 @@ class MobileUIManager {
    * Setup project name editing
    */
   setupProjectName() {
-    const projectName = document.getElementById('mobile-project-name');
-    const menuBtn = document.getElementById('mobile-menu-btn');
+    const projectNameButton = document.getElementById('mobile-project-name');
+    const projectNameText = document.getElementById('mobile-project-name-text');
 
-    if (projectName) {
+    const triggerRename = async () => {
+      const metadata = this.state.get('metadata') || {};
+      const newName = await window.Modal?.showPrompt(
+        'Rename Layout',
+        'Enter a name for your layout:',
+        metadata.projectName || 'Untitled Layout',
+      );
+
+      if (newName && newName.trim()) {
+        this.state.set('metadata', { ...metadata, projectName: newName.trim() });
+        if (projectNameText) {
+          projectNameText.textContent = newName.trim();
+        }
+      }
+    };
+
+    if (projectNameButton && projectNameText) {
       // Update from state
       const metadata = this.state.get('metadata') || {};
-      projectName.textContent = metadata.projectName || 'Untitled Layout';
-
-      // Click to edit
-      projectName.addEventListener('click', async () => {
-        const currentMetadata = this.state.get('metadata') || {};
-        const newName = await window.Modal?.showPrompt(
-          'Rename Layout',
-          'Enter a name for your layout:',
-          currentMetadata.projectName || 'Untitled Layout',
-        );
-        if (newName && newName.trim()) {
-          this.state.set('metadata', { ...currentMetadata, projectName: newName.trim() });
-          projectName.textContent = newName.trim();
-        }
-      });
-    }
-
-    // Menu button to toggle top tabs
-    if (menuBtn) {
-      menuBtn.addEventListener('click', () => {
-        // Toggle top tabs visibility
-        if (this.topTabOpen) {
-          this.closeTopTabs();
-        } else {
-          // switchTopTab will open tabs with forceOpen=true by default
-          this.switchTopTab(this.lastTopTab || 'floorplans');
-        }
+      projectNameText.textContent = metadata.projectName || 'Untitled Layout';
+      projectNameButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        triggerRename();
       });
     }
   }
@@ -414,9 +456,22 @@ class MobileUIManager {
     const tab = e.target.closest('.mobile-tab');
     if (!tab) return;
 
-    // Handle new layout action
-    if (tab.dataset.action === 'new-layout') {
-      this.handleNewLayout();
+    const { action } = tab.dataset;
+    if (action) {
+      if (action === 'new-layout') {
+        this.handleNewLayout();
+      } else if (action === 'toggle-top-tabs') {
+        this.closeActionPanel();
+        this.closeMorePanel();
+        if (this.topTabOpen) {
+          this.closeTopTabs();
+        } else {
+          this.switchTopTab(this.lastTopTab || 'floorplans');
+        }
+      } else if (action === 'toggle-actions') {
+        this.closeMorePanel();
+        this.toggleActionPanel();
+      }
       return;
     }
 
@@ -430,6 +485,19 @@ class MobileUIManager {
    * Switch tabs
    */
   switchTab(tabName) {
+    if (tabName === 'more') {
+      if (this.isMorePanelOpen()) {
+        this.closeMorePanel({ activateCanvas: true });
+      } else {
+        this.openMorePanel();
+      }
+      return;
+    }
+
+    // Any tab switch should hide the floating actions panel
+    this.closeActionPanel();
+    this.closeMorePanel();
+
     // Update bottom tab bar active states
     const tabs = this.tabBar?.querySelectorAll('.mobile-tab');
     tabs?.forEach((t) => {
@@ -453,25 +521,51 @@ class MobileUIManager {
           this.canvasManager?.centerAndFit();
         }
       });
-    } 
-    else if (tabName === 'more') {
-      // Hide canvas, show content, close top tabs, show More view
-      if (canvasWrapper) canvasWrapper.classList.remove('mobile-show-canvas');
-      if (mobileContent) mobileContent.classList.add('mobile-show-content');
-      this.closeTopTabs();
-
-      const views = document.querySelectorAll('.mobile-view');
-      views.forEach((v) => v.classList.remove('mobile-view-active'));
-      document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
-      this.renderMore();
-    }
-    else if (tabName === 'floorplans' || tabName === 'items' || tabName === 'saved') {
+    } else if (tabName === 'floorplans' || tabName === 'items' || tabName === 'saved') {
       // Hide canvas, show content, show specific view
       if (canvasWrapper) canvasWrapper.classList.remove('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.add('mobile-show-content');
 
       // Switch to the specific top tab view (will open tabs with forceOpen=true by default)
       this.switchTopTab(tabName);
+    }
+  }
+
+  isMorePanelOpen() {
+    return this.tabBar?.querySelector('[data-tab="more"]')?.classList.contains('mobile-tab-active') ?? false;
+  }
+
+  openMorePanel() {
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
+    const mobileContent = document.getElementById('mobile-content');
+    const moreTab = this.tabBar?.querySelector('[data-tab="more"]');
+
+    this.closeTopTabs();
+    this.closeActionPanel();
+
+    this.tabBar?.querySelectorAll('.mobile-tab').forEach((t) => t.classList.remove('mobile-tab-active'));
+    moreTab?.classList.add('mobile-tab-active');
+    canvasWrapper?.classList.remove('mobile-show-canvas');
+    mobileContent?.classList.add('mobile-show-content');
+
+    document.querySelectorAll('.mobile-view').forEach((v) => v.classList.remove('mobile-view-active'));
+    document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
+    this.renderMore();
+  }
+
+  closeMorePanel({ activateCanvas = false } = {}) {
+    if (!this.isMorePanelOpen()) return;
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
+    const mobileContent = document.getElementById('mobile-content');
+    const moreTab = this.tabBar?.querySelector('[data-tab="more"]');
+
+    moreTab?.classList.remove('mobile-tab-active');
+    canvasWrapper?.classList.add('mobile-show-canvas');
+    mobileContent?.classList.remove('mobile-show-content');
+
+    if (activateCanvas) {
+      const canvasTab = this.tabBar?.querySelector('[data-tab="canvas"]');
+      canvasTab?.classList.add('mobile-tab-active');
     }
   }
 
@@ -546,6 +640,7 @@ class MobileUIManager {
 
     // Get items from Items.getAll() (loaded from js/data/items.js)
     const items = window.Items?.getAll() || [];
+    const useImages = typeof window !== 'undefined' && window.Config ? window.Config.USE_IMAGES !== false : true;
 
     container.innerHTML = `
       <div class="mobile-view-header">
@@ -554,17 +649,37 @@ class MobileUIManager {
       </div>
       <div class="mobile-item-list">
         ${items
-          .map(
-            (item) => `
-          <button class="mobile-item-card" data-item-id="${item.id}">
-            <div class="mobile-card-image">
-              <img src="${item.paletteImage}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'">
-            </div>
-            <h4>${item.label}</h4>
-            <span class="mobile-item-size">${item.lengthFt}' × ${item.widthFt}'</span>
-          </button>
-        `,
-          )
+          .map((item) => {
+            const hasImage = useImages && item.paletteImage;
+            const isMezzanine = item.category === 'mezzanine';
+            const isShape = item.category === 'shapes';
+            const accentColor = item.color || '#6366F1';
+            let visualMarkup;
+            if (hasImage) {
+              visualMarkup = `
+                <div class="mobile-card-image">
+                  <img src="${item.paletteImage}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'">
+                </div>
+              `;
+            } else if (isShape) {
+              const shapeType = item.shapeType || 'rectangle';
+              visualMarkup = `
+                <div class="mobile-card-image mobile-card-image--shape" data-shape="${shapeType}" style="--shape-color: ${accentColor};" aria-hidden="true"></div>
+              `;
+            } else {
+              const placeholderClasses = ['mobile-card-image', 'mobile-card-image--placeholder'];
+              if (isMezzanine) placeholderClasses.push('mobile-card-image--mezzanine');
+              visualMarkup = `<div class="${placeholderClasses.join(' ')}" aria-hidden="true"></div>`;
+            }
+
+            return `
+              <button class="mobile-item-card" data-item-id="${item.id}" data-category="${item.category || ''}">
+                ${visualMarkup}
+                <h4>${item.label}</h4>
+                <span class="mobile-item-size">${item.lengthFt}' × ${item.widthFt}'</span>
+              </button>
+            `;
+          })
           .join('')}
       </div>
     `;
@@ -596,8 +711,8 @@ class MobileUIManager {
 
     container.innerHTML = `
       <div class="mobile-view-header">
-        <h2>Actions</h2>
-        <p>Export and manage your layout</p>
+        <h2>Project Actions</h2>
+        <p>Export, share, and configure your layout</p>
       </div>
       <div class="mobile-more-list">
         <button class="mobile-more-item" data-action="save-layout">
@@ -669,20 +784,27 @@ class MobileUIManager {
 
     // Setup more item click handlers
     container.querySelectorAll('.mobile-more-item').forEach((item) => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (event) => {
+        // Prevent event from bubbling to desktop handlers
+        event.preventDefault();
+        event.stopPropagation();
         this.handleMoreAction(item.dataset.action);
       });
     });
 
     // Setup View Options handlers
     container.querySelectorAll('.mobile-toggle-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         this.handleViewOptionToggle(btn.dataset.action);
       });
     });
 
     container.querySelectorAll('.mobile-position-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         this.handleEntryPositionChange(btn.dataset.position);
       });
     });
@@ -779,8 +901,19 @@ class MobileUIManager {
    * Add item to canvas
    */
   addItem(itemId) {
+    const floorPlan = this.state.get('floorPlan');
+    if (!floorPlan) {
+      window.Modal?.showInfo('Please select a floor plan before adding items');
+      // Guide user back to floor plan tab for selection
+      this.switchTopTab('floorplans');
+      this.switchTab('floorplans');
+      return;
+    }
+
     if (this.itemManager) {
       this.itemManager.addItem(itemId);
+      // After adding, return to canvas view so the user sees the item
+      this.switchTab('canvas');
     }
   }
 
@@ -808,14 +941,19 @@ class MobileUIManager {
         break;
       }
       case 'duplicate':
-        this.canvasManager
-          ?.getCanvas()
-          ?.getActiveObjects()
-          .forEach((item) => {
-            if (item.customData?.id) {
-              this.itemManager?.duplicateItem(item.customData.id);
-            }
-          });
+        if (this.selectionManager) {
+          const activeObjects = this.canvasManager?.getCanvas()?.getActiveObjects() || [];
+          if (activeObjects.length > 1) {
+            this.selectionManager.duplicateSelected();
+          } else if (activeObjects.length === 1 && activeObjects[0].customData?.id) {
+            this.eventBus.emit('item:duplicate:requested', {
+              itemId: activeObjects[0].customData.id,
+              canvasObject: activeObjects[0],
+            });
+          } else {
+            window.Modal?.showInfo('Please select an item to duplicate');
+          }
+        }
         break;
       case 'delete':
         this.canvasManager
@@ -837,9 +975,56 @@ class MobileUIManager {
           this.selectionManager.sendToBack();
         }
         break;
+      case 'toggle-floorplan-lock':
+        this.toggleFloorPlanLock();
+        break;
+      case 'recenter-floorplan':
+        this.recenterFloorPlan();
+        break;
     }
     // Close action panel after action
-    this.mobileToolbar?.classList.remove('mobile-action-panel-open');
+    this.closeActionPanel();
+  }
+
+  updateFloorPlanControls() {
+    if (!this.mobileToolbar) return;
+    const hasFloorPlan = !!this.state.get('floorPlan');
+    const locked = this.state.get('layout.floorPlanLocked') !== false;
+
+    const lockBtn = this.mobileToolbar.querySelector('[data-action="toggle-floorplan-lock"]');
+    const lockLabel = this.mobileToolbar.querySelector('.mobile-floorplan-lock-label');
+    const recenterBtn = this.mobileToolbar.querySelector('[data-action="recenter-floorplan"]');
+
+    if (lockLabel) {
+      lockLabel.textContent = locked ? 'Unlock Floor Plan' : 'Lock Floor Plan';
+    }
+
+    [lockBtn, recenterBtn].forEach((btn) => {
+      if (!btn) return;
+      if (hasFloorPlan) {
+        btn.disabled = false;
+        btn.setAttribute('aria-disabled', 'false');
+        btn.classList.remove('mobile-action-btn-disabled');
+      } else {
+        btn.disabled = true;
+        btn.setAttribute('aria-disabled', 'true');
+        btn.classList.add('mobile-action-btn-disabled');
+      }
+    });
+  }
+
+  toggleFloorPlanLock() {
+    if (!this.state.get('floorPlan')) return;
+    const locked = this.state.get('layout.floorPlanLocked') !== false;
+    this.canvasManager?.setFloorPlanLocked(!locked);
+    this.state.set('layout.floorPlanLocked', !locked);
+    this.updateFloorPlanControls();
+  }
+
+  recenterFloorPlan() {
+    if (!this.state.get('floorPlan')) return;
+    this.canvasManager?.resetFloorPlanPosition?.();
+    this.switchTab('canvas');
   }
 
   /**
@@ -858,6 +1043,16 @@ class MobileUIManager {
       'share-email': '#btn-share-email',
       new: '#btn-new',
     };
+
+    if (action === 'toggle-floorplan-lock') {
+      this.toggleFloorPlanLock();
+      return;
+    }
+
+    if (action === 'recenter-floorplan') {
+      this.recenterFloorPlan();
+      return;
+    }
 
     const btn = document.querySelector(actions[action]);
     if (btn) {
@@ -1015,9 +1210,13 @@ class MobileUIManager {
     // Remove mobile classes
     document.body.classList.remove('mobile-layout');
 
-    // Remove mobile-hide-desktop classes
+    // Remove mobile-hide-desktop classes and restore pointer events
     document.querySelectorAll('.mobile-hide-desktop').forEach((el) => {
       el.classList.remove('mobile-hide-desktop');
+      // Restore pointer events for desktop
+      if (el instanceof HTMLElement) {
+        el.style.pointerEvents = '';
+      }
     });
 
     // Remove mobile containers

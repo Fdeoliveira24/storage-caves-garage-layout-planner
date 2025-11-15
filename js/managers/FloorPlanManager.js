@@ -31,8 +31,17 @@ class FloorPlanManager {
 
     // [FloorPlanManager] Setting floor plan: id
 
-    // Update state
-    this.state.setState({ floorPlan });
+    // Reset layout metadata (recenter + lock by default)
+    const currentLayout = this.state.get('layout') || {};
+    this.state.setState({
+      floorPlan,
+      layout: {
+        ...currentLayout,
+        floorPlanPosition: null,
+        floorPlanBounds: null,
+        floorPlanLocked: false,
+      },
+    });
 
     // Reset viewport before drawing new floor plan
     this.canvasManager.resetViewport();
@@ -101,7 +110,17 @@ class FloorPlanManager {
    * Clear floor plan
    */
   clearFloorPlan() {
-    this.state.setState({ floorPlan: null, items: [] });
+    const currentLayout = this.state.get('layout') || {};
+    this.state.setState({
+      floorPlan: null,
+      items: [],
+      layout: {
+        ...currentLayout,
+        floorPlanPosition: null,
+        floorPlanBounds: null,
+        floorPlanLocked: false,
+      },
+    });
     this.canvasManager.clear();
     this.eventBus.emit('floorplan:cleared');
   }

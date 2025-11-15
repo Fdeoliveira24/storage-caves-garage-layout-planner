@@ -14,6 +14,14 @@
    TABLET LANDSCAPE (1024px - 768px)
    ================================ */
 @media (width <= 1024px) {
+  .header-left h1 {
+    font-size: 14px;
+  }
+
+  .app-logo {
+    height: 32px;
+  }
+
   /* Sidebar becomes collapsible */
   .sidebar {
     transition:
@@ -95,6 +103,18 @@
     height: 56px;
     padding: 8px 12px;
     gap: 12px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-left h1 {
+    font-size: 13px;
+  }
+
+  .app-logo {
+    height: 28px;
   }
 
   .project-name-container {
