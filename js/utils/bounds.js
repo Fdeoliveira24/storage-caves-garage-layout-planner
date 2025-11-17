@@ -8,47 +8,77 @@ const Bounds = {
   /**
    * Constrain item to floor plan boundaries
    */
-  constrainToBounds(item, floorPlan) {
-    if (!floorPlan) return;
+  constrainToBounds(item, floorPlan, canvasBounds) {
+    if (!floorPlan || !item || typeof item.set !== 'function') return;
 
-    const itemBounds = item.getBoundingRect();
-    const maxX = Helpers.feetToPx(floorPlan.widthFt);
-    const maxY = Helpers.feetToPx(floorPlan.heightFt);
+    const itemBounds = this.getItemBounds(item);
+    if (!itemBounds) return;
 
     let newLeft = item.left;
     let newTop = item.top;
+    const bounds = this._resolveCanvasBounds(floorPlan, canvasBounds);
 
-    // Check left boundary
-    if (itemBounds.left < 0) {
-      newLeft = item.left - itemBounds.left;
+    if (bounds) {
+      const minLeft = bounds.left;
+      const minTop = bounds.top;
+      const maxLeft = bounds.left + bounds.width - itemBounds.width;
+      const maxTop = bounds.top + bounds.height - itemBounds.height;
+
+      if (itemBounds.left < minLeft) {
+        newLeft += minLeft - itemBounds.left;
+      }
+      if (itemBounds.top < minTop) {
+        newTop += minTop - itemBounds.top;
+      }
+      if (itemBounds.left > maxLeft) {
+        newLeft -= itemBounds.left - maxLeft;
+      }
+      if (itemBounds.top > maxTop) {
+        newTop -= itemBounds.top - maxTop;
+      }
+    } else {
+      const maxX = Helpers.feetToPx(floorPlan.widthFt);
+      const maxY = Helpers.feetToPx(floorPlan.heightFt);
+
+      if (itemBounds.left < 0) {
+        newLeft += -itemBounds.left;
+      }
+      if (itemBounds.left + itemBounds.width > maxX) {
+        newLeft -= itemBounds.left + itemBounds.width - maxX;
+      }
+      if (itemBounds.top < 0) {
+        newTop += -itemBounds.top;
+      }
+      if (itemBounds.top + itemBounds.height > maxY) {
+        newTop -= itemBounds.top + itemBounds.height - maxY;
+      }
     }
 
-    // Check right boundary
-    if (itemBounds.left + itemBounds.width > maxX) {
-      newLeft = item.left - (itemBounds.left + itemBounds.width - maxX);
+    if (newLeft !== item.left || newTop !== item.top) {
+      item.set({ left: newLeft, top: newTop });
+      item.setCoords();
     }
-
-    // Check top boundary
-    if (itemBounds.top < 0) {
-      newTop = item.top - itemBounds.top;
-    }
-
-    // Check bottom boundary
-    if (itemBounds.top + itemBounds.height > maxY) {
-      newTop = item.top - (itemBounds.top + itemBounds.height - maxY);
-    }
-
-    item.set({ left: newLeft, top: newTop });
-    item.setCoords();
   },
 
   /**
    * Check if item is within floor plan
    */
-  isWithinBounds(item, floorPlan) {
-    if (!floorPlan) return false;
+  isWithinBounds(item, floorPlan, canvasBounds) {
+    if (!floorPlan || !item) return false;
 
-    const itemBounds = item.getBoundingRect();
+    const itemBounds = this.getItemBounds(item);
+    if (!itemBounds) return false;
+
+    const bounds = this._resolveCanvasBounds(floorPlan, canvasBounds);
+    if (bounds) {
+      return (
+        itemBounds.left >= bounds.left &&
+        itemBounds.top >= bounds.top &&
+        itemBounds.left + itemBounds.width <= bounds.left + bounds.width &&
+        itemBounds.top + itemBounds.height <= bounds.top + bounds.height
+      );
+    }
+
     const maxX = Helpers.feetToPx(floorPlan.widthFt);
     const maxY = Helpers.feetToPx(floorPlan.heightFt);
 
@@ -67,9 +97,10 @@ const Bounds = {
   isInEntryZone(item, floorPlan, entryZonePosition, canvasBounds) {
     if (!floorPlan || !item) return false;
 
-    const bounds = canvasBounds || floorPlan?.canvasBounds;
+    const bounds = this._resolveCanvasBounds(floorPlan, canvasBounds);
     const position = entryZonePosition || 'bottom';
-    const itemBounds = item.getBoundingRect(true);
+    const itemBounds = this.getItemBounds(item);
+    if (!itemBounds) return false;
 
     if (bounds) {
       const zoneHeight = bounds.height * Config.ENTRY_ZONE_PERCENTAGE;
@@ -95,7 +126,6 @@ const Bounds = {
       return false;
     }
 
-    // Fallback to legacy origin-based detection
     const floorPlanWidth = Helpers.feetToPx(floorPlan.widthFt);
     const floorPlanHeight = Helpers.feetToPx(floorPlan.heightFt);
 
@@ -141,14 +171,15 @@ const Bounds = {
    * Get item bounds as object
    */
   getItemBounds(item) {
-    const bounds = item.getBoundingRect();
+    const rect = this._getBoundingRect(item);
+    if (!rect) return null;
     return {
-      left: bounds.left,
-      top: bounds.top,
-      right: bounds.left + bounds.width,
-      bottom: bounds.top + bounds.height,
-      width: bounds.width,
-      height: bounds.height,
+      left: rect.left,
+      top: rect.top,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+      width: rect.width,
+      height: rect.height,
     };
   },
 
@@ -158,7 +189,7 @@ const Bounds = {
   itemsOverlap(item1, item2) {
     const b1 = this.getItemBounds(item1);
     const b2 = this.getItemBounds(item2);
-
+    if (!b1 || !b2) return false;
     return Helpers.rectanglesOverlap(b1, b2);
   },
 
@@ -168,11 +199,12 @@ const Bounds = {
   findNearbyItems(targetItem, allItems, threshold = 5) {
     const nearby = [];
     const targetBounds = this.getItemBounds(targetItem);
-
+    if (!targetBounds) return nearby;
     allItems.forEach((item) => {
       if (item === targetItem) return;
 
       const itemBounds = this.getItemBounds(item);
+      if (!itemBounds) return;
 
       // Check if edges are close
       const edges = [
@@ -206,6 +238,34 @@ const Bounds = {
     });
 
     return nearby;
+  },
+
+  _resolveCanvasBounds(floorPlan, overrideBounds) {
+    if (this._isValidBounds(overrideBounds)) return overrideBounds;
+    if (floorPlan && this._isValidBounds(floorPlan.canvasBounds)) {
+      return floorPlan.canvasBounds;
+    }
+    return null;
+  },
+
+  _isValidBounds(bounds) {
+    return (
+      !!bounds &&
+      Number.isFinite(bounds.left) &&
+      Number.isFinite(bounds.top) &&
+      Number.isFinite(bounds.width) &&
+      Number.isFinite(bounds.height)
+    );
+  },
+
+  _getBoundingRect(item) {
+    if (!item || typeof item.getBoundingRect !== 'function') return null;
+    try {
+      return item.getBoundingRect(true);
+    } catch (error) {
+      console.warn('[Bounds] Failed to compute bounding rect:', error);
+      return null;
+    }
   },
 };
 

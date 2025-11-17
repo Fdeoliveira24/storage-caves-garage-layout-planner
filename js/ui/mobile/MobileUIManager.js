@@ -657,8 +657,9 @@ class MobileUIManager {
             let visualMarkup;
             if (hasImage) {
               visualMarkup = `
-                <div class="mobile-card-image">
-                  <img src="${item.paletteImage}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'">
+                <div class="mobile-card-image" style="--fallback-color: ${accentColor};">
+                  <img src="${item.paletteImage}" alt="${item.label}" loading="lazy">
+                  <div class="mobile-image-fallback" aria-hidden="true"></div>
                 </div>
               `;
             } else if (isShape) {
@@ -683,6 +684,16 @@ class MobileUIManager {
           .join('')}
       </div>
     `;
+
+    // Handle palette image failures gracefully
+    container.querySelectorAll('.mobile-card-image img').forEach((img) => {
+      img.addEventListener('error', () => {
+        const wrapper = img.closest('.mobile-card-image');
+        if (wrapper) {
+          wrapper.classList.add('mobile-card-image--error');
+        }
+      });
+    });
 
     // Setup item click handlers
     container.querySelectorAll('.mobile-item-card').forEach((card) => {
@@ -1142,61 +1153,30 @@ class MobileUIManager {
   }
 
   /**
-   * Save layout (mobile-specific implementation)
+   * Save layout (mobile entry point)
    */
   async saveMobileLayout() {
     try {
-      // Show one-time warning if storage is not fully persistent
-      if (window.Storage && !window.Storage.isPersistent && !window._storageWarningShown) {
-        window._storageWarningShown = true;
-        const mode = window.Storage.mode;
-        if (mode === 'session') {
-          window.Modal?.showInfo('Your layouts will be saved for this session, but will be cleared when you close this tab');
-        } else if (mode === 'memory') {
-          window.Modal?.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
-        }
-      }
-
-      // Close More menu BEFORE showing prompt to prevent z-index blocking
-      // Modal overlay (z-index 999) needs to be above More menu (z-index 1000)
-      this.switchTab('canvas');
-
-      // Small delay to ensure More menu animation completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Get layout name from user
-      const name = await window.Modal?.showPrompt('Save Layout', 'Enter layout name:');
-      if (!name || !name.trim()) {
-        // User cancelled or entered empty name - throw to trigger catch
-        throw new Error('Save cancelled');
-      }
-
-      const state = this.state.getState();
-      const layouts = window.Storage?.load(window.Config?.STORAGE_KEYS?.layouts) || [];
-
-      layouts.push({
-        id: window.Helpers.generateId('layout'),
-        name: name.trim(),
-        created: new Date().toISOString(),
-        state: state,
-        thumbnail: this.app.exportManager?.generateThumbnail() || null,
+      const result = await this.app.saveLayout({
+        allowMobile: true,
+        onBeforePrompt: async () => {
+          this.switchTab('canvas');
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        },
+        onCancel: () => {
+          this.switchTab('more');
+        },
+        onAfterSave: () => {
+          this.switchTab('canvas');
+        },
       });
 
-      const saved = window.Storage?.save(window.Config?.STORAGE_KEYS?.layouts, layouts);
-      if (!saved) {
-        // Save failed - throw to trigger catch
-        window.Modal?.showError('Failed to save layout - storage error');
-        throw new Error('Save failed');
+      if (!result?.saved && result?.reason !== 'cancelled') {
+        // if blocked or failed (not user cancel), return user to More tab
+        this.switchTab('more');
       }
-
-      // Success! Show message and refresh list
-      window.Modal?.showSuccess('Layout saved successfully!');
-      this.app.renderSavedLayouts?.();
-      // Stay on canvas - user likely wants to continue working
-      
     } catch (error) {
-      // Any cancellation, dismissal, or error - return to More menu
-      // This handles: cancel button, overlay click, back button, save errors
+      console.warn('[MobileUI] saveMobileLayout error:', error);
       this.switchTab('more');
     }
   }

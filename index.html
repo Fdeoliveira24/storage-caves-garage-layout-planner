@@ -3,22 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Garage Layout Planner - Professional Storage Planning Tool 1.6</title>
+    <title>Garage Layout Planner - Professional Storage Planning Tool 1.2</title>
+    <meta name="date" content="2025-01-14" />
 
     <!-- CSS -->
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/components/toolbar.css" />
+    <link rel="stylesheet" href="css/components/sidebar.css" />
+    <link rel="stylesheet" href="css/components/canvas.css" />
+    <link rel="stylesheet" href="css/components/info-panel.css" />
+    <link rel="stylesheet" href="css/components/modal.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/mobile-redesign.css" />
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
+    <div id="app-loading">Loading Garage Planner…</div>
     <div class="app-container">
       <!-- Header -->
       <header class="header">
         <div class="header-left">
           <img src="assets/images/logo/Storage-Caves-Logo.png" alt="Storage Caves Logo" class="app-logo" />
-          <h1>Garage Layout Planner</h1>
+          <h1>Garage Layout Planner - Professional Storage Planning Tool 1.2</h1>
         </div>
         <div class="project-name-container" title="Double-click to rename project">
           <span id="project-name" class="project-name">Untitled Layout</span>
-          <button id="btn-rename-project" class="btn-rename" title="Rename project">
+          <button id="btn-rename-project" class="btn-rename" title="Rename project" aria-label="Rename project">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
@@ -35,7 +47,13 @@
       <div class="main-content">
         <!-- Sidebar -->
         <aside class="sidebar">
-          <button id="sidebar-close" class="sidebar-close" style="display: none" title="Close menu">
+          <button
+            id="sidebar-close"
+            class="sidebar-close"
+            style="display: none"
+            title="Close menu"
+            aria-label="Close sidebar"
+          >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path
                 d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
@@ -449,124 +467,85 @@
     </div>
 
     <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <!-- Fabric.js (local-first with CDN fallback) -->
+    <script src="js/vendor/fabric.min.js" onerror="window.__fabricLocalFailed=true;"></script>
     <script>
-      if (typeof fabric !== 'undefined' && fabric.Text) {
-        const originalToObject = fabric.Text.prototype.toObject;
-        fabric.Text.prototype.toObject = function (propertiesToInclude) {
-          return originalToObject.call(this, propertiesToInclude);
-        };
-        fabric.Text.prototype.textBaseline = 'alphabetic';
-      }
-
       (function () {
-        const proto = window.CanvasRenderingContext2D ? CanvasRenderingContext2D.prototype : null;
-        if (!proto) return;
-        const descriptor = Object.getOwnPropertyDescriptor(proto, 'textBaseline');
-        if (!descriptor || !descriptor.configurable) return;
+        const CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js';
+        const CDN_INTEGRITY =
+          'sha512-P6uimDKoj1nnPSo2sPmgbZy99pPq9nHXhLwddOnLi1DC+fEM83FEUcHPRPifbx1rlRkdMinViaWyDfG45G9BuA==';
 
-        Object.defineProperty(proto, 'textBaseline', {
-          get: descriptor.get,
-          set(value) {
-            const normalized = value === 'alphabetical' ? 'alphabetic' : value;
-            descriptor.set.call(this, normalized);
-          },
-        });
+        window.__fabricReadyCallbacks = window.__fabricReadyCallbacks || [];
+
+        function notifyReady() {
+          if (window.__fabricReady) return;
+          if (!window.fabric) {
+            console.error('[Fabric] Library still unavailable after loading attempts.');
+            alert('Garage Planner could not load Fabric.js. Please refresh or contact support.');
+            return;
+          }
+          window.__fabricReady = true;
+          const pending = window.__fabricReadyCallbacks.splice(0);
+          pending.forEach((cb) => {
+            try {
+              cb();
+            } catch (err) {
+              console.error('[Fabric] Error in ready callback:', err);
+            }
+          });
+        }
+
+        if (window.fabric) {
+          notifyReady();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = CDN_URL;
+        script.integrity = CDN_INTEGRITY;
+        script.crossOrigin = 'anonymous';
+        script.onload = notifyReady;
+        script.onerror = () => {
+          console.error('[Fabric] CDN failed to load.');
+          alert('Garage Planner could not load Fabric.js from the CDN. Please check your network.');
+        };
+        document.head.appendChild(script);
       })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
     <!-- Core -->
-    <script src="js/core/Config.js"></script>
-    <script src="js/core/EventBus.js"></script>
-    <script src="js/core/State.js"></script>
+    <script src="js/core/Config.js" defer></script>
+    <script src="js/core/EventBus.js" defer></script>
+    <script src="js/core/State.js" defer></script>
 
     <!-- Data -->
-    <script src="js/data/items.js"></script>
-    <script src="js/data/icons.js"></script>
+    <script src="js/data/items.js" defer></script>
+    <script src="js/data/icons.js" defer></script>
 
     <!-- Utils -->
-    <script src="js/utils/helpers.js"></script>
-    <script src="js/utils/storage.js"></script>
-    <script src="js/utils/bounds.js"></script>
-    <script src="js/utils/geometry.js"></script>
-    <script src="js/utils/validation.js"></script>
+    <script src="js/utils/helpers.js" defer></script>
+    <script src="js/utils/storage.js" defer></script>
+    <script src="js/utils/bounds.js" defer></script>
+    <script src="js/utils/geometry.js" defer></script>
+    <script src="js/utils/validation.js" defer></script>
 
     <!-- UI -->
-    <script src="js/ui/Modal.js?v=2.4.0"></script>
-    <script src="js/ui/mobile/MobileUIManager.js?v=2.5.0"></script>
+    <script src="js/ui/Modal.js?v=2.4.0" defer></script>
+    <script src="js/ui/mobile/MobileUIManager.js?v=2.5.0" defer></script>
 
     <!-- Managers -->
-    <script src="js/managers/HistoryManager.js?v=2.4.0"></script>
-    <script src="js/managers/CanvasManager.js?v=2.4.0"></script>
-    <script src="js/managers/FloorPlanManager.js?v=2.4.0"></script>
-    <script src="js/managers/ItemManager.js?v=2.4.0"></script>
-    <script src="js/managers/SelectionManager.js?v=2.4.0"></script>
-    <script src="js/managers/ExportManager.js?v=2.4.0"></script>
+    <script src="js/managers/HistoryManager.js?v=2.4.0" defer></script>
+    <script src="js/managers/CanvasManager.js?v=2.4.0" defer></script>
+    <script src="js/managers/FloorPlanManager.js?v=2.4.0" defer></script>
+    <script src="js/managers/ItemManager.js?v=2.4.0" defer></script>
+    <script src="js/managers/SelectionManager.js?v=2.4.0" defer></script>
+    <script src="js/managers/ExportManager.js?v=2.4.0" defer></script>
 
     <!-- App -->
-    <script src="js/core/App.js?v=2.4.0"></script>
-
-    <!-- Initialize -->
-    <script>
-      // Tab switching
-      document.querySelectorAll('.sidebar-tab').forEach((tab) => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.sidebar-tab').forEach((t) => t.classList.remove('active'));
-          tab.classList.add('active');
-
-          const tabName = tab.dataset.tab;
-          document.querySelectorAll('.tab-content').forEach((content) => {
-            content.classList.add('hidden');
-          });
-
-          if (tabName === 'floorplans') {
-            document.getElementById('floorplan-tab').classList.remove('hidden');
-          } else if (tabName === 'items') {
-            document.getElementById('items-tab').classList.remove('hidden');
-          }
-        });
-      });
-
-      // View dropdown toggle
-      document.getElementById('btn-view')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dropdown = e.target.closest('.dropdown');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        menu.classList.toggle('show');
-      });
-
-      // Export dropdown toggle
-      document.getElementById('btn-export')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dropdown = e.target.closest('.dropdown');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        menu.classList.toggle('show');
-      });
-
-      // Zoom dropdown toggle
-      document.getElementById('btn-zoom')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dropdown = e.target.closest('.dropdown');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        menu.classList.toggle('show');
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
-          menu.classList.remove('show');
-        });
-      });
-
-      // Initialize app
-      const app = new App();
-      app.init();
-
-      // Make app globally available for debugging
-      window.app = app;
-    </script>
+    <script src="js/core/App.js?v=2.4.0" defer></script>
+    <script src="js/main.js" defer></script>
   </body>
 </html>

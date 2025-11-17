@@ -1,4 +1,4 @@
-/* global Helpers, Config */
+/* global Helpers, Config, Bounds, Modal */
 
 /**
  * Canvas Manager - Fabric.js Canvas Management
@@ -30,7 +30,9 @@ class CanvasManager {
     }
 
     this._floorPlanMoveHandler = this._handleFloorPlanMove.bind(this);
-    this.enforceFloorBounds = false; // Items can be placed anywhere by default
+    // When true, object moves are clamped to the floor plan bounds.
+    // Disabled by default so power users can stage items outside the plan.
+    this.enforceFloorBounds = false;
   }
 
   /**
@@ -301,12 +303,14 @@ class CanvasManager {
   setupEventListeners() {
     // Object moving
     this.canvas.on('object:moving', (e) => {
+      this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:moving', e.target);
     });
 
     // Object moved
     this.canvas.on('object:modified', (e) => {
+      this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:modified', e.target);
     });
@@ -398,15 +402,12 @@ class CanvasManager {
    * Draw floor plan
    */
   drawFloorPlan(floorPlan) {
+    try {
     // Hide empty state
     this.hideEmptyState();
 
     // Clear existing floor plan group
-    if (this.floorPlanGroup) {
-      this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
-      this.canvas.remove(this.floorPlanGroup);
-      this.floorPlanGroup = null;
-    }
+    this._teardownFloorPlanGroup();
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
@@ -530,6 +531,9 @@ class CanvasManager {
     this.centerAndFit(width, height);
 
     this.canvas.renderAll();
+    } catch (error) {
+      this._handleCanvasError('drawFloorPlan', error);
+    }
   }
 
   /**
@@ -616,39 +620,69 @@ class CanvasManager {
   }
 
   /**
-   * Add item to canvas
-   * Always returns a group immediately (synchronous)
-   * If image available, swaps rectangle with image asynchronously
+   * Add item to canvas.
+   * Coordinates (x, y) represent the desired center point in canvas space.
+   * Returns the group immediately and exposes a `group.imageLoadPromise`
+   * that resolves once the canvas image (if any) has finished loading.
    */
   addItem(itemData, x, y) {
-    // Create base group with rectangle immediately
-    const group = this._createBaseGroup(itemData, x, y);
+    try {
+      const group = this._createBaseGroup(itemData, x, y);
+      let resolveImageLoad;
+      const imageLoadPromise = new Promise((resolve) => {
+        resolveImageLoad = resolve;
+      });
+      group.imageLoadPromise = imageLoadPromise;
 
-    // Add to canvas and render
-    this.canvas.add(group);
-    this._updateItemFloorPlanState(group);
-    this.canvas.renderAll();
+      this.canvas.add(group);
+      this._updateItemFloorPlanState(group);
+      this.canvas.renderAll();
 
-    // If image available, start async load to swap rectangle with image
-    if (Config.USE_IMAGES && itemData.canvasImage) {
-      fabric.Image.fromURL(
-        itemData.canvasImage,
-        (img) => {
-          if (!img) {
-            console.warn('[CanvasManager] Failed to load image for item:', itemData.id);
-            return; // Keep rectangle fallback
-          }
-          this._swapGroupImage(group, img, itemData);
-        },
-        { crossOrigin: 'anonymous' },
-      );
+      if (Config.USE_IMAGES && itemData.canvasImage) {
+        fabric.Image.fromURL(
+          itemData.canvasImage,
+          (img) => {
+            if (!img) {
+              console.warn('[CanvasManager] Failed to load image for item:', itemData.id);
+              resolveImageLoad?.({ image: null, canvasObject: group, success: false });
+              this.eventBus.emit('canvas:itemImageLoaded', {
+                itemId: itemData.id,
+                success: false,
+                canvasObject: group,
+              });
+              this._handleCanvasError('loadItemImage', new Error('Image failed to load'));
+              return;
+            }
+            this._swapGroupImage(group, img, itemData);
+            resolveImageLoad?.({ image: img, canvasObject: group, success: true });
+            this.eventBus.emit('canvas:itemImageLoaded', {
+              itemId: itemData.id,
+              success: true,
+              canvasObject: group,
+            });
+          },
+          { crossOrigin: 'anonymous' },
+        );
+      } else {
+        resolveImageLoad?.({ image: null, canvasObject: group, success: true });
+        this.eventBus.emit('canvas:itemImageLoaded', {
+          itemId: itemData.id,
+          success: true,
+          canvasObject: group,
+        });
+      }
+
+      return group;
+    } catch (error) {
+      this._handleCanvasError('addItem', error);
+      return null;
     }
-
-    return group;
   }
 
   /**
-   * Create base group with rectangle and label
+   * Create base group with rectangle and label.
+   * All shapes are positioned relative to the group's origin (0,0)
+   * so that the group's left/top can safely be treated as center coordinates.
    * @private
    */
   _createBaseGroup(itemData, x, y) {
@@ -803,33 +837,32 @@ class CanvasManager {
    * @private
    */
   _swapGroupImage(group, img, itemData) {
-    if (!group || !img) return;
+    try {
+      if (!group || !img) return;
 
-    const width = Helpers.feetToPx(itemData.widthFt);
-    const height = Helpers.feetToPx(itemData.lengthFt);
+      const width = Helpers.feetToPx(itemData.widthFt);
+      const height = Helpers.feetToPx(itemData.lengthFt);
 
-    // Scale image to match dimensions
-    img.set({
-      left: -width / 2,
-      top: -height / 2,
-      originX: 'left',
-      originY: 'top',
-    });
-    img.scaleToWidth(width);
-    img.scaleY = height / img.height;
+      img.set({
+        left: -width / 2,
+        top: -height / 2,
+        originX: 'left',
+        originY: 'top',
+      });
+      img.scaleToWidth(width);
+      img.scaleY = height / img.height;
 
-    // Find and remove the rectangle (first child, index 0)
-    const shapeChild = group.item(0);
-    if (shapeChild && ['rect', 'circle', 'triangle'].includes(shapeChild.type)) {
-      group.remove(shapeChild);
+      const shapeChild = group.item(0);
+      if (shapeChild && ['rect', 'circle', 'triangle'].includes(shapeChild.type)) {
+        group.remove(shapeChild);
+      }
+
+      group.insertAt(img, 0);
+      group.addWithUpdate();
+      this.canvas.renderAll();
+    } catch (error) {
+      this._handleCanvasError('_swapGroupImage', error);
     }
-
-    // Add image at the beginning (so label stays on top)
-    group.insertAt(img, 0);
-    group.addWithUpdate();
-
-    // Re-render canvas
-    this.canvas.renderAll();
   }
 
   /**
@@ -876,10 +909,7 @@ class CanvasManager {
     // RESET VIEWPORT TRANSFORM (zoom and pan)
     this.resetViewport();
 
-    if (this.floorPlanGroup) {
-      this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
-      this.floorPlanGroup = null;
-    }
+    this._teardownFloorPlanGroup();
     this.floorPlanRect = null;
     this.entryZoneRect = null;
     this.entryZoneLabel = null;
@@ -1079,6 +1109,45 @@ class CanvasManager {
     }
 
     this.canvas.renderAll();
+  }
+
+  /**
+   * Keep items inside the current floor plan bounds
+   * @private
+   */
+  _enforceItemBounds(target) {
+    if (!this.enforceFloorBounds || !target || target === this.floorPlanGroup) return;
+    if (target.customData && target.customData.isFloorPlan) return;
+    if (target.type === 'activeSelection') return;
+
+    const floorPlan = this.state.get('floorPlan');
+    if (!floorPlan) return;
+    const bounds = this.getFloorPlanBounds();
+    Bounds.constrainToBounds(target, floorPlan, bounds);
+  }
+
+  /**
+   * Handle canvas-related errors gracefully
+   * @private
+   */
+  _handleCanvasError(context, error) {
+    console.error(`[CanvasManager] ${context} failed:`, error);
+    if (typeof Modal !== 'undefined' && typeof Modal.showError === 'function') {
+      Modal.showError('Something went wrong on the canvas. Please try again.');
+    }
+  }
+
+  /**
+   * Remove floor plan group and detach listeners safely
+   * @private
+   */
+  _teardownFloorPlanGroup() {
+    if (!this.floorPlanGroup) return;
+    this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
+    if (this.canvas && typeof this.canvas.remove === 'function') {
+      this.canvas.remove(this.floorPlanGroup);
+    }
+    this.floorPlanGroup = null;
   }
 }
 

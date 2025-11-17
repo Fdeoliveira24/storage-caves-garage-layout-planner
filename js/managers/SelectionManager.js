@@ -237,6 +237,10 @@ class SelectionManager {
     if (selected.length < 2) return;
 
     const bounds = selected.map((item) => Bounds.getItemBounds(item));
+    if (bounds.some((b) => !b)) {
+      console.warn('[SelectionManager] Unable to compute bounds for all selections');
+      return;
+    }
 
     switch (alignment) {
       case 'left': {

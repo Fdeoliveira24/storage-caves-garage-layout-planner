@@ -1,51 +1,95 @@
 /* global App */
 
-/**
- * Main Entry Point
- * Initialize application when DOM is ready
- */
 (function () {
-  'use strict';
+  const REQUIRED_GLOBALS = ['fabric', 'Config', 'EventBus', 'State', 'App'];
+  let hasBootstrapped = false;
 
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-  } else {
-    initApp();
+  const setupFabricDefaults = (() => {
+    let applied = false;
+    return function () {
+      if (applied || typeof fabric === 'undefined') return;
+      applied = true;
+
+      if (fabric.Text && typeof fabric.Text.prototype.toObject === 'function') {
+        const originalToObject = fabric.Text.prototype.toObject;
+        fabric.Text.prototype.toObject = function (propertiesToInclude) {
+          return originalToObject.call(this, propertiesToInclude);
+        };
+        fabric.Text.prototype.textBaseline = 'alphabetic';
+      }
+
+      if (typeof CanvasRenderingContext2D !== 'undefined') {
+        const proto = CanvasRenderingContext2D.prototype;
+        const descriptor = Object.getOwnPropertyDescriptor(proto, 'textBaseline');
+        if (descriptor && descriptor.configurable) {
+          Object.defineProperty(proto, 'textBaseline', {
+            get: descriptor.get,
+            set(value) {
+              const normalized = value === 'alphabetical' ? 'alphabetic' : value;
+              descriptor.set.call(this, normalized);
+            },
+          });
+        }
+      }
+    };
+  })();
+
+  function reportMissingDependencies(missing) {
+    const message =
+      'Garage Planner failed to load:\n' +
+      missing.join(', ') +
+      '\n\nPlease refresh the page. If the problem persists, verify all files exist on the server.';
+    console.error(message);
+    alert(message);
   }
 
-  function initApp() {
-    console.log('DOM ready, starting application...');
+  function startApplication() {
+    if (hasBootstrapped) return;
+    hasBootstrapped = true;
 
-    // Create and initialize app
-    const app = new App();
-    app.init().catch((error) => {
-      console.error('Failed to initialize application:', error);
-      showError('Failed to initialize application. Please refresh the page.');
-    });
+    const missing = REQUIRED_GLOBALS.filter((key) => typeof window[key] === 'undefined');
+    if (missing.length) {
+      reportMissingDependencies(missing);
+      return;
+    }
 
-    // Make app globally available
-    window.app = app;
+    setupFabricDefaults();
+
+    try {
+      const app = new App();
+      app.init();
+      window.app = app;
+      const loadingEl = document.getElementById('app-loading');
+      if (loadingEl) {
+        loadingEl.style.opacity = '0';
+        setTimeout(() => loadingEl.remove(), 300);
+      }
+    } catch (err) {
+      console.error('Error during App.init():', err);
+      alert('Garage Planner hit an error during startup. Please check the console logs.');
+      return;
+    }
+
   }
 
-  function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #f44336;
-      color: white;
-      padding: 16px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 10000;
-    `;
-    errorDiv.textContent = message;
-    document.body.appendChild(errorDiv);
+  function queueBootstrap() {
+    if (window.fabric) {
+      startApplication();
+      return;
+    }
 
-    setTimeout(() => {
-      errorDiv.remove();
-    }, 5000);
+    if (Array.isArray(window.__fabricReadyCallbacks)) {
+      window.__fabricReadyCallbacks.push(startApplication);
+    } else {
+      window.addEventListener('load', () => {
+        if (window.fabric) {
+          startApplication();
+        } else {
+          reportMissingDependencies(['Fabric.js']);
+        }
+      });
+    }
   }
+
+  queueBootstrap();
 })();

@@ -355,6 +355,7 @@ class App {
     this.setupToolbarHandlers();
     this.setupTabSwitching();
     this.setupSidebarToggle();
+    this.setupDropdowns();
     this.syncViewDropdownUI();
   }
 
@@ -488,6 +489,41 @@ class App {
     toggleBtn.addEventListener('click', () => this.toggleSidebar());
   }
 
+  setupDropdowns() {
+    const dropdownTriggers = ['btn-view', 'btn-export', 'btn-zoom']
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!dropdownTriggers.length) return;
+
+    const closeAll = (exception) => {
+      document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+        if (menu !== exception) {
+          menu.classList.remove('show');
+        }
+      });
+    };
+
+    dropdownTriggers.forEach((trigger) => {
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const dropdown = trigger.closest('.dropdown');
+        const menu = dropdown?.querySelector('.dropdown-menu');
+        if (!menu) return;
+
+        const shouldOpen = !menu.classList.contains('show');
+        closeAll(shouldOpen ? menu : null);
+        if (shouldOpen) {
+          menu.classList.add('show');
+        }
+      });
+    });
+
+    document.addEventListener('click', () => closeAll(null));
+  }
+
   /**
    * Render floor plan list
    */
@@ -547,8 +583,9 @@ class App {
 
                   if (hasImage) {
                     visualMarkup = `
-                      <div class="palette-item-image">
+                      <div class="palette-item-image" style="--fallback-color: ${accentColor};">
                         <img src="${item.paletteImage}" loading="lazy" decoding="async" alt="${item.label}">
+                        <div class="palette-image-fallback" aria-hidden="true"></div>
                       </div>
                     `;
                   } else if (isMezzanine) {
@@ -623,6 +660,16 @@ class App {
         }
 
         this.itemManager.addItem(itemId, targetX, targetY);
+      });
+    });
+
+    // Provide visual fallback if palette image fails to load
+    container.querySelectorAll('.palette-item-image img').forEach((img) => {
+      img.addEventListener('error', () => {
+        const wrapper = img.closest('.palette-item-image');
+        if (wrapper) {
+          wrapper.classList.add('palette-item-image--error');
+        }
       });
     });
   }
@@ -1081,7 +1128,7 @@ class App {
 
       const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
       const layoutState = this.state.get('layout') || {};
-      const floorPlanBounds = layoutState.floorPlanBounds;
+      const floorPlanBounds = this._getValidFloorPlanBounds(layoutState.floorPlanBounds);
 
       // Check if any item is in the entry zone
       const hasViolation = items.some((item) => {
@@ -1117,6 +1164,23 @@ class App {
     }
 
     this.updateInfoPanel();
+  }
+
+  /**
+   * Ensure floor plan bounds object has numeric values before use
+   * @private
+   */
+  _getValidFloorPlanBounds(bounds) {
+    if (
+      !bounds ||
+      typeof bounds !== 'object' ||
+      !['left', 'top', 'width', 'height'].every(
+        (key) => typeof bounds[key] === 'number' && Number.isFinite(bounds[key]),
+      )
+    ) {
+      return null;
+    }
+    return bounds;
   }
 
   /**
@@ -1828,47 +1892,85 @@ class App {
   }
 
   /**
-   * Save layout
+   * Save layout (desktop + mobile)
+   * @param {Object} options
+   * @param {boolean} options.allowMobile Allow invocation while mobile layout is active
+   * @param {string|null} options.presetName Optional pre-filled name (skips prompt if provided)
+   * @param {Function} options.onBeforePrompt Async hook before prompting user
+   * @param {Function} options.onAfterSave Called with saved layout data on success
+   * @param {Function} options.onCancel Called when user cancels/enters empty name
+   * @returns {Promise<{saved: boolean, layout?: object, reason?: string}>}
    */
-  async saveLayout() {
-    // CRITICAL: Prevent desktop handler from running on mobile
-    // Mobile has its own saveMobileLayout handler
-    if (document.body.classList.contains('mobile-layout')) {
+  async saveLayout(options = {}) {
+    const {
+      allowMobile = false,
+      presetName = null,
+      onBeforePrompt = null,
+      onAfterSave = null,
+      onCancel = null,
+    } = options;
+
+    const isMobileLayout = document.body.classList.contains('mobile-layout');
+    if (!allowMobile && isMobileLayout) {
       console.log('[App] Desktop saveLayout blocked - mobile mode active');
-      return;
+      return { saved: false, reason: 'mobile_blocked' };
     }
 
-    // Show one-time warning if storage is not fully persistent
-    if (!StorageUtil.isPersistent && !window._storageWarningShown) {
-      window._storageWarningShown = true;
-      const mode = StorageUtil.mode;
-      if (mode === 'session') {
-        Modal.showInfo('Your layouts will be saved for this session, but will be cleared when you close this tab');
-      } else if (mode === 'memory') {
-        Modal.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
+    this._maybeWarnAboutStorage();
+
+    if (typeof onBeforePrompt === 'function') {
+      await onBeforePrompt();
+    }
+
+    const rawName = presetName ?? (await Modal.showPrompt('Save Layout', 'Enter layout name:'));
+    const name = rawName ? rawName.trim() : '';
+    if (!name) {
+      if (typeof onCancel === 'function') {
+        onCancel();
       }
+      return { saved: false, reason: 'cancelled' };
     }
-
-    const name = await Modal.showPrompt('Save Layout', 'Enter layout name:');
-    if (!name) return;
 
     const state = this.state.getState();
     const layouts = StorageUtil.load(Config.STORAGE_KEYS.layouts) || [];
-
-    layouts.push({
+    const layoutRecord = {
       id: Helpers.generateId('layout'),
       name: name,
       created: new Date().toISOString(),
       state: state,
       thumbnail: this.exportManager.generateThumbnail(),
-    });
+    };
+
+    layouts.push(layoutRecord);
 
     const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
     if (saved) {
       Modal.showSuccess('Layout saved successfully!');
       this.renderSavedLayouts();
-    } else {
-      Modal.showError('Failed to save layout - storage error');
+      if (typeof onAfterSave === 'function') {
+        onAfterSave(layoutRecord);
+      }
+      return { saved: true, layout: layoutRecord };
+    }
+
+    Modal.showError('Failed to save layout - storage error');
+    return { saved: false, reason: 'storage_error' };
+  }
+
+  /**
+   * Warn users when data will not persist beyond the session
+   * @private
+   */
+  _maybeWarnAboutStorage() {
+    if (StorageUtil.isPersistent || window._storageWarningShown) return;
+    window._storageWarningShown = true;
+    const mode = StorageUtil.mode;
+    if (mode === 'session') {
+      Modal.showInfo(
+        'Your layouts will be saved for this session, but will be cleared when you close this tab',
+      );
+    } else if (mode === 'memory') {
+      Modal.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
     }
   }
 

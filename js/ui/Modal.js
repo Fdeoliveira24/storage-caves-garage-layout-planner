@@ -27,18 +27,33 @@ class Modal {
 
       const modal = document.createElement('div');
       modal.className = 'modal';
-      modal.innerHTML = `
-        <div class="modal-header">
-          <h3 class="modal-title">${title}</h3>
-        </div>
-        <div class="modal-body">
-          <p>${message}</p>
-        </div>
-        <div class="modal-footer">
-          <button class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
-          <button class="modal-btn modal-btn-primary" data-action="confirm">Confirm</button>
-        </div>
-      `;
+
+      const header = document.createElement('div');
+      header.className = 'modal-header';
+      const titleEl = document.createElement('h3');
+      titleEl.className = 'modal-title';
+      titleEl.textContent = title;
+      header.appendChild(titleEl);
+
+      const body = document.createElement('div');
+      body.className = 'modal-body';
+      const messageEl = document.createElement('p');
+      messageEl.textContent = message;
+      body.appendChild(messageEl);
+
+      const footer = document.createElement('div');
+      footer.className = 'modal-footer';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'modal-btn modal-btn-secondary';
+      cancelBtn.dataset.action = 'cancel';
+      cancelBtn.textContent = 'Cancel';
+      const confirmBtn = document.createElement('button');
+      confirmBtn.className = 'modal-btn modal-btn-primary';
+      confirmBtn.dataset.action = 'confirm';
+      confirmBtn.textContent = 'Confirm';
+      footer.append(cancelBtn, confirmBtn);
+
+      modal.append(header, body, footer);
 
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
@@ -63,13 +78,8 @@ class Modal {
         }
       };
 
-      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => {
-        handleClose(true);
-      });
-
-      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => {
-        handleClose(false);
-      });
+      confirmBtn.addEventListener('click', () => handleClose(true));
+      cancelBtn.addEventListener('click', () => handleClose(false));
 
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) handleClose(false);
@@ -114,25 +124,42 @@ class Modal {
 
       const modal = document.createElement('div');
       modal.className = 'modal';
-      modal.innerHTML = `
-        <div class="modal-header">
-          <h3 class="modal-title">${title}</h3>
-        </div>
-        <div class="modal-body">
-          <p>${message}</p>
-          <input type="text" class="modal-input" value="${defaultValue}" autofocus>
-        </div>
-        <div class="modal-footer">
-          <button class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
-          <button class="modal-btn modal-btn-primary" data-action="ok">OK</button>
-        </div>
-      `;
+
+      const header = document.createElement('div');
+      header.className = 'modal-header';
+      const titleEl = document.createElement('h3');
+      titleEl.className = 'modal-title';
+      titleEl.textContent = title;
+      header.appendChild(titleEl);
+
+      const body = document.createElement('div');
+      body.className = 'modal-body';
+      const messageEl = document.createElement('p');
+      messageEl.textContent = message;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'modal-input';
+      input.value = defaultValue || '';
+      input.setAttribute('autofocus', 'true');
+      body.append(messageEl, input);
+
+      const footer = document.createElement('div');
+      footer.className = 'modal-footer';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'modal-btn modal-btn-secondary';
+      cancelBtn.dataset.action = 'cancel';
+      cancelBtn.textContent = 'Cancel';
+      const okBtn = document.createElement('button');
+      okBtn.className = 'modal-btn modal-btn-primary';
+      okBtn.dataset.action = 'ok';
+      okBtn.textContent = 'OK';
+      footer.append(cancelBtn, okBtn);
+
+      modal.append(header, body, footer);
 
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
 
-      const input = modal.querySelector('.modal-input');
-      
       // Mobile keyboard detection
       const handleInputFocus = () => {
         // Add keyboard-aware styling when input is focused on mobile
@@ -192,13 +219,8 @@ class Modal {
         }
       };
 
-      modal.querySelector('[data-action="ok"]').addEventListener('click', () => {
-        handleClose(input.value || null);
-      });
-
-      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => {
-        handleClose(null);
-      });
+      okBtn.addEventListener('click', () => handleClose(input.value || null));
+      cancelBtn.addEventListener('click', () => handleClose(null));
 
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) handleClose(null);
