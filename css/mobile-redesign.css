@@ -253,6 +253,12 @@
   transition: all var(--transition-fast);
 }
 
+.mobile-action-btn.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
 .mobile-action-btn svg {
   width: 24px;
   height: 24px;

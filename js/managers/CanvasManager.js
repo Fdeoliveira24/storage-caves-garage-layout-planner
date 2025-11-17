@@ -1,4 +1,4 @@
-/* global Helpers, Config, Bounds, Modal */
+/* global Helpers, Config, Bounds, Modal, MeasurementTool */
 
 /**
  * Canvas Manager - Fabric.js Canvas Management
@@ -18,6 +18,7 @@ class CanvasManager {
     this.floorPlanPosition = this.state.get('layout.floorPlanPosition') || null;
     this.floorPlanBounds = this.state.get('layout.floorPlanBounds') || null;
     this.gridLines = [];
+    this.rulerMarks = [];
     this.alignmentGuides = [];
     this.emptyStateEl = null;
     this.canvasWrapper = null;
@@ -33,6 +34,7 @@ class CanvasManager {
     // When true, object moves are clamped to the floor plan bounds.
     // Disabled by default so power users can stage items outside the plan.
     this.enforceFloorBounds = false;
+    this.measurementTool = null;
   }
 
   /**
@@ -67,6 +69,8 @@ class CanvasManager {
       // Padding for better hit area
       padding: 0,
     });
+    this.canvas.perPixelTargetFind = true;
+    this.canvas.targetFindTolerance = 12;
 
     // Customize multi-selection (ActiveSelection) appearance
     fabric.ActiveSelection.prototype.set({
@@ -93,6 +97,11 @@ class CanvasManager {
     // This ensures centerAndFit() uses the correct canvas dimensions, not the default 300x150
     this.resizeCanvas();
 
+    // Initialize measurement tool once canvas is ready
+    if (typeof MeasurementTool !== 'undefined') {
+      this.measurementTool = new MeasurementTool(this.canvas, this.state, this.eventBus);
+    }
+
     return this.canvas;
   }
 
@@ -116,6 +125,13 @@ class CanvasManager {
     }
 
     this.canvas.renderAll();
+  }
+
+  /**
+   * Get measurement tool instance
+   */
+  getMeasurementTool() {
+    return this.measurementTool;
   }
 
   /**
@@ -401,10 +417,14 @@ class CanvasManager {
   /**
    * Draw floor plan
    */
-  drawFloorPlan(floorPlan) {
+  drawFloorPlan(floorPlan, options = {}) {
     try {
-    // Hide empty state
-    this.hideEmptyState();
+      const preserveViewport = options?.preserveViewport;
+      const currentViewport = preserveViewport && this.canvas ? [...this.canvas.viewportTransform] : null;
+      const currentZoom = preserveViewport && this.canvas ? this.canvas.getZoom() : null;
+
+      // Hide empty state
+      this.hideEmptyState();
 
     // Clear existing floor plan group
     this._teardownFloorPlanGroup();
@@ -492,11 +512,21 @@ class CanvasManager {
       floorPlanElements.push(this.entryZoneLabel);
     }
 
-    if (this.state.get('settings.showGrid')) {
+    const showGrid = this.state.get('settings.showGrid');
+    const showRuler = this.state.get('settings.showRuler');
+
+    if (showGrid) {
       this.gridLines = this._createGridLines(width, height);
       floorPlanElements.push(...this.gridLines);
     } else {
       this.gridLines = [];
+    }
+
+    if (showRuler) {
+      this.rulerMarks = this._createRulerMarks(width, height);
+      floorPlanElements.push(...this.rulerMarks);
+    } else {
+      this.rulerMarks = [];
     }
 
     this.floorPlanGroup = new fabric.Group(floorPlanElements, {
@@ -527,8 +557,14 @@ class CanvasManager {
     // Ensure core layers remain in the correct order
     this.setLayerOrder();
 
-    // Center and fit
-    this.centerAndFit(width, height);
+    // Center and fit unless preserving current viewport
+    if (!preserveViewport) {
+      this.centerAndFit(width, height);
+    } else if (currentViewport && currentZoom && this.canvas) {
+      this.canvas.setViewportTransform(currentViewport);
+      this.canvas.setZoom(currentZoom);
+      this.canvas.requestRenderAll();
+    }
 
     this.canvas.renderAll();
     } catch (error) {
@@ -554,6 +590,8 @@ class CanvasManager {
           opacity: isMajor ? 0.35 : 0.18,
           selectable: false,
           evented: false,
+          isGridLine: true,
+          excludeFromSave: true,
         }),
       );
     }
@@ -567,11 +605,66 @@ class CanvasManager {
           opacity: isMajor ? 0.35 : 0.18,
           selectable: false,
           evented: false,
+          isGridLine: true,
+          excludeFromSave: true,
         }),
       );
     }
 
     return lines;
+  }
+
+  /**
+   * Create ruler ticks and labels
+   * @private
+   */
+  _createRulerMarks(width, height) {
+    const marks = [];
+    const intervalFeet = 5;
+    const pxPerFoot = Config.PX_PER_FOOT || Config.GRID_SIZE || 10;
+    const spacing = intervalFeet * pxPerFoot;
+
+    const createTick = (coords) =>
+      new fabric.Line(coords, {
+        stroke: Config.COLORS.dimension,
+        strokeWidth: 1,
+        opacity: 0.55,
+        selectable: false,
+        evented: false,
+        isRulerMark: true,
+        excludeFromSave: true,
+      });
+
+    const createLabel = (text, left, top, angle = 0) =>
+      new fabric.Text(text, {
+        left,
+        top,
+        fontSize: 11,
+        fill: Config.COLORS.dimension,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        padding: 3,
+        originX: 'center',
+        originY: 'center',
+        angle,
+        selectable: false,
+        evented: false,
+        isRulerMark: true,
+        excludeFromSave: true,
+      });
+
+    for (let x = spacing; x <= width; x += spacing) {
+      const ftValue = Helpers.formatNumber(x / pxPerFoot, 0);
+      marks.push(createTick([x, 0, x, 10]));
+      marks.push(createLabel(`${ftValue} ft`, x, 20));
+    }
+
+    for (let y = spacing; y <= height; y += spacing) {
+      const ftValue = Helpers.formatNumber(y / pxPerFoot, 0);
+      marks.push(createTick([0, y, 10, y]));
+      marks.push(createLabel(`${ftValue} ft`, 32, y));
+    }
+
+    return marks;
   }
 
   /**
@@ -878,11 +971,18 @@ class CanvasManager {
   clearItems() {
     const objects = this.canvas.getObjects();
     objects.forEach((obj) => {
-      if (
+      const isItemObject =
         obj.customData &&
         !obj.customData.isLabel &&
-        obj !== this.floorPlanGroup
-      ) {
+        obj !== this.floorPlanGroup;
+      const isHelperObject =
+        obj.measurement ||
+        obj.isMeasurementLabel ||
+        obj.isDimensionOverlay ||
+        obj.isGridLine ||
+        obj.isRulerMark ||
+        obj.isMeasurementHelper;
+      if (isItemObject || isHelperObject) {
         this.canvas.remove(obj);
       }
     });
@@ -916,6 +1016,7 @@ class CanvasManager {
     this.floorPlanPosition = null;
     this.floorPlanBounds = null;
     this.gridLines = [];
+    this.rulerMarks = [];
     if (this.emptyStateEl) {
       this.emptyStateEl.remove();
       this.emptyStateEl = null;
@@ -1057,8 +1158,10 @@ class CanvasManager {
    */
   toggleGrid() {
     const currentState = this.state.get('settings.showGrid');
-    this.state.set('settings.showGrid', !currentState);
-    this.redrawFloorPlan();
+    const nextState = !currentState;
+    this.state.set('settings.showGrid', nextState);
+    this.state.set('settings.showRuler', nextState);
+    this.redrawFloorPlan({ preserveViewport: true });
   }
 
   /**
@@ -1078,10 +1181,10 @@ class CanvasManager {
   /**
    * Redraw floor plan with current settings
    */
-  redrawFloorPlan() {
+  redrawFloorPlan(options = {}) {
     const floorPlan = this.state.get('floorPlan');
     if (floorPlan) {
-      this.drawFloorPlan(floorPlan);
+      this.drawFloorPlan(floorPlan, options);
     }
   }
 
@@ -1148,6 +1251,8 @@ class CanvasManager {
       this.canvas.remove(this.floorPlanGroup);
     }
     this.floorPlanGroup = null;
+    this.gridLines = [];
+    this.rulerMarks = [];
   }
 }
 

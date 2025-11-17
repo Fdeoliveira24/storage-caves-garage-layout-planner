@@ -158,6 +158,10 @@ Then open `http://localhost:5000` in your browser.
 
 - **1 foot = 10 pixels** (PX_PER_FOOT = 10)
 - All items are **vertical by default** (length = height)
+
+## Release Notes
+
+- **v1.3** – Added the improved measurement tool workflow (desktop + mobile toggle, snapping, dimension overlays, grid/ruler helpers) for more precise planning.
 - Realistic dimensions based on actual vehicles/items
 - Automatic unit conversion (feet ↔ meters)
 
@@ -229,3 +233,45 @@ For issues or questions, please create an issue on GitHub or contact support.
 **Version:** 1.0.0  
 **Last Updated:** November 2025  
 **Status:** Production Ready
+
+## PixelSquid Asset Pipeline (Internal Tools)
+
+To speed up adding new inventory from PixelSquid, the repo now includes a helper API and an Item Builder UI. These are **internal** utilities – the production planner remains a static site.
+
+### 1. PixelSquid Backend (`tools/pixelsquid-backend`)
+
+A lightweight Express server that talks to the PixelSquid REST API and saves renders directly into `assets/images/items/`.
+
+```bash
+cd tools/pixelsquid-backend
+cp .env.example .env   # add your PixelSquid keys
+npm install
+npm run start          # or npm run dev
+```
+
+Available endpoints:
+
+- `GET /ps/product/:id` – fetch product metadata
+- `GET /ps/product/:id/spinner?spinnerId=...` – spinner + angle info
+- `POST /ps/download` – downloads a PNG for a given product/angle and stores it under `assets/images/items/{palette|canvas}`. Returns the relative path plus a snippet stub for `items.js`.
+- `GET /health` – simple health check
+
+### 2. Item Builder UI (`tools/item-builder`)
+
+A static page (no build step) that you open in the browser. It lets you:
+
+1. Enter product/spinner IDs and inspect the API response.
+2. Download palette + canvas renders with one click (the UI calls the backend above).
+3. Enter final metadata (label, feet dimensions, category, tags) and get a ready-to-paste JSON snippet for `js/data/items.js`.
+
+Usage:
+
+1. Start the backend (`npm run start` as shown above).
+2. Open `tools/item-builder/index.html` directly in your browser (or use a simple static server if you prefer).
+3. Fill in the form:
+   - Backend URL (defaults to `http://localhost:3001`).
+   - Product ID, spinner/angle IDs, filename base.
+   - Item metadata (label, size, category).
+4. Click “Generate Snippet” and copy the JSON block into the desired category inside `js/data/items.js`.
+
+With this flow you no longer need to manually screenshot PixelSquid spinners or hand-edit file paths – the automation takes care of downloading assets and generating the item definition.

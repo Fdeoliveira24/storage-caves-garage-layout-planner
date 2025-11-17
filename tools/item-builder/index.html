@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PixelSquid Item Builder</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>PixelSquid Item Builder</h1>
+        <p>
+          Internal tool for downloading PixelSquid renders and generating entries for
+          <code>js/data/items.js</code>.
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2>PixelSquid API</h2>
+        <div class="form-grid">
+          <label>
+            Backend URL
+            <input type="text" id="backendUrl" value="http://localhost:3001" />
+          </label>
+          <label>
+            Product ID
+            <input type="text" id="productId" placeholder="e.g. 1234567" />
+          </label>
+          <label>
+            Spinner ID
+            <input type="text" id="spinnerId" placeholder="(optional)" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="fetchProduct">Fetch Product</button>
+          <button id="fetchSpinner">Fetch Spinner</button>
+        </div>
+        <pre id="apiOutput" class="output" aria-live="polite"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Download Renders</h2>
+        <div class="form-grid">
+          <label>
+            Palette Angle ID
+            <input type="text" id="paletteAngle" placeholder="Angle ID for side/3f4 view" />
+          </label>
+          <label>
+            Canvas Angle ID
+            <input type="text" id="canvasAngle" placeholder="Angle ID for top view" />
+          </label>
+          <label>
+            Filename Base
+            <input type="text" id="filenameBase" placeholder="e.g. kayak-pro" />
+          </label>
+          <label>
+            Format
+            <select id="imageFormat">
+              <option value="png-alpha">PNG (alpha)</option>
+              <option value="png">PNG (opaque)</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="downloadPalette">Download Palette Image</button>
+          <button id="downloadCanvas">Download Canvas Image</button>
+        </div>
+        <div class="download-status">
+          <p>Palette Path: <code id="palettePath">—</code></p>
+          <p>Canvas Path: <code id="canvasPath">—</code></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Item Metadata</h2>
+        <div class="form-grid">
+          <label>
+            Item ID
+            <input type="text" id="itemId" placeholder="auto-filled from filename" />
+          </label>
+          <label>
+            Label
+            <input type="text" id="itemLabel" placeholder="Display name" />
+          </label>
+          <label>
+            Length (ft)
+            <input type="number" step="0.1" id="lengthFt" />
+          </label>
+          <label>
+            Width (ft)
+            <input type="number" step="0.1" id="widthFt" />
+          </label>
+          <label>
+            Category
+            <select id="itemCategory">
+              <option value="vehicles">Vehicles</option>
+              <option value="recreational">Recreational</option>
+              <option value="storage">Storage & Furniture</option>
+              <option value="mezzanine">Mezzanine</option>
+              <option value="shapes">Shapes</option>
+            </select>
+          </label>
+          <label>
+            Tags (comma separated)
+            <input type="text" id="itemTags" placeholder="optional" />
+          </label>
+        </div>
+        <button id="generateSnippet">Generate Snippet</button>
+        <pre id="snippetOutput" class="output" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

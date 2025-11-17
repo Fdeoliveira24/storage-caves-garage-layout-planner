@@ -19,7 +19,7 @@ class ExportManager {
     const state = this.state.getState();
 
     const exportData = {
-      version: '1.0.0',
+      version: '1.3.0',
       exported: new Date().toISOString(),
       metadata: state.metadata,
       floorPlan: state.floorPlan,

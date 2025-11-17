@@ -28,6 +28,7 @@ class MobileUIManager {
     this.initialized = false;
     this.topTabOpen = false;
     this.lastTopTab = 'floorplans';
+    this.measurementModeActive = false;
 
     // Mobile containers
     this.mobileContainer = null;
@@ -246,6 +247,29 @@ class MobileUIManager {
           </svg>
           <span>Rotate</span>
         </button>
+        <button class="mobile-action-btn" data-action="toggle-measure" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 17h18v2H3z"></path>
+            <path d="M5 13v4"></path>
+            <path d="M9 9v8"></path>
+            <path d="M13 11v6"></path>
+            <path d="M17 7v10"></path>
+            <path d="M7 15h2"></path>
+            <path d="M11 15h2"></path>
+            <path d="M15 15h2"></path>
+          </svg>
+          <span>Measure</span>
+        </button>
+        <button class="mobile-action-btn" data-action="toggle-ruler-grid" aria-pressed="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+          <span>Ruler/Grid</span>
+        </button>
         <button class="mobile-action-btn" data-action="duplicate">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
@@ -287,6 +311,8 @@ class MobileUIManager {
 
     document.body.appendChild(this.mobileToolbar);
     this.updateFloorPlanControls();
+    this.setMeasurementModeActive(this.app?.isMeasurementModeActive?.());
+    this.setRulerGridActive(this.state.get('settings.showGrid'));
   }
 
   toggleActionPanel() {
@@ -713,7 +739,6 @@ class MobileUIManager {
 
     // Read current settings state
     const settings = this.state.get('settings') || {};
-    const showGrid = settings.showGrid !== undefined ? settings.showGrid : true;
     const showEntryZoneLabel =
       settings.showEntryZoneLabel !== undefined ? settings.showEntryZoneLabel : true;
     const showEntryZoneBorder =
@@ -767,10 +792,6 @@ class MobileUIManager {
         <div class="mobile-view-options-group">
           <h4>Display</h4>
           <div class="mobile-view-options-toggles">
-            <button class="mobile-toggle-btn ${showGrid ? 'mobile-toggle-active' : ''}" data-action="toggle-grid">
-              <span>Grid</span>
-              ${showGrid ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-            </button>
             <button class="mobile-toggle-btn ${showEntryZoneLabel ? 'mobile-toggle-active' : ''}" data-action="toggle-entry-label">
               <span>Entry Label</span>
               ${showEntryZoneLabel ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
@@ -932,6 +953,7 @@ class MobileUIManager {
    * Handle toolbar actions
    */
   handleToolAction(action) {
+    let shouldCloseActionPanel = true;
     switch (action) {
       case 'zoom-in':
         this.canvasManager?.zoomIn();
@@ -992,9 +1014,19 @@ class MobileUIManager {
       case 'recenter-floorplan':
         this.recenterFloorPlan();
         break;
+      case 'toggle-measure':
+        this.app?.toggleMeasurementMode?.();
+        shouldCloseActionPanel = false;
+        break;
+      case 'toggle-ruler-grid':
+        this.app?.toggleRulerGrid?.();
+        shouldCloseActionPanel = false;
+        break;
     }
-    // Close action panel after action
-    this.closeActionPanel();
+    // Close action panel after action (unless tool stays active)
+    if (shouldCloseActionPanel) {
+      this.closeActionPanel();
+    }
   }
 
   updateFloorPlanControls() {
@@ -1022,6 +1054,23 @@ class MobileUIManager {
         btn.classList.add('mobile-action-btn-disabled');
       }
     });
+  }
+
+  setMeasurementModeActive(isActive) {
+    this.measurementModeActive = !!isActive;
+    const measureBtn = this.mobileToolbar?.querySelector('[data-action="toggle-measure"]');
+    if (measureBtn) {
+      measureBtn.classList.toggle('is-active', this.measurementModeActive);
+      measureBtn.setAttribute('aria-pressed', this.measurementModeActive ? 'true' : 'false');
+    }
+  }
+
+  setRulerGridActive(isActive) {
+    const rulerBtn = this.mobileToolbar?.querySelector('[data-action="toggle-ruler-grid"]');
+    if (rulerBtn) {
+      rulerBtn.classList.toggle('is-active', !!isActive);
+      rulerBtn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    }
   }
 
   toggleFloorPlanLock() {
@@ -1082,13 +1131,6 @@ class MobileUIManager {
     const settings = this.state.get('settings') || {};
 
     switch (action) {
-      case 'toggle-grid':
-        if (this.canvasManager && this.canvasManager.toggleGrid) {
-          this.canvasManager.toggleGrid();
-        }
-        this.switchTab('canvas');
-        break;
-
       case 'toggle-entry-label':
         settings.showEntryZoneLabel = !settings.showEntryZoneLabel;
         this.state.set('settings', settings);

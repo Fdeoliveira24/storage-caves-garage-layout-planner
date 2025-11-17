@@ -92,9 +92,22 @@ class SelectionManager {
    */
   deleteSelected() {
     const selected = this.getSelection();
+    const measurementTool = this.canvasManager?.getMeasurementTool?.();
 
     selected.forEach((item) => {
+      if (item.measurement || item.isMeasurementLabel) {
+        if (measurementTool && typeof measurementTool.removeMeasurement === 'function') {
+          measurementTool.removeMeasurement(item);
+        } else {
+          this.canvas.remove(item);
+        }
+        return;
+      }
+
       if (item.customData && item.customData.id) {
+        if (measurementTool && typeof measurementTool.handleItemRemoved === 'function') {
+          measurementTool.handleItemRemoved(item.customData.id);
+        }
         this.eventBus.emit('item:delete:requested', item.customData.id);
       }
     });

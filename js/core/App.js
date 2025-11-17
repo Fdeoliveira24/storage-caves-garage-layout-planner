@@ -18,6 +18,9 @@ class App {
     this.mobileUIManager = null;
     this.autosaveInterval = null;
     this.duplicateBatchDepth = 0;
+    this.measurementTool = null;
+    this.measurementModeActive = false;
+    this.measurementInProgress = false;
 
     // Cached DOM references for performance
     this.entryZoneCheckDebounce = null;
@@ -36,6 +39,7 @@ class App {
     // Initialize canvas manager
     this.canvasManager = new CanvasManager('canvas', this.state, this.eventBus);
     this.canvasManager.init();
+    this.measurementTool = this.canvasManager.getMeasurementTool();
 
     // Ensure viewport starts at default state
     this.canvasManager.resetViewport();
@@ -61,6 +65,7 @@ class App {
     if (window.MobileUIManager) {
       this.mobileUIManager = new MobileUIManager(this);
       this.mobileUIManager.init();
+      this.mobileUIManager.setMeasurementModeActive?.(this.isMeasurementModeActive());
     } else {
       // Fallback to legacy mobile features if MobileUIManager not available
       this.setupMobileFeatures();
@@ -112,10 +117,13 @@ class App {
       this.checkEntryZoneViolations();
     });
 
-    this.eventBus.on('item:removed', () => {
+    this.eventBus.on('item:removed', (itemId) => {
       this.historyManager.save();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
+      if (this.measurementTool && typeof this.measurementTool.handleItemRemoved === 'function') {
+        this.measurementTool.handleItemRemoved(itemId);
+      }
     });
 
     this.eventBus.on('item:delete:requested', (itemId) => {
@@ -235,6 +243,54 @@ class App {
       this.historyManager.save();
     });
 
+    // Measurement tool events
+    this.eventBus.on('tool:measure:activated', () => {
+      this.setMeasurementModeActive(true);
+      this.state.set('ui.measurementActive', true);
+    });
+
+    this.eventBus.on('tool:measure:deactivated', () => {
+      this.setMeasurementModeActive(false);
+      this.measurementInProgress = false;
+      this.state.set('ui.measurementActive', false);
+    });
+
+    this.eventBus.on('tool:measure:start', () => {
+      this.measurementInProgress = true;
+    });
+
+    this.eventBus.on('tool:measure:complete', (payload = {}) => {
+      this.measurementInProgress = false;
+      if (typeof payload.distanceFeet === 'number') {
+        this.state.set('ui.lastMeasurementDistance', payload.distanceFeet);
+      }
+      this.updateInfoPanel();
+    });
+
+    this.eventBus.on('canvas:selection:created', (selected) => {
+      this._handleMeasurementSelectionEvent(selected);
+    });
+
+    this.eventBus.on('canvas:selection:updated', (selected) => {
+      this._handleMeasurementSelectionEvent(selected);
+    });
+
+    this.eventBus.on('canvas:selection:cleared', () => {
+      this._handleMeasurementSelectionEvent(null);
+    });
+
+    this.eventBus.on('item:selected', (item) => {
+      this._handleMeasurementSelectionEvent(item ? [item] : null);
+    });
+
+    this.eventBus.on('items:selected', (items) => {
+      this._handleMeasurementSelectionEvent(items);
+    });
+
+    this.eventBus.on('selection:cleared', () => {
+      this._handleMeasurementSelectionEvent(null);
+    });
+
     // History events
     this.eventBus.on('history:undo', () => {
       this.refreshCanvas();
@@ -312,9 +368,21 @@ class App {
         this.selectionManager.pasteSelected();
       }
 
-      // Esc - Deselect
+      // Esc - Measurement cancel / exit / deselect
       if (e.key === 'Escape') {
+        if (this.measurementTool?.isMeasuring) {
+          if (this.measurementInProgress) {
+            this.measurementTool.cancelActiveMeasurement();
+            this.measurementInProgress = false;
+          } else {
+            this.measurementTool.disableMeasurementMode();
+          }
+          e.preventDefault();
+          return;
+        }
+
         this.selectionManager.deselectAll();
+        return;
       }
 
       // R - Rotate 90°
@@ -346,6 +414,77 @@ class App {
   }
 
   /**
+   * Toggle measurement mode
+   */
+  toggleMeasurementMode() {
+    if (!this.measurementTool) return;
+    this.measurementTool.toggleMeasurementMode();
+  }
+
+  /**
+   * Toggle ruler/grid overlays
+   */
+  toggleRulerGrid() {
+    if (!this.canvasManager) return;
+    this.canvasManager.toggleGrid();
+    this.syncViewDropdownUI();
+  }
+
+  _handleMeasurementSelectionEvent(selected) {
+    if (!this.measurementTool) return;
+    let selection = Array.isArray(selected)
+      ? selected
+      : selected
+        ? [selected]
+        : [];
+
+    if ((!selection || selection.length === 0) && this.selectionManager) {
+      selection = this.selectionManager.getSelection();
+    }
+
+    const target = selection?.find((obj) => this._isMeasurableSelection(obj));
+    if (target) {
+      this.measurementTool.onItemSelected(target);
+    } else {
+      this.measurementTool.onSelectionCleared();
+    }
+  }
+
+  _isMeasurableSelection(obj) {
+    return (
+      obj &&
+      obj.customData &&
+      obj.customData.id &&
+      !obj.customData.isFloorPlan &&
+      !obj.measurement &&
+      !obj.isMeasurementLabel &&
+      !obj.isDimensionOverlay
+    );
+  }
+
+  /**
+   * Update measurement toggle UI state
+   */
+  setMeasurementModeActive(isActive) {
+    this.measurementModeActive = !!isActive;
+
+    const measureBtn = document.getElementById('btn-measure');
+    if (measureBtn) {
+      measureBtn.classList.toggle('is-active', this.measurementModeActive);
+      measureBtn.setAttribute('aria-pressed', this.measurementModeActive ? 'true' : 'false');
+    }
+
+    this.mobileUIManager?.setMeasurementModeActive?.(this.measurementModeActive);
+  }
+
+  /**
+   * Whether measurement mode is active
+   */
+  isMeasurementModeActive() {
+    return !!this.measurementModeActive;
+  }
+
+  /**
    * Initialize UI
    */
   initializeUI() {
@@ -357,18 +496,22 @@ class App {
     this.setupSidebarToggle();
     this.setupDropdowns();
     this.syncViewDropdownUI();
+    this.setMeasurementModeActive(this.measurementModeActive);
   }
 
   /**
    * Sync View dropdown UI with current settings
    */
   syncViewDropdownUI() {
-    // Update grid toggle text
     const showGrid = this.state.get('settings.showGrid');
-    const gridToggleText = document.getElementById('grid-toggle-text');
-    if (gridToggleText) {
-      gridToggleText.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+
+    const rulerGridBtn = document.getElementById('btn-ruler-grid');
+    if (rulerGridBtn) {
+      rulerGridBtn.classList.toggle('is-active', !!showGrid);
+      rulerGridBtn.setAttribute('aria-pressed', showGrid ? 'true' : 'false');
     }
+
+    this.mobileUIManager?.setRulerGridActive?.(!!showGrid);
 
     // Update entry zone position buttons visibility
     const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
@@ -773,6 +916,17 @@ class App {
       rotateBtn.addEventListener('click', () => this.selectionManager.rotateSelected(90));
     }
 
+    // Measurement tool
+    const measureBtn = document.getElementById('btn-measure');
+    if (measureBtn) {
+      measureBtn.addEventListener('click', () => this.toggleMeasurementMode());
+    }
+
+    const rulerGridBtn = document.getElementById('btn-ruler-grid');
+    if (rulerGridBtn) {
+      rulerGridBtn.addEventListener('click', () => this.toggleRulerGrid());
+    }
+
     // Export JSON
     const exportJsonBtn = document.getElementById('btn-export-json');
     if (exportJsonBtn) {
@@ -851,15 +1005,6 @@ class App {
     const sendBackBtn = document.getElementById('btn-send-back');
     if (sendBackBtn) {
       sendBackBtn.addEventListener('click', () => this.selectionManager.sendToBack());
-    }
-
-    // View controls
-    const toggleGridBtn = document.getElementById('btn-toggle-grid');
-    if (toggleGridBtn) {
-      toggleGridBtn.addEventListener('click', () => {
-        this.canvasManager.toggleGrid();
-        this.syncViewDropdownUI();
-      });
     }
 
     // Entry zone position handlers
@@ -990,9 +1135,12 @@ class App {
       segments.push('<div class="info-bar__placeholder">Select a floor plan to begin</div>');
     }
 
-    if (selection.length > 0) {
-      const item = selection[0];
-      const itemData = item.customData || {};
+    const selectedItem = selection.find(
+      (obj) => obj && obj.customData && obj.customData.id && !obj.isMeasurementLabel,
+    );
+
+    if (selectedItem) {
+      const itemData = selectedItem.customData || {};
 
       segments.push(`
         <div class="info-bar__segment">
@@ -1028,6 +1176,16 @@ class App {
             <path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" />
           </svg>
           <span class="info-bar__value">Entry zone blocked</span>
+        </div>
+      `);
+    }
+
+    const lastMeasurement = this.state.get('ui.lastMeasurementDistance');
+    if (typeof lastMeasurement === 'number') {
+      segments.push(`
+        <div class="info-bar__segment">
+          <span class="info-bar__label">Last Measure:</span>
+          <span class="info-bar__value">${Helpers.formatNumber(lastMeasurement, 2)} ft</span>
         </div>
       `);
     }
@@ -1509,7 +1667,6 @@ class App {
     // VIEW OPTIONS section
     const viewSection = document.createElement('div');
     const currentSettings = this.state.get('settings') || {};
-    const gridVisible = currentSettings.showGrid !== false;
     const entryLabelVisible = currentSettings.showEntryLabel !== false;
     const entryBorderVisible = currentSettings.showEntryBorder !== false;
     const itemLabelsVisible = currentSettings.showItemLabels !== false;
@@ -1520,10 +1677,6 @@ class App {
         VIEW OPTIONS
       </div>
       <div style="display: flex; flex-direction: column; gap: 4px;">
-        <button class="dropdown-item" data-action="toggle-grid">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10,4V8H14V4H10M16,4V8H20V4H16M16,10V14H20V10H16M16,16V20H20V16H16M14,20V16H10V20H14M8,20V16H4V20H8M8,14V10H4V14H8M8,8V4H4V8H8M10,14H14V10H10V14M4,2H20A2,2 0 0,1 22,4V20A2,2 0 0,1 20,22H4C2.89,22 2,21.1 2,20V4A2,2 0 0,1 4,2Z"/></svg>
-          ${gridVisible ? 'Hide' : 'Show'} Grid
-        </button>
         <button class="dropdown-item" data-action="toggle-item-labels">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z" /></svg>
           ${itemLabelsVisible ? 'Hide' : 'Show'} Labels
@@ -1571,11 +1724,6 @@ class App {
 
     container.querySelector('[data-action="share-email"]').onclick = () => {
       this.shareViaEmail();
-      Modal.close();
-    };
-
-    container.querySelector('[data-action="toggle-grid"]').onclick = () => {
-      this.canvasManager.toggleGrid();
       Modal.close();
     };
 

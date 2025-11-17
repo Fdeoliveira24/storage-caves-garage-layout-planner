@@ -18,6 +18,13 @@
   position: relative;
 }
 
+.btn.is-active {
+  background: var(--color-bg-secondary);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.15);
+}
+
 /* Toolbar Badge - Warning Indicator */
 .toolbar-badge {
   position: absolute;
