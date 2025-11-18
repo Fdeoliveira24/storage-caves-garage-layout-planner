@@ -1,4 +1,4 @@
-/* global Helpers, Config, fabric */
+/* global Helpers, Config */
 
 class MeasurementTool {
   constructor(canvas, state, eventBus) {
@@ -16,6 +16,7 @@ class MeasurementTool {
     this._handleObjectMoving = this._handleObjectMoving.bind(this);
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
+    this._handleSelectionEvent = this._handleSelectionEvent.bind(this);
     
     this._setupInteractionHandlers();
   }
@@ -25,6 +26,8 @@ class MeasurementTool {
     this.canvas.on('object:moving', this._handleObjectMoving);
     this.canvas.on('mouse:over', this._handleMouseOver);
     this.canvas.on('mouse:out', this._handleMouseOut);
+    this.canvas.on('selection:created', this._handleSelectionEvent);
+    this.canvas.on('selection:updated', this._handleSelectionEvent);
   }
 
   enableMeasurementMode() {
@@ -78,7 +81,6 @@ class MeasurementTool {
     this._createMeasurement(this.startPoint, endPoint);
     this.startPoint = null;
     this._removeStartIndicator();
-    this.disableMeasurementMode();
   }
 
   _createMeasurement(start, end) {
@@ -200,7 +202,6 @@ class MeasurementTool {
     if (!obj || !obj.measurementId) return;
 
     const measurementId = obj.measurementId;
-    const objects = this.canvas.getObjects().filter(o => o.measurementId === measurementId);
     
     if (obj.measurementHandle) {
       // Handle moved - adjust endpoint
@@ -364,6 +365,36 @@ class MeasurementTool {
     this.canvas.renderAll();
   }
 
+  _handleSelectionEvent(e) {
+    if (!this.canvas || !e || !Array.isArray(e.selected) || e.selected.length <= 1) {
+      return;
+    }
+
+    const measurementObjects = e.selected.filter((obj) => obj.measurementId);
+    if (!measurementObjects.length) {
+      return;
+    }
+
+    const measurementLine =
+      measurementObjects.find((obj) => obj.measurement) || measurementObjects[0];
+    const active = this.canvas.getActiveObject();
+
+    if (active && active.type === 'activeSelection') {
+      measurementObjects.forEach((obj) => {
+        active.removeWithUpdate(obj);
+      });
+
+      if (active.isEmpty()) {
+        this.canvas.discardActiveObject();
+      } else {
+        active.setCoords();
+      }
+    }
+
+    this.canvas.setActiveObject(measurementLine);
+    this.canvas.requestRenderAll();
+  }
+
   _showStartIndicator(point) {
     if (!this.canvas) return;
     this._removeStartIndicator();
@@ -418,9 +449,9 @@ class MeasurementTool {
     this.canvas.renderAll();
   }
 
-  onItemSelected(object) {}
+  onItemSelected(_object) {}
   onSelectionCleared() {}
-  handleItemRemoved(itemId) {}
+  handleItemRemoved(_itemId) {}
 }
 
 if (typeof window !== 'undefined') {

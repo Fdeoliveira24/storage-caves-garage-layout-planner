@@ -1,6 +1,6 @@
 {
   "name": "garage-layout-planner",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Professional garage layout planner - vanilla JS, HTML5, CSS3",
   "scripts": {
     "format": "prettier \"**/*.{js,css,html,json,md}\" --write",

@@ -23,12 +23,23 @@ class HistoryManager {
     // Get current state
     const currentState = this.state.getState();
 
+    console.log('[History] save() called', {
+      itemsCount: currentState.items?.length,
+      currentIndexBefore: this.currentIndex,
+      stackSizeBefore: this.states.length,
+    });
+
     // Remove any states after current index (for redo clear)
     this.states = this.states.slice(0, this.currentIndex + 1);
 
     // Add new state
     this.states.push(Helpers.deepClone(currentState));
     this.currentIndex++;
+
+    console.log('[History] after push', {
+      currentIndexAfter: this.currentIndex,
+      stackSizeAfter: this.states.length,
+    });
 
     // Limit stack size
     if (this.states.length > this.maxStates) {
@@ -46,11 +57,19 @@ class HistoryManager {
    * Undo last action
    */
   undo() {
-    if (!this.canUndo()) return null;
+    if (!this.canUndo()) {
+      console.log('[History] undo() blocked: canUndo() is false');
+      return null;
+    }
 
     this.enabled = false;
     this.currentIndex--;
     const previousState = Helpers.deepClone(this.states[this.currentIndex]);
+
+    console.log('[History] undo() applying state', {
+      currentIndex: this.currentIndex,
+      itemsCount: previousState.items?.length,
+    });
     this.state.loadState(previousState);
     this.enabled = true;
 
@@ -67,11 +86,19 @@ class HistoryManager {
    * Redo last undone action
    */
   redo() {
-    if (!this.canRedo()) return null;
+    if (!this.canRedo()) {
+      console.log('[History] redo() blocked: canRedo() is false');
+      return null;
+    }
 
     this.enabled = false;
     this.currentIndex++;
     const nextState = Helpers.deepClone(this.states[this.currentIndex]);
+
+    console.log('[History] redo() applying state', {
+      currentIndex: this.currentIndex,
+      itemsCount: nextState.items?.length,
+    });
     this.state.loadState(nextState);
     this.enabled = true;
 

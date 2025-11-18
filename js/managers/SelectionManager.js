@@ -223,6 +223,9 @@ class SelectionManager {
    */
   moveSelected(dx, dy) {
     const selected = this.getSelection();
+    if (selected.length === 0) return;
+
+    this.eventBus.emit('items:move:batch:start', { items: selected });
 
     selected.forEach((item) => {
       item.set({
@@ -239,6 +242,7 @@ class SelectionManager {
       this.eventBus.emit('canvas:object:modified', item);
     });
 
+    this.eventBus.emit('items:move:batch:end', { items: selected });
     this.eventBus.emit('items:moved', selected);
   }
 
@@ -327,6 +331,7 @@ class SelectionManager {
     selected.forEach((item) => item.bringToFront());
     this.canvasManager.ensureStaticLayersBehind();
     this.canvas.renderAll();
+    this.eventBus.emit('items:zorder:changed', { action: 'front', items: selected });
   }
 
   /**
@@ -343,6 +348,7 @@ class SelectionManager {
 
     this.canvasManager.ensureStaticLayersBehind();
     this.canvas.renderAll();
+    this.eventBus.emit('items:zorder:changed', { action: 'back', items: selected });
   }
 }
 

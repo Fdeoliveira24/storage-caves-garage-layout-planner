@@ -1,5 +1,5 @@
 :root {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: #0f172a;
   background: #f8fafc;
 }
@@ -111,9 +111,10 @@ button:hover {
 }
 
 code {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 13px;
 }
+
 @media (width < 640px) {
   .actions {
     flex-direction: column;

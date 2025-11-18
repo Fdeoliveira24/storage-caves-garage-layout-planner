@@ -24,7 +24,12 @@
     "longpress",
     "evented",
     "recenters",
-    "bbox"
+    "bbox",
+    "pixelsquid",
+    "PIXELSQUID",
+    "zorder",
+    "Lanier",
+    "storagecaves"
   ],
   "ignorePaths": [
     "js/vendor"

@@ -21,6 +21,7 @@ class App {
     this.measurementTool = null;
     this.measurementModeActive = false;
     this.measurementInProgress = false;
+    this.historySuppressed = false;
 
     // Cached DOM references for performance
     this.entryZoneCheckDebounce = null;
@@ -74,11 +75,16 @@ class App {
     // Setup autosave
     this.setupAutosave();
 
+    // Save initial empty state before loading anything
+    this.saveHistorySnapshot();
+
     // Load last autosave if exists
     const autosaveLoaded = this.loadAutosave();
 
     if (autosaveLoaded) {
       this.canvasManager.hideEmptyState();
+      // Record loaded layout as a new history entry
+      this.saveHistorySnapshot();
     }
 
     // Sync project name from state to UI
@@ -87,10 +93,65 @@ class App {
     // Check entry zone violations after load
     this.checkEntryZoneViolations();
 
-    // Save initial state to history
-    this.historyManager.save();
-
     // Application initialized successfully
+  }
+
+  /**
+   * Save a history snapshot unless suppressed (e.g., during undo/redo rebuilds)
+   */
+  saveHistorySnapshot() {
+    if (!this.historyManager || this.historySuppressed) {
+      return;
+    }
+    this.historyManager.save();
+  }
+
+  /**
+   * Run provided callback while temporarily suppressing history captures.
+   * Ensures Fabric-driven updates during undo/redo do not enqueue new entries.
+   * @param {Function} callback
+   */
+  runWithHistorySuppressed(callback) {
+    const historyManager = this.historyManager;
+    const prevEnabled = historyManager?.enabled;
+    this.historySuppressed = true;
+    if (historyManager) {
+      historyManager.enabled = false;
+    }
+
+    let restored = false;
+    const finish = () => {
+      if (restored) return;
+      restored = true;
+      const restore = () => {
+        this.historySuppressed = false;
+        if (historyManager) {
+          historyManager.enabled = prevEnabled ?? true;
+        }
+      };
+
+      if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(restore);
+      } else {
+        setTimeout(restore, 0);
+      }
+    };
+
+    let result;
+    try {
+      result = typeof callback === 'function' ? callback() : undefined;
+    } catch (error) {
+      finish();
+      throw error;
+    }
+
+    if (result && typeof result.then === 'function') {
+      result.then(finish, finish);
+    } else {
+      finish();
+    }
+
+    return result;
   }
 
   /**
@@ -104,7 +165,7 @@ class App {
       if (obj && obj.customData && obj.customData.id) {
         this.updateItemPosition(obj.customData.id, obj.left, obj.top, obj.angle || 0);
       }
-      this.historyManager.save();
+      this.saveHistorySnapshot();
 
       // Check entry zone violations (debounced to avoid thrashing during drags)
       this.debouncedCheckEntryZone();
@@ -112,13 +173,13 @@ class App {
 
     // Item events
     this.eventBus.on('item:added', () => {
-      this.historyManager.save();
+      this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
     });
 
     this.eventBus.on('item:removed', (itemId) => {
-      this.historyManager.save();
+      this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
       if (this.measurementTool && typeof this.measurementTool.handleItemRemoved === 'function') {
@@ -155,7 +216,7 @@ class App {
       }
       if (this.duplicateBatchDepth === 0 && this.historyManager) {
         this.historyManager.enabled = true;
-        this.historyManager.save();
+        this.saveHistorySnapshot();
       }
     });
 
@@ -197,14 +258,14 @@ class App {
 
     // Import completed - save to history after all items loaded
     this.eventBus.on('import:json:complete', () => {
-      this.historyManager.save();
+      this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
     });
 
     // Floor plan events
     this.eventBus.on('floorplan:changed', () => {
-      this.historyManager.save();
+      this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
     });
@@ -218,11 +279,13 @@ class App {
       }
       this.updateInfoPanel();
       this.debouncedCheckEntryZone();
+      this.saveHistorySnapshot();
     });
 
     this.eventBus.on('floorplan:lock:toggled', (locked) => {
       this.state.set('layout.floorPlanLocked', locked);
       this.syncViewDropdownUI();
+      this.saveHistorySnapshot();
     });
 
     // Selection events
@@ -240,7 +303,7 @@ class App {
 
     // Rotation event (from keyboard 'R' or desktop rotate button)
     this.eventBus.on('items:rotated', () => {
-      this.historyManager.save();
+      this.saveHistorySnapshot();
     });
 
     // Measurement tool events
@@ -292,25 +355,56 @@ class App {
     });
 
     // History events
-    this.eventBus.on('history:undo', () => {
-      this.refreshCanvas();
-      this.renderFloorPlanList();
-      this.renderSavedLayouts();
-      this.updateInfoPanel();
-      this.syncViewDropdownUI();
+    this.eventBus.on('history:undo', (state) => {
+      console.log('[App] history:undo event', {
+        itemsCount: state?.items?.length,
+      });
+      this.runWithHistorySuppressed(() => {
+        this.refreshCanvas();
+        this.renderFloorPlanList();
+        this.renderSavedLayouts();
+        this.updateInfoPanel();
+        this.syncViewDropdownUI();
+      });
     });
 
-    this.eventBus.on('history:redo', () => {
-      this.refreshCanvas();
-      this.renderFloorPlanList();
-      this.renderSavedLayouts();
-      this.updateInfoPanel();
-      this.syncViewDropdownUI();
+    this.eventBus.on('history:redo', (state) => {
+      console.log('[App] history:redo event', {
+        itemsCount: state?.items?.length,
+      });
+      this.runWithHistorySuppressed(() => {
+        this.refreshCanvas();
+        this.renderFloorPlanList();
+        this.renderSavedLayouts();
+        this.updateInfoPanel();
+        this.syncViewDropdownUI();
+      });
     });
 
     // Zoom events
     this.eventBus.on('canvas:zoomed', (zoom) => {
       this.updateZoomDisplay(zoom);
+    });
+
+    this.eventBus.on('items:zorder:changed', () => {
+      this.saveHistorySnapshot();
+    });
+
+    this.eventBus.on('items:aligned', () => {
+      this.saveHistorySnapshot();
+    });
+
+    this.eventBus.on('items:move:batch:start', () => {
+      if (this.historyManager) {
+        this.historyManager.enabled = false;
+      }
+    });
+
+    this.eventBus.on('items:move:batch:end', () => {
+      if (this.historyManager) {
+        this.historyManager.enabled = true;
+        this.saveHistorySnapshot();
+      }
     });
   }
 
@@ -428,6 +522,7 @@ class App {
     if (!this.canvasManager) return;
     this.canvasManager.toggleGrid();
     this.syncViewDropdownUI();
+    this.saveHistorySnapshot();
   }
 
   _handleMeasurementSelectionEvent(selected) {
@@ -1018,6 +1113,7 @@ class App {
         this.state.set('settings.entryZonePosition', 'top');
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1026,6 +1122,7 @@ class App {
         this.state.set('settings.entryZonePosition', 'bottom');
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1034,6 +1131,7 @@ class App {
         this.state.set('settings.entryZonePosition', 'left');
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1042,6 +1140,7 @@ class App {
         this.state.set('settings.entryZonePosition', 'right');
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1052,6 +1151,7 @@ class App {
         this.state.set('settings.showEntryZoneLabel', !showLabel);
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1062,6 +1162,7 @@ class App {
         this.state.set('settings.showEntryZoneBorder', !showBorder);
         this.canvasManager.redrawFloorPlan();
         this.syncViewDropdownUI();
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1074,6 +1175,7 @@ class App {
           ? 'Show Labels'
           : 'Hide Labels';
         this.canvasManager.toggleItemLabels(!showLabels);
+        this.saveHistorySnapshot();
       });
     }
 
@@ -1507,7 +1609,7 @@ class App {
             );
           }
 
-          this.historyManager.save();
+          this.saveHistorySnapshot();
         } else {
           Modal.showError('Please select an item to rotate');
         }
@@ -1731,6 +1833,7 @@ class App {
       const showLabels = this.state.get('settings.showItemLabels') !== false;
       this.state.set('settings.showItemLabels', !showLabels);
       this.canvasManager.toggleItemLabels(!showLabels);
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
@@ -1738,6 +1841,7 @@ class App {
       const showLabel = this.state.get('settings.showEntryZoneLabel') !== false;
       this.state.set('settings.showEntryZoneLabel', !showLabel);
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
@@ -1745,30 +1849,35 @@ class App {
       const showBorder = this.state.get('settings.showEntryZoneBorder') !== false;
       this.state.set('settings.showEntryZoneBorder', !showBorder);
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-bottom"]').onclick = () => {
       this.state.set('settings.entryZonePosition', 'bottom');
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-left"]').onclick = () => {
       this.state.set('settings.entryZonePosition', 'left');
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-right"]').onclick = () => {
       this.state.set('settings.entryZonePosition', 'right');
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-top"]').onclick = () => {
       this.state.set('settings.entryZonePosition', 'top');
       this.canvasManager.redrawFloorPlan();
+      this.saveHistorySnapshot();
       Modal.close();
     };
 
@@ -1816,6 +1925,10 @@ class App {
    * Used after undo/redo operations
    */
   refreshCanvas() {
+    console.log('[App] refreshCanvas()', {
+      floorPlan: this.state.get('floorPlan'),
+      itemsCount: (this.state.get('items') || []).length,
+    });
     // [App] Refreshing canvas from state
 
     // ALWAYS clear canvas first (critical for undo/redo)
