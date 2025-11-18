@@ -1,4 +1,48 @@
-/* global Helpers, Config, Bounds, Modal, MeasurementTool */
+/* global Helpers, Config, Bounds, Modal, MeasurementTool, fabric */
+
+const SelectionFilters =
+  (typeof window !== 'undefined' && window.SelectionFilters) ||
+  (() => {
+    const filters = {
+      isMeasurementObject(obj) {
+        if (!obj) return false;
+        return (
+          !!obj.measurement ||
+          !!obj.measurementHandle ||
+          !!obj.isMeasurementLabel ||
+          obj.measurementPart === 'text' ||
+          !!obj.measurementId
+        );
+      },
+      isFloorPlanObject(obj) {
+        if (!obj) return false;
+        return !!(obj.customData && obj.customData.isFloorPlan);
+      },
+      isLockedObject(obj) {
+        if (!obj) return false;
+        if (obj.customData && obj.customData.locked) return true;
+        return (
+          obj.lockMovementX === true &&
+          obj.lockMovementY === true &&
+          obj.lockRotation === true
+        );
+      },
+      isSelectableObject(obj) {
+        if (!obj) return false;
+        if (this.isFloorPlanObject(obj)) return false;
+        if (this.isMeasurementObject(obj)) return false;
+        if (this.isLockedObject(obj)) return false;
+        if (obj.excludeFromSelection) return false;
+        return !!(obj.customData && obj.customData.id);
+      },
+    };
+    filters.isSelectableObject = filters.isSelectableObject.bind(filters);
+    return filters;
+  })();
+
+if (typeof window !== 'undefined') {
+  window.SelectionFilters = SelectionFilters;
+}
 
 /**
  * Canvas Manager - Fabric.js Canvas Management
@@ -35,6 +79,8 @@ class CanvasManager {
     // Disabled by default so power users can stage items outside the plan.
     this.enforceFloorBounds = false;
     this.measurementTool = null;
+    this._marqueeSuppressed = false;
+    this._previousSelectionEnabled = true;
   }
 
   /**
@@ -47,22 +93,32 @@ class CanvasManager {
       return;
     }
 
+    // Hint to browsers that we'll read pixel data often (improves getImageData perf)
+    try {
+      const existingContext = canvasEl.getContext('2d', { willReadFrequently: true });
+      if (existingContext && typeof existingContext.willReadFrequently === 'boolean') {
+        existingContext.willReadFrequently = true;
+      }
+    } catch (err) {
+      // Older browsers may not support the option; ignore silently
+    }
+
     this.canvas = new fabric.Canvas(this.canvasId, {
       backgroundColor: '#ffffff',
       selection: true,
       preserveObjectStacking: true,
       // Professional control styling
-      selectionColor: 'rgba(99, 102, 241, 0.1)',
-      selectionBorderColor: '#6366F1',
-      selectionLineWidth: 2,
+      selectionColor: 'rgba(211, 47, 47, 0.08)',
+      selectionBorderColor: '#D32F2F',
+      selectionLineWidth: 1.5,
       // Corner/control styling for better visibility
-      borderColor: '#6366F1',
-      cornerColor: '#6366F1',
+      borderColor: '#D32F2F',
+      cornerColor: '#D32F2F',
       cornerStrokeColor: '#ffffff',
       cornerStyle: 'circle',
       cornerSize: 14,
       transparentCorners: false,
-      borderDashArray: [5, 5],
+      borderDashArray: [4, 4],
       borderScaleFactor: 2,
       // Rotation control styling
       rotatingPointOffset: 40,
@@ -74,13 +130,13 @@ class CanvasManager {
 
     // Customize multi-selection (ActiveSelection) appearance
     fabric.ActiveSelection.prototype.set({
-      borderColor: '#6366F1',
-      cornerColor: '#6366F1',
+      borderColor: '#D32F2F',
+      cornerColor: '#D32F2F',
       cornerStrokeColor: '#ffffff',
       cornerStyle: 'circle',
       cornerSize: 14,
       transparentCorners: false,
-      borderDashArray: [5, 5],
+      borderDashArray: [4, 4],
       borderScaleFactor: 2,
       padding: 0,
     });
@@ -132,6 +188,47 @@ class CanvasManager {
    */
   getMeasurementTool() {
     return this.measurementTool;
+  }
+
+  /**
+   * Normalize Fabric selection to only include selectable objects
+   * @private
+   */
+  _normalizeSelection() {
+    if (!this.canvas) return [];
+    const active = this.canvas.getActiveObject();
+    if (!active) return [];
+
+    if (active.type === 'activeSelection') {
+      const filtered = this._filterSelectableObjects(active.getObjects());
+      if (filtered.length === 0) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        return [];
+      }
+      if (filtered.length !== active.getObjects().length) {
+        const selection = new fabric.ActiveSelection(filtered, {
+          canvas: this.canvas,
+        });
+        this.canvas.setActiveObject(selection);
+        this.canvas.requestRenderAll();
+      }
+      return filtered;
+    }
+
+    if (SelectionFilters.isSelectableObject(active)) {
+      return [active];
+    }
+
+    return [];
+  }
+
+  /**
+   * Filter helper for selection arrays
+   * @private
+   */
+  _filterSelectableObjects(objects = []) {
+    return objects.filter((obj) => SelectionFilters.isSelectableObject(obj));
   }
 
   /**
@@ -317,8 +414,40 @@ class CanvasManager {
    * Setup canvas event listeners
    */
   setupEventListeners() {
+    // Suppress marquee when starting on restricted layers
+    this.canvas.on('mouse:down', (opt) => {
+      const target = opt ? opt.target : null;
+      const suppress =
+        !!target &&
+        (target === this.floorPlanGroup || SelectionFilters.isMeasurementObject(target));
+      if (suppress) {
+        this._marqueeSuppressed = true;
+        this._previousSelectionEnabled = this.canvas.selection;
+        this.canvas.selection = false;
+      }
+    });
+
+    this.canvas.on('mouse:up', () => {
+      if (this._marqueeSuppressed) {
+        this.canvas.selection = this._previousSelectionEnabled !== false;
+        this._marqueeSuppressed = false;
+      }
+    });
+
     // Object moving
     this.canvas.on('object:moving', (e) => {
+      // If snap-to-grid is enabled, snap the moving object to the grid.
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          if (e && e.target) {
+            Bounds.snapItemToGrid(e.target);
+          }
+        }
+      } catch (err) {
+        // Defensive: don't let snapping break dragging
+        console.warn('[CanvasManager] Snap-to-grid failed during move:', err);
+      }
+
       this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:moving', e.target);
@@ -326,6 +455,17 @@ class CanvasManager {
 
     // Object moved
     this.canvas.on('object:modified', (e) => {
+      // Snap item to grid on modification (drop) if setting enabled
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          if (e && e.target) {
+            Bounds.snapItemToGrid(e.target);
+          }
+        }
+      } catch (err) {
+        console.warn('[CanvasManager] Snap-to-grid failed on modify:', err);
+      }
+
       this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
       this.eventBus.emit('canvas:object:modified', e.target);
@@ -333,12 +473,22 @@ class CanvasManager {
 
     // Selection created
     this.canvas.on('selection:created', (e) => {
-      this.eventBus.emit('canvas:selection:created', e.selected);
+      const normalized = this._normalizeSelection();
+      if (!normalized.length) {
+        this.eventBus.emit('canvas:selection:cleared');
+        return;
+      }
+      this.eventBus.emit('canvas:selection:created', normalized);
     });
 
     // Selection updated
     this.canvas.on('selection:updated', (e) => {
-      this.eventBus.emit('canvas:selection:updated', e.selected);
+      const normalized = this._normalizeSelection();
+      if (!normalized.length) {
+        this.eventBus.emit('canvas:selection:cleared');
+        return;
+      }
+      this.eventBus.emit('canvas:selection:updated', normalized);
     });
 
     // Selection cleared
@@ -728,6 +878,16 @@ class CanvasManager {
       group.imageLoadPromise = imageLoadPromise;
 
       this.canvas.add(group);
+
+      // If snap-to-grid is enabled, snap newly added items to the grid immediately.
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          Bounds.snapItemToGrid(group);
+        }
+      } catch (err) {
+        console.warn('[CanvasManager] Snap-to-grid failed while adding item:', err);
+      }
+
       this._updateItemFloorPlanState(group);
       this.canvas.renderAll();
 
@@ -1170,9 +1330,15 @@ class CanvasManager {
   toggleItemLabels(show) {
     const objects = this.canvas.getObjects();
     objects.forEach((obj) => {
+      // Hide/show item labels (for storage items)
       if (obj.type === 'group' && obj.label) {
         obj.label.set({ visible: show, opacity: show ? 1 : 0 });
         obj.label.setCoords();
+      }
+      // Hide/show measurement labels (distance text)
+      if (obj.measurementPart === 'text') {
+        obj.set({ visible: show, opacity: show ? 1 : 0 });
+        obj.setCoords();
       }
     });
     this.canvas.requestRenderAll();

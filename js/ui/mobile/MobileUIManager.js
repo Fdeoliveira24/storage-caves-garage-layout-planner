@@ -869,20 +869,24 @@ class MobileUIManager {
           </div>
         `
             : layouts
-                .map(
-                  (layout) => `
+                .map((layout) => {
+                  const layoutName = Helpers?.sanitizeLayoutName
+                    ? Helpers.sanitizeLayoutName(layout.name || 'Untitled Layout', 'Untitled Layout')
+                    : layout.name || 'Untitled Layout';
+                  const layoutDate = new Date(layout.created).toLocaleDateString();
+                  return `
           <div class="mobile-saved-item">
             <div class="mobile-saved-info">
-              <div class="mobile-saved-name">${layout.name}</div>
-              <div class="mobile-saved-date">${new Date(layout.created).toLocaleDateString()}</div>
+              <div class="mobile-saved-name">${layoutName}</div>
+              <div class="mobile-saved-date">${layoutDate}</div>
             </div>
             <div class="mobile-saved-actions">
               <button class="mobile-btn-load" data-layout-id="${layout.id}">Load</button>
               <button class="mobile-btn-delete" data-layout-id="${layout.id}">Delete</button>
             </div>
           </div>
-        `,
-                )
+        `;
+                })
                 .join('')
         }
       </div>

@@ -165,6 +165,9 @@ class MeasurementTool {
     const midX = (start.x + end.x) / 2;
     const midY = (start.y + end.y) / 2;
     
+    // Check if labels should be visible (respect showItemLabels setting)
+    const showLabels = this.state?.get('settings.showItemLabels') !== false;
+    
     const text = new fabric.Text(`${Helpers.formatNumber(distanceFeet, 1)} ft`, {
       left: midX,
       top: midY - 20,
@@ -176,6 +179,8 @@ class MeasurementTool {
       originY: 'center',
       selectable: false,
       evented: false,
+      visible: showLabels,
+      opacity: showLabels ? 1 : 0,
       measurementId: measurementId,
       measurementPart: 'text',
       excludeFromSave: true,
@@ -365,33 +370,35 @@ class MeasurementTool {
     this.canvas.renderAll();
   }
 
-  _handleSelectionEvent(e) {
-    if (!this.canvas || !e || !Array.isArray(e.selected) || e.selected.length <= 1) {
+  _handleSelectionEvent() {
+    if (!this.canvas) return;
+
+    const active = this.canvas.getActiveObject();
+    if (!active || active.type !== 'activeSelection' || !Array.isArray(active._objects)) {
       return;
     }
 
-    const measurementObjects = e.selected.filter((obj) => obj.measurementId);
+    const measurementObjects = active._objects.filter((obj) => obj?.measurementId);
     if (!measurementObjects.length) {
       return;
     }
 
     const measurementLine =
       measurementObjects.find((obj) => obj.measurement) || measurementObjects[0];
-    const active = this.canvas.getActiveObject();
 
-    if (active && active.type === 'activeSelection') {
-      measurementObjects.forEach((obj) => {
-        active.removeWithUpdate(obj);
-      });
+    measurementObjects.forEach((obj) => {
+      active.removeWithUpdate(obj);
+    });
 
-      if (active.isEmpty()) {
-        this.canvas.discardActiveObject();
-      } else {
-        active.setCoords();
-      }
+    if (active.isEmpty()) {
+      this.canvas.discardActiveObject();
+    } else {
+      active.setCoords();
     }
 
-    this.canvas.setActiveObject(measurementLine);
+    if (measurementLine) {
+      this.canvas.setActiveObject(measurementLine);
+    }
     this.canvas.requestRenderAll();
   }
 

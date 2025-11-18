@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Garage Layout Planner - Professional Storage Planning Tool 1.3</title>
+    <title>Garage Layout Planner - Professional Storage Planning Tool 1.4</title>
     <meta name="date" content="2025-01-14" />
 
     <!-- CSS -->
@@ -26,7 +26,7 @@
       <header class="header">
         <div class="header-left">
           <img src="assets/images/logo/Storage-Caves-Logo.png" alt="Storage Caves Logo" class="app-logo" />
-          <h1>Garage Layout Planner - Professional Storage Planning Tool 1.3</h1>
+          <h1>Garage Layout Planner - Professional Storage Planning Tool 1.4</h1>
         </div>
         <div class="project-name-container" title="Double-click to rename project">
           <span id="project-name" class="project-name">Untitled Layout</span>
@@ -88,140 +88,304 @@
         <div class="canvas-container">
           <!-- Toolbar -->
           <div class="toolbar">
-            <!-- File Operations -->
-            <div class="toolbar-group">
-              <button id="btn-toggle-sidebar" class="btn btn-icon tooltip" data-tooltip="Hide sidebar" aria-pressed="false">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="3" ry="3" fill="none" stroke="currentColor" stroke-width="1.8" />
-                  <rect x="6" y="6" width="3.5" height="12" rx="1.75" ry="1.75" fill="currentColor" />
-                </svg>
-              </button>
-              <button id="btn-new" class="btn tooltip" data-tooltip="Start new layout">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                </svg>
-                New
-              </button>
-              <button id="btn-save" class="btn btn-icon tooltip" data-tooltip="Save layout">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-              </button>
-            </div>
-
-            <!-- History -->
-            <div class="toolbar-group">
-              <button id="btn-undo" class="btn btn-icon tooltip" data-tooltip="Undo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 101.94-10.34L1 10"></path>
-                </svg>
-              </button>
-              <button id="btn-redo" class="btn btn-icon tooltip" data-tooltip="Redo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10"></polyline>
-                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Edit -->
-            <div class="toolbar-group">
-              <button id="btn-duplicate" class="btn btn-icon tooltip" data-tooltip="Duplicate selected">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2"></rect>
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-                </svg>
-              </button>
-              <button id="btn-delete" class="btn btn-icon tooltip" data-tooltip="Delete selected">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
-                </svg>
-              </button>
-              <button id="btn-rotate" class="btn btn-icon tooltip" data-tooltip="Rotate 90°">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10"></polyline>
-                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Z-Order -->
-            <div class="toolbar-group">
-              <button id="btn-bring-front" class="btn btn-icon tooltip" data-tooltip="Bring to front">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="17 11 12 6 7 11"></polyline>
-                  <polyline points="17 18 12 13 7 18"></polyline>
-                </svg>
-              </button>
-              <button id="btn-send-back" class="btn btn-icon tooltip" data-tooltip="Send to back">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="7 13 12 18 17 13"></polyline>
-                  <polyline points="7 6 12 11 17 6"></polyline>
-                </svg>
-              </button>
-            </div>
-
-            <!-- Measurement -->
-            <div class="toolbar-group">
+            <!-- FILE SECTION -->
+            <div class="toolbar-section toolbar-section--file">
               <button
-                id="btn-measure"
-                class="btn tooltip"
-                data-tooltip="Measure distance on canvas"
-                title="Measure distance on canvas"
+                id="btn-toggle-sidebar"
+                class="btn btn-toolbar btn-icon-only tooltip"
+                data-tooltip="Toggle sidebar"
                 aria-pressed="false"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="10" width="18" height="4" rx="1"></rect>
-                  <line x1="6" y1="10" x2="6" y2="6"></line>
-                  <line x1="10" y1="10" x2="10" y2="8"></line>
-                  <line x1="14" y1="10" x2="14" y2="7"></line>
-                  <line x1="18" y1="10" x2="18" y2="5"></line>
-                </svg>
-                Measure
+                <span class="btn-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="9" y1="3" x2="9" y2="21" />
+                  </svg>
+                </span>
               </button>
-              <button
-                id="btn-ruler-grid"
-                class="btn tooltip"
-                data-tooltip="Toggle ruler and grid"
-                title="Toggle ruler and grid"
-                aria-pressed="true"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="3" y1="15" x2="21" y2="15"></line>
-                  <line x1="9" y1="3" x2="9" y2="21"></line>
-                  <line x1="15" y1="3" x2="15" y2="21"></line>
-                </svg>
-                Ruler / Grid
+              <button id="btn-new" class="btn btn-toolbar tooltip" data-tooltip="New layout">
+                <span class="btn-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="11" x2="12" y2="17" />
+                    <line x1="9" y1="14" x2="15" y2="14" />
+                  </svg>
+                </span>
+                <span class="btn-label">New</span>
               </button>
+              <button id="btn-save" class="btn btn-toolbar tooltip" data-tooltip="Save layout">
+                <span class="btn-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                </span>
+                <span class="btn-label">Save</span>
+              </button>
+              <div class="dropdown">
+                <button id="btn-export" class="btn btn-toolbar tooltip" data-tooltip="Import or export layouts">
+                  <span class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="16 16 12 12 8 16" />
+                      <line x1="12" y1="12" x2="12" y2="21" />
+                      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+                      <polyline points="16 16 12 12 8 16" />
+                    </svg>
+                  </span>
+                  <span class="btn-label">Import / Export</span>
+                  <span class="btn-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu--list">
+                  <div class="dropdown-list">
+                    <button id="btn-export-json" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Export as JSON</span>
+                    </button>
+                    <button id="btn-export-png" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Export as PNG</span>
+                    </button>
+                    <button id="btn-export-pdf" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <path d="M9 15h6" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Export as PDF</span>
+                    </button>
+                    <button id="btn-share-email" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                          <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Share via Email</span>
+                    </button>
+                    <button id="btn-import-json" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="16 16 12 12 8 16" />
+                          <line x1="12" y1="12" x2="12" y2="21" />
+                          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Import layout</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <input type="file" id="json-file-input" accept=".json,application/json" style="display: none" />
             </div>
 
-            <!-- Zoom -->
-            <div class="toolbar-group">
+            <span class="toolbar-divider" aria-hidden="true"></span>
+
+            <!-- EDIT SECTION -->
+            <div class="toolbar-section toolbar-section--edit">
               <div class="dropdown">
-                <button id="btn-zoom" class="btn tooltip" data-tooltip="Zoom controls">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    <line x1="11" y1="8" x2="11" y2="14"></line>
-                    <line x1="8" y1="11" x2="14" y2="11"></line>
-                  </svg>
-                  <span id="zoom-percentage">100%</span>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style="width: 14px; height: 14px; margin-left: 4px"
-                  >
-                    <path d="M7,10L12,15L17,10H7Z" />
-                  </svg>
+                <button id="btn-edit" class="btn btn-toolbar tooltip" data-tooltip="Edit actions">
+                  <span class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </span>
+                  <span class="btn-label">Edit</span>
+                  <span class="btn-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
                 </button>
-                <div class="dropdown-menu">
-                  <div class="zoom-slider-container">
+                <div class="dropdown-menu dropdown-menu--list">
+                  <div class="dropdown-list">
+                    <button id="btn-undo" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 7v6h6" />
+                          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Undo</span>
+                    </button>
+                    <button id="btn-redo" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 7v6h-6" />
+                          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Redo</span>
+                    </button>
+                    <div class="dropdown-divider" role="separator"></div>
+                    <button id="btn-duplicate" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Duplicate</span>
+                    </button>
+                    <button id="btn-delete" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Delete</span>
+                    </button>
+                    <div class="dropdown-divider" role="separator"></div>
+                    <button id="btn-bring-front" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="17 11 12 6 7 11" />
+                          <polyline points="17 18 12 13 7 18" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Bring to front</span>
+                    </button>
+                    <button id="btn-send-back" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="7 13 12 18 17 13" />
+                          <polyline points="7 6 12 11 17 6" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Send to back</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <span class="toolbar-divider" aria-hidden="true"></span>
+
+            <!-- TOOLS SECTION -->
+            <div class="toolbar-section toolbar-section--tools">
+              <div class="dropdown">
+                <button
+                  id="btn-ruler-grid"
+                  class="btn btn-toolbar tooltip"
+                  data-tooltip="Grid and ruler options"
+                >
+                  <span class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <line x1="3" y1="9" x2="21" y2="9" />
+                      <line x1="3" y1="15" x2="21" y2="15" />
+                      <line x1="9" y1="3" x2="9" y2="21" />
+                      <line x1="15" y1="3" x2="15" y2="21" />
+                    </svg>
+                  </span>
+                  <span class="btn-label">Ruler / Grid</span>
+                  <span class="btn-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu--list">
+                  <div class="dropdown-list">
+                    <button id="btn-measure" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="2" y="7" width="20" height="10" rx="1" />
+                          <line x1="6" y1="11" x2="6" y2="17" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                          <line x1="18" y1="11" x2="18" y2="17" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="measure-toggle-text">Measure Tool (Off)</span>
+                    </button>
+                    <button id="btn-toggle-grid" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="7" height="7" />
+                          <rect x="14" y="3" width="7" height="7" />
+                          <rect x="14" y="14" width="7" height="7" />
+                          <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="grid-toggle-text">Hide Grid</span>
+                    </button>
+                    <button id="btn-toggle-rulers" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="2" y="4" width="20" height="16" rx="2" />
+                          <line x1="7" y1="8" x2="7" y2="12" />
+                          <line x1="12" y1="8" x2="12" y2="16" />
+                          <line x1="17" y1="8" x2="17" y2="12" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="ruler-toggle-text">Hide Rulers</span>
+                    </button>
+                    <button id="btn-toggle-snap" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="3" />
+                          <line x1="3" y1="12" x2="9" y2="12" />
+                          <line x1="15" y1="12" x2="21" y2="12" />
+                          <line x1="12" y1="3" x2="12" y2="9" />
+                          <line x1="12" y1="15" x2="12" y2="21" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="snap-toggle-text">Enable Snap to Grid</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <span class="toolbar-divider" aria-hidden="true"></span>
+
+            <!-- ZOOM SECTION -->
+            <div class="toolbar-section toolbar-section--zoom">
+              <div class="dropdown">
+                <button id="btn-zoom" class="btn btn-toolbar tooltip" data-tooltip="Zoom control">
+                  <span class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      <line x1="11" y1="8" x2="11" y2="14" />
+                      <line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                  </span>
+                  <span class="btn-label">Zoom</span>
+                  <span id="zoom-percentage" class="btn-value">100%</span>
+                  <span class="btn-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu--list">
+                  <div class="zoom-panel">
                     <label for="zoom-slider" class="zoom-slider-label">
                       <span>Zoom</span>
                       <span id="zoom-slider-value">100%</span>
@@ -236,174 +400,122 @@
                       step="5"
                     />
                   </div>
-                  <button id="btn-zoom-reset" class="dropdown-item tooltip" data-tooltip="Fit layout to screen">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M8 3H5a2 2 0 00-2 2v3"></path>
-                      <path d="M16 3h3a2 2 0 012 2v3"></path>
-                      <path d="M8 21H5a2 2 0 01-2-2v-3"></path>
-                      <path d="M16 21h3a2 2 0 002-2v-3"></path>
-                    </svg>
-                    Fit to Screen
-                  </button>
+                  <div class="dropdown-list">
+                    <button id="btn-zoom-reset" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Fit to Screen</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- View -->
-            <div class="toolbar-group">
+            <span class="toolbar-divider" aria-hidden="true"></span>
+
+            <!-- VIEW SECTION -->
+            <div class="toolbar-section toolbar-section--view">
               <div class="dropdown">
-                <button id="btn-view" class="btn tooltip" data-tooltip="View options">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  View
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style="width: 14px; height: 14px; margin-left: 4px"
-                  >
-                    <path d="M7,10L12,15L17,10H7Z" />
-                  </svg>
+                <button id="btn-view" class="btn btn-toolbar tooltip" data-tooltip="View options">
+                  <span class="btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </span>
+                  <span class="btn-label">View</span>
+                  <span class="btn-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
                 </button>
-                <div class="dropdown-menu">
-                  <button id="btn-toggle-entry-label" class="dropdown-item tooltip" data-tooltip="Toggle entry zone label">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="4 7 4 4 20 4 20 7"></polyline>
-                      <line x1="9" y1="20" x2="15" y2="20"></line>
-                      <line x1="12" y1="4" x2="12" y2="20"></line>
-                    </svg>
-                    <span id="entry-label-toggle-text">Hide Entry Label</span>
-                  </button>
-
-                  <button id="btn-entry-zone-top" class="dropdown-item tooltip" data-tooltip="Set entry zone to bottom">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="18 15 12 9 6 15"></polyline>
-                    </svg>
-                    Entry Zone: Bottom
-                  </button>
-                  <button id="btn-entry-zone-bottom" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to top">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                    Entry Zone: Top
-                  </button>
-                  <button id="btn-entry-zone-left" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to left">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                    Entry Zone: Left
-                  </button>
-                  <button id="btn-entry-zone-right" class="dropdown-item tooltip" style="display: none" data-tooltip="Set entry zone to right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="9 6 15 12 9 18"></polyline>
-                    </svg>
-                    Entry Zone: Right
-                  </button>
-                  <button id="btn-toggle-entry-border" class="dropdown-item tooltip" data-tooltip="Toggle entry zone border">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    </svg>
-                    <span id="entry-border-toggle-text">Hide Entry Border</span>
-                  </button>
-
-                  <button id="btn-floorplan-lock" class="dropdown-item tooltip" data-tooltip="Lock or unlock floor plan">
-                    <svg id="floorplan-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="5" y="11" width="14" height="10" rx="2"></rect>
-                      <path d="M7 11V7a5 5 0 0110 0v4"></path>
-                      <line x1="12" y1="16" x2="12" y2="18"></line>
-                      <circle cx="12" cy="16" r="1"></circle>
-                    </svg>
-                    <span id="floorplan-lock-text">Unlock Floor Plan</span>
-                  </button>
-
-                  <button id="btn-floorplan-center" class="dropdown-item tooltip" data-tooltip="Re-center floor plan">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"></path>
-                    </svg>
-                    Re-center Floor Plan
-                  </button>
-
-                  <button id="btn-toggle-labels" class="dropdown-item tooltip" data-tooltip="Toggle item labels">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L3 13.99V3h10.99l6.6 6.6a2 2 0 010 2.83z"></path>
-                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                    </svg>
-                    <span id="labels-toggle-text">Hide Labels</span>
-                  </button>
+                <div class="dropdown-menu dropdown-menu--list">
+                  <div class="dropdown-list">
+                    <button id="btn-toggle-entry-label" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="4" y1="9" x2="20" y2="9" />
+                          <line x1="4" y1="15" x2="20" y2="15" />
+                          <line x1="10" y1="3" x2="8" y2="21" />
+                          <line x1="16" y1="3" x2="14" y2="21" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="entry-label-toggle-text">Hide Entry Label</span>
+                    </button>
+                    <button id="btn-entry-zone-top" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="18 15 12 9 6 15" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Entry Zone: Top</span>
+                    </button>
+                    <button id="btn-entry-zone-bottom" class="dropdown-item" style="display: none">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Entry Zone: Bottom</span>
+                    </button>
+                    <button id="btn-entry-zone-left" class="dropdown-item" style="display: none">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Entry Zone: Left</span>
+                    </button>
+                    <button id="btn-entry-zone-right" class="dropdown-item" style="display: none">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 6 15 12 9 18" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Entry Zone: Right</span>
+                    </button>
+                    <button id="btn-toggle-entry-border" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="entry-border-toggle-text">Hide Entry Border</span>
+                    </button>
+                    <button id="btn-floorplan-lock" class="dropdown-item">
+                      <span class="item-icon" id="floorplan-lock-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="5" y="11" width="14" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="floorplan-lock-text">Lock Floor Plan</span>
+                    </button>
+                    <button id="btn-floorplan-center" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </span>
+                      <span class="item-label">Re-center Floor Plan</span>
+                    </button>
+                    <button id="btn-toggle-labels" class="dropdown-item">
+                      <span class="item-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                          <line x1="7" y1="7" x2="7.01" y2="7" />
+                        </svg>
+                      </span>
+                      <span class="item-label" id="labels-toggle-text">Hide Labels</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Export -->
-            <div class="toolbar-group">
-              <div class="dropdown">
-                <button id="btn-export" class="btn tooltip" data-tooltip="Export layout">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Export
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style="width: 14px; height: 14px; margin-left: 4px"
-                  >
-                    <path d="M7,10L12,15L17,10H7Z" />
-                  </svg>
-                </button>
-                <div class="dropdown-menu">
-                  <button id="btn-export-json" class="dropdown-item tooltip" data-tooltip="Export layout as JSON">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
-                    </svg>
-                    Export as JSON
-                  </button>
-                  <button id="btn-export-png" class="dropdown-item tooltip" data-tooltip="Export layout as PNG image">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Export as PNG
-                  </button>
-                  <button id="btn-export-pdf" class="dropdown-item tooltip" data-tooltip="Export layout as PDF">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
-                    Export as PDF
-                  </button>
-                  <button id="btn-share-email" class="dropdown-item tooltip" data-tooltip="Share layout via email">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                    Share via Email
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Import -->
-            <div class="toolbar-group">
-              <button id="btn-import-json" class="btn tooltip" data-tooltip="Import layout (JSON)">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path
-                    d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13.5V18H10.5V15H8L12,11Z"
-                  />
-                </svg>
-                Import
-              </button>
-              <!-- Hidden file input -->
-              <input
-                type="file"
-                id="json-file-input"
-                accept=".json,application/json"
-                style="display: none"
-              />
             </div>
           </div>
 

@@ -413,58 +413,68 @@ class App {
    */
   setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Ignore if typing in input
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      // Ignore if typing in input/textarea/content-editable areas
+      if (
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'TEXTAREA' ||
+        e.target.isContentEditable
+      ) {
         return;
       }
 
       const ctrl = e.ctrlKey || e.metaKey;
+      const hasSelection = (this.selectionManager?.getSelection?.() || []).length > 0;
 
-      // Delete/Backspace
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Delete/Backspace - delete selection
+      if ((e.key === 'Delete' || e.key === 'Backspace') && hasSelection) {
         e.preventDefault();
         this.selectionManager.deleteSelected();
       }
 
-      // Ctrl+Z - Undo
-      if (ctrl && e.key === 'z') {
+      // Ctrl/⌘ + Z / Shift+Z - Undo / Redo
+      if (ctrl && e.key.toLowerCase() === 'z') {
         e.preventDefault();
-        this.historyManager.undo();
+        if (e.shiftKey) {
+          this.historyManager.redo();
+        } else {
+          this.historyManager.undo();
+        }
+        return;
       }
 
-      // Ctrl+Y - Redo
-      if (ctrl && e.key === 'y') {
+      // Ctrl/⌘ + Y - Redo
+      if (ctrl && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         this.historyManager.redo();
       }
 
-      // Ctrl+D - Duplicate
-      if (ctrl && e.key === 'd') {
+      // Ctrl/⌘ + D - Duplicate (selection required)
+      if (ctrl && e.key.toLowerCase() === 'd' && hasSelection) {
         e.preventDefault();
         this.selectionManager.duplicateSelected();
       }
 
-      // Ctrl+A - Select All
-      if (ctrl && e.key === 'a') {
+      // Ctrl/⌘ + A - Select All
+      if (ctrl && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         this.selectionManager.selectAll();
       }
 
-      // Ctrl+C - Copy
-      if (ctrl && e.key === 'c') {
+      // Ctrl/⌘ + C - Copy (selection required)
+      if (ctrl && e.key.toLowerCase() === 'c' && hasSelection) {
         e.preventDefault();
         this.selectionManager.copySelected();
       }
 
-      // Ctrl+V - Paste
-      if (ctrl && e.key === 'v') {
+      // Ctrl/⌘ + V - Paste
+      if (ctrl && e.key.toLowerCase() === 'v') {
         e.preventDefault();
         this.selectionManager.pasteSelected();
       }
 
-      // Esc - Measurement cancel / exit / deselect
+      // Esc - cancel measurement first, otherwise clear selection
       if (e.key === 'Escape') {
-        if (this.measurementTool?.isMeasuring) {
+        if (this.measurementTool?.isMeasuring || this.measurementInProgress) {
           if (this.measurementInProgress) {
             this.measurementTool.cancelActiveMeasurement();
             this.measurementInProgress = false;
@@ -475,14 +485,52 @@ class App {
           return;
         }
 
-        this.selectionManager.deselectAll();
+        if (hasSelection) {
+          this.selectionManager.deselectAll();
+          e.preventDefault();
+        }
         return;
       }
 
-      // R - Rotate 90°
-      if (e.key === 'r' || e.key === 'R') {
+      // Measurement toggle (M) - no modifiers
+      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
-        this.selectionManager.rotateSelected(90);
+        this.toggleMeasurementMode();
+        return;
+      }
+
+      // Grid / Snap toggles (G / Shift+G) - no modifiers
+      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          const snapEnabled = this.state.get('settings.snapToGrid') === true;
+          this.state.set('settings.snapToGrid', !snapEnabled);
+          this.syncViewDropdownUI();
+        } else {
+          const showGrid = this.state.get('settings.showGrid') !== false;
+          this.state.set('settings.showGrid', !showGrid);
+          this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+          this.syncViewDropdownUI();
+        }
+        return;
+      }
+
+      // Shift+R - toggle rulers (no modifiers)
+      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'r' && e.shiftKey) {
+        e.preventDefault();
+        const showRuler = this.state.get('settings.showRuler') !== false;
+        this.state.set('settings.showRuler', !showRuler);
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+        this.syncViewDropdownUI();
+        return;
+      }
+
+      // R - Rotate selection 90°
+      if (!e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        if (hasSelection) {
+          this.selectionManager.rotateSelected(90);
+        }
       }
 
       // Arrow keys - Nudge
@@ -512,6 +560,14 @@ class App {
    */
   toggleMeasurementMode() {
     if (!this.measurementTool) return;
+    const hasFloorPlan = !!this.state.get('floorPlan');
+    if (!hasFloorPlan) {
+      Modal.showInfo?.('Please select a floor plan first');
+      if (this.measurementTool.isMeasuring) {
+        this.measurementTool.disableMeasurementMode();
+      }
+      return;
+    }
     this.measurementTool.toggleMeasurementMode();
   }
 
@@ -565,8 +621,12 @@ class App {
 
     const measureBtn = document.getElementById('btn-measure');
     if (measureBtn) {
-      measureBtn.classList.toggle('is-active', this.measurementModeActive);
-      measureBtn.setAttribute('aria-pressed', this.measurementModeActive ? 'true' : 'false');
+      measureBtn.removeAttribute('aria-pressed');
+      measureBtn.classList.remove('is-active');
+    }
+    const measureToggleText = document.getElementById('measure-toggle-text');
+    if (measureToggleText) {
+      measureToggleText.textContent = this.measurementModeActive ? 'Measure Tool (On)' : 'Measure Tool (Off)';
     }
 
     this.mobileUIManager?.setMeasurementModeActive?.(this.measurementModeActive);
@@ -598,12 +658,23 @@ class App {
    * Sync View dropdown UI with current settings
    */
   syncViewDropdownUI() {
-    const showGrid = this.state.get('settings.showGrid');
+    const showGrid = this.state.get('settings.showGrid') !== false;
+    const showRuler = this.state.get('settings.showRuler') !== false;
+    const snapEnabled = this.state.get('settings.snapToGrid') === true;
 
-    const rulerGridBtn = document.getElementById('btn-ruler-grid');
-    if (rulerGridBtn) {
-      rulerGridBtn.classList.toggle('is-active', !!showGrid);
-      rulerGridBtn.setAttribute('aria-pressed', showGrid ? 'true' : 'false');
+    const gridToggleText = document.getElementById('grid-toggle-text');
+    if (gridToggleText) {
+      gridToggleText.textContent = showGrid ? 'Hide Grid' : 'Show Grid';
+    }
+
+    const rulerToggleText = document.getElementById('ruler-toggle-text');
+    if (rulerToggleText) {
+      rulerToggleText.textContent = showRuler ? 'Hide Rulers' : 'Show Rulers';
+    }
+
+    const snapToggleText = document.getElementById('snap-toggle-text');
+    if (snapToggleText) {
+      snapToggleText.textContent = snapEnabled ? 'Disable Snap to Grid' : 'Enable Snap to Grid';
     }
 
     this.mobileUIManager?.setRulerGridActive?.(!!showGrid);
@@ -673,16 +744,20 @@ class App {
 
     if (lockIcon) {
       const lockedMarkup = `
-        <rect x="5" y="11" width="14" height="10" rx="2"></rect>
-        <path d="M7 11V7a5 5 0 0110 0v4"></path>
-        <line x1="12" y1="16" x2="12" y2="18"></line>
-        <circle cx="12" cy="16" r="1"></circle>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+          <path d="M7 11V7a5 5 0 0110 0v4"></path>
+          <line x1="12" y1="16" x2="12" y2="18"></line>
+          <circle cx="12" cy="16" r="1"></circle>
+        </svg>
       `;
       const unlockedMarkup = `
-        <rect x="5" y="11" width="14" height="10" rx="2"></rect>
-        <path d="M17 11V7a5 5 0 10-9.33-3"></path>
-        <line x1="12" y1="16" x2="12" y2="18"></line>
-        <circle cx="12" cy="16" r="1"></circle>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+          <path d="M17 11V7a5 5 0 00-9.33-3"></path>
+          <line x1="12" y1="16" x2="12" y2="18"></line>
+          <circle cx="12" cy="16" r="1"></circle>
+        </svg>
       `;
       lockIcon.innerHTML = locked ? lockedMarkup : unlockedMarkup;
     }
@@ -728,7 +803,7 @@ class App {
   }
 
   setupDropdowns() {
-    const dropdownTriggers = ['btn-view', 'btn-export', 'btn-zoom']
+    const dropdownTriggers = ['btn-view', 'btn-export', 'btn-zoom', 'btn-ruler-grid', 'btn-edit']
       .map((id) => document.getElementById(id))
       .filter(Boolean);
 
@@ -744,6 +819,17 @@ class App {
 
     dropdownTriggers.forEach((trigger) => {
       trigger.addEventListener('click', (event) => {
+        if (trigger.hasAttribute('disabled')) {
+          event.preventDefault();
+          return;
+        }
+        const splitMode = trigger.dataset.dropdownMode === 'split';
+        const chevronClicked = !!event.target.closest('.dropdown-chevron');
+        if (splitMode && !chevronClicked) {
+          closeAll(null);
+          return;
+        }
+
         event.preventDefault();
         event.stopPropagation();
 
@@ -927,10 +1013,13 @@ class App {
 
       const currentName = this.state.get('metadata.projectName') || 'Untitled Layout';
       const newName = await Modal.showPrompt('Rename Project', 'Enter project name:', currentName);
+      const sanitizedName = Helpers.sanitizeLayoutName(newName || '', '');
 
-      if (newName && newName.trim() !== '') {
-        this.updateProjectName(newName.trim());
+      if (sanitizedName) {
+        this.updateProjectName(sanitizedName);
         Modal.showSuccess('Project renamed successfully');
+      } else if (newName && newName.trim() !== '') {
+        Modal.showError('Invalid project name');
       }
     };
 
@@ -993,6 +1082,16 @@ class App {
       redoBtn.addEventListener('click', () => this.historyManager.redo());
     }
 
+    const copyBtn = document.getElementById('btn-copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => this.selectionManager.copySelected());
+    }
+
+    const pasteBtn = document.getElementById('btn-paste');
+    if (pasteBtn) {
+      pasteBtn.addEventListener('click', () => this.selectionManager.pasteSelected());
+    }
+
     // Delete
     const deleteBtn = document.getElementById('btn-delete');
     if (deleteBtn) {
@@ -1017,9 +1116,33 @@ class App {
       measureBtn.addEventListener('click', () => this.toggleMeasurementMode());
     }
 
-    const rulerGridBtn = document.getElementById('btn-ruler-grid');
-    if (rulerGridBtn) {
-      rulerGridBtn.addEventListener('click', () => this.toggleRulerGrid());
+    const toggleGridMenuBtn = document.getElementById('btn-toggle-grid');
+    if (toggleGridMenuBtn) {
+      toggleGridMenuBtn.addEventListener('click', () => {
+        const showGrid = this.state.get('settings.showGrid') !== false;
+        this.state.set('settings.showGrid', !showGrid);
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+        this.syncViewDropdownUI();
+      });
+    }
+
+    const toggleRulersMenuBtn = document.getElementById('btn-toggle-rulers');
+    if (toggleRulersMenuBtn) {
+      toggleRulersMenuBtn.addEventListener('click', () => {
+        const showRuler = this.state.get('settings.showRuler') !== false;
+        this.state.set('settings.showRuler', !showRuler);
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+        this.syncViewDropdownUI();
+      });
+    }
+
+    const toggleSnapBtn = document.getElementById('btn-toggle-snap');
+    if (toggleSnapBtn) {
+      toggleSnapBtn.addEventListener('click', () => {
+        const snapEnabled = this.state.get('settings.snapToGrid') === true;
+        this.state.set('settings.snapToGrid', !snapEnabled);
+        this.syncViewDropdownUI();
+      });
     }
 
     // Export JSON
@@ -1204,7 +1327,22 @@ class App {
 
     const floorPlan = this.state.get('floorPlan');
     const items = this.state.get('items') || [];
-    const selection = this.selectionManager.getSelection();
+    const selection =
+      (this.selectionManager && typeof this.selectionManager.getSelection === 'function'
+        ? this.selectionManager.getSelection()
+        : []) || [];
+    const selectionCount = selection.length;
+
+    const editBtn = document.getElementById('btn-edit');
+    if (editBtn) {
+      if (selectionCount === 0) {
+        editBtn.setAttribute('disabled', 'disabled');
+        editBtn.setAttribute('aria-disabled', 'true');
+      } else {
+        editBtn.removeAttribute('disabled');
+        editBtn.setAttribute('aria-disabled', 'false');
+      }
+    }
 
     const segments = [];
 
@@ -1237,12 +1375,25 @@ class App {
       segments.push('<div class="info-bar__placeholder">Select a floor plan to begin</div>');
     }
 
-    const selectedItem = selection.find(
-      (obj) => obj && obj.customData && obj.customData.id && !obj.isMeasurementLabel,
-    );
+    if (selectionCount === 0) {
+      segments.push(`
+        <div class="info-bar__segment">
+          <span class="info-bar__label">Selection:</span>
+          <span class="info-bar__value">None</span>
+        </div>
+      `);
+    } else if (selectionCount > 1) {
+      segments.push(`
+        <div class="info-bar__segment">
+          <span class="info-bar__label">Selected:</span>
+          <span class="info-bar__value">${selectionCount} items</span>
+        </div>
+      `);
+    }
 
-    if (selectedItem) {
-      const itemData = selectedItem.customData || {};
+    if (selectionCount === 1) {
+      const selectedItem = selection[0];
+      const itemData = selectedItem?.customData || {};
 
       segments.push(`
         <div class="info-bar__segment">
@@ -1345,7 +1496,7 @@ class App {
    * Update project name in DOM and document title
    */
   updateProjectName(projectName) {
-    const name = projectName || 'Untitled Layout';
+    const name = Helpers.sanitizeLayoutName(projectName || 'Untitled Layout', 'Untitled Layout');
 
     // Update DOM
     const projectNameEl = document.getElementById('project-name');
@@ -1769,8 +1920,8 @@ class App {
     // VIEW OPTIONS section
     const viewSection = document.createElement('div');
     const currentSettings = this.state.get('settings') || {};
-    const entryLabelVisible = currentSettings.showEntryLabel !== false;
-    const entryBorderVisible = currentSettings.showEntryBorder !== false;
+    const entryLabelVisible = currentSettings.showEntryZoneLabel !== false;
+    const entryBorderVisible = currentSettings.showEntryZoneBorder !== false;
     const itemLabelsVisible = currentSettings.showItemLabels !== false;
     const entryPosition = currentSettings.entryZonePosition || 'bottom';
 
@@ -2184,7 +2335,7 @@ class App {
     }
 
     const rawName = presetName ?? (await Modal.showPrompt('Save Layout', 'Enter layout name:'));
-    const name = rawName ? rawName.trim() : '';
+    const name = Helpers.sanitizeLayoutName(rawName || '', '');
     if (!name) {
       if (typeof onCancel === 'function') {
         onCancel();
@@ -2301,18 +2452,20 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
     }
 
     container.innerHTML = layouts
-      .map(
-        (layout) => `
+      .map((layout) => {
+        const layoutName = Helpers.sanitizeLayoutName(layout.name || 'Untitled Layout', 'Untitled Layout');
+        const layoutDate = new Date(layout.created).toLocaleDateString();
+        return `
       <div class="saved-layout-item" data-id="${layout.id}">
-        <div class="saved-layout-name">${layout.name}</div>
-        <div class="saved-layout-date">${new Date(layout.created).toLocaleDateString()}</div>
+        <div class="saved-layout-name">${layoutName}</div>
+        <div class="saved-layout-date">${layoutDate}</div>
         <div class="saved-layout-actions">
           <button class="btn-load-layout" data-id="${layout.id}">Load</button>
           <button class="btn-delete-layout" data-id="${layout.id}">Delete</button>
         </div>
       </div>
-    `,
-      )
+    `;
+      })
       .join('');
 
     container.querySelectorAll('.btn-load-layout').forEach((btn) => {

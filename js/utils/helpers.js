@@ -130,6 +130,41 @@ const Helpers = {
   rectanglesOverlap(r1, r2) {
     return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
   },
+
+  /**
+   * Sanitize user-provided layout/project names for display/storage
+   */
+  sanitizeLayoutName(name, fallback = '') {
+    if (typeof name !== 'string') {
+      return fallback;
+    }
+    const normalized = name
+      .replace(/[\u0000-\u001f]+/g, '')
+      .replace(/[\r\n\t]/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+    if (!normalized) {
+      return fallback;
+    }
+    const stripped = normalized.replace(/[<>]/g, '');
+    return stripped.substring(0, 100);
+  },
+
+  /**
+   * Sanitize strings for use as filenames
+   */
+  sanitizeFilename(name, fallback = 'layout') {
+    const base = typeof name === 'string' && name.trim().length ? name.trim() : fallback;
+    const normalized = base
+      .normalize('NFKD')
+      .replace(/[^\w\s.-]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^\.+/, '')
+      .replace(/\.+$/, '');
+    const safe = normalized.substring(0, 80);
+    return safe || fallback;
+  },
 };
 
 // Make available globally

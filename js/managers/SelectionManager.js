@@ -1,4 +1,9 @@
-/* global Bounds */
+/* global Bounds, fabric */
+
+const selectionFilters =
+  (typeof window !== 'undefined' && window.SelectionFilters) || {
+    isSelectableObject: () => true,
+  };
 
 /**
  * Selection Manager
@@ -17,6 +22,10 @@ class SelectionManager {
    * Select item
    */
   selectItem(item) {
+    if (!selectionFilters.isSelectableObject(item)) {
+      return;
+    }
+
     this.canvas.setActiveObject(item);
     this.canvas.renderAll();
 
@@ -44,45 +53,45 @@ class SelectionManager {
     if (!active) return [];
 
     if (active.type === 'activeSelection') {
-      return active.getObjects();
+      return active.getObjects().filter((obj) => selectionFilters.isSelectableObject(obj));
     }
 
-    return [active];
+    return selectionFilters.isSelectableObject(active) ? [active] : [];
   }
 
   /**
    * Select multiple items
    */
   selectMultiple(items) {
-    if (items.length === 0) return;
-
-    if (items.length === 1) {
-      this.selectItem(items[0]);
+    const selectableItems = items.filter((item) => selectionFilters.isSelectableObject(item));
+    if (selectableItems.length === 0) {
+      this.deselectAll();
       return;
     }
 
-    const selection = new fabric.ActiveSelection(items, {
+    if (selectableItems.length === 1) {
+      this.selectItem(selectableItems[0]);
+      return;
+    }
+
+    const selection = new fabric.ActiveSelection(selectableItems, {
       canvas: this.canvas,
     });
 
     this.canvas.setActiveObject(selection);
     this.canvas.renderAll();
 
-    this.state.setState({ selection: items });
-    this.eventBus.emit('items:selected', items);
+    this.state.setState({ selection: selectableItems });
+    this.eventBus.emit('items:selected', selectableItems);
   }
 
   /**
    * Select all items
    */
   selectAll() {
-    const objects = this.canvas.getObjects().filter((obj) => {
-      return (
-        obj.customData &&
-        !obj.customData.isLabel &&
-        obj !== this.canvasManager.floorPlanGroup
-      );
-    });
+    const objects = this.canvas
+      .getObjects()
+      .filter((obj) => selectionFilters.isSelectableObject(obj));
 
     this.selectMultiple(objects);
   }

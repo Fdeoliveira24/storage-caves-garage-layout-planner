@@ -40,7 +40,8 @@ class ExportManager {
     };
 
     const json = JSON.stringify(exportData, null, 2);
-    const filename = `${state.metadata.projectName || 'layout'}-${Date.now()}.json`;
+    const safeName = Helpers.sanitizeFilename(state.metadata.projectName || 'layout', 'layout');
+    const filename = `${safeName}-${Date.now()}.json`;
 
     Helpers.downloadFile(json, filename, 'application/json');
     this.eventBus.emit('export:json:complete', filename);
@@ -70,8 +71,9 @@ class ExportManager {
 
     // Format: "Project Name_YYYY-MM-DD_Buford-GA.png"
     const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
+    const safeProjectName = Helpers.sanitizeFilename(projectName, 'Untitled_Layout');
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const filename = `${projectName}_${date}_Buford-GA.png`;
+    const filename = `${safeProjectName}_${date}_Buford-GA.png`;
 
     const link = document.createElement('a');
     link.href = dataURL;
@@ -298,7 +300,8 @@ class ExportManager {
     // Format: "Project Name_YYYY-MM-DD.pdf"
     const projectName = this.state.get('metadata.projectName') || 'Untitled Layout';
     const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const filename = `${projectName}_${date}_Buford-GA.pdf`;
+    const safeProjectName = Helpers.sanitizeFilename(projectName, 'Untitled_Layout');
+    const filename = `${safeProjectName}_${date}_Buford-GA.pdf`;
     pdf.save(filename);
 
     console.log(`PDF exported: ${pdfOptions.format}, ${pdfOptions.orientation}, 300 DPI`);
