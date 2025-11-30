@@ -1,0 +1,10 @@
+{
+  "ignoreMatches": [
+    "cspell",
+    "eslint-plugin-import",
+    "eslint-plugin-promise",
+    "eslint-plugin-sonarjs",
+    "husky",
+    "stylelint-config-standard"
+  ]
+}

@@ -137,7 +137,8 @@ body.modal-open {
 /* Mobile: Position toast at top below header */
 @media (width <= 767px) {
   .toast-container {
-    inset: calc(var(--mobile-header-height, 56px) + var(--spacing-sm)) var(--spacing-sm) auto var(--spacing-sm);
+    inset: calc(var(--mobile-header-height, 56px) + var(--spacing-sm)) var(--spacing-sm) auto
+      var(--spacing-sm);
     flex-direction: column;
   }
 }

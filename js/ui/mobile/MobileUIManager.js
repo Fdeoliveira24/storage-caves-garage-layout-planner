@@ -1,3 +1,4 @@
+/* global Helpers, Icons */
 /**
  * MobileUIManager - Professional Mobile Interface for Storage Caves
  *
@@ -29,6 +30,7 @@ class MobileUIManager {
     this.topTabOpen = false;
     this.lastTopTab = 'floorplans';
     this.measurementModeActive = false;
+    this.actionPanelOpen = false;
 
     // Mobile containers
     this.mobileContainer = null;
@@ -105,9 +107,7 @@ class MobileUIManager {
           />
           <button id="mobile-project-name" class="mobile-project-name" title="Rename layout" type="button">
             <span id="mobile-project-name-text">Untitled Layout</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 17.01V19h1.99l6.06-6.05-1.99-1.99L7 17.01zm11.11-6.05a.996.996 0 0 0 0-1.41l-2.66-2.66a.996.996 0 0 0-1.41 0l-1.35 1.35 4.07 4.07 1.35-1.35z"/>
-            </svg>
+            ${Icons.render('edit', 'mobile-icon')}
           </button>
         </div>
       </div>
@@ -156,8 +156,6 @@ class MobileUIManager {
       const el = document.querySelector(selector);
       if (el) {
         el.classList.add('mobile-hide-desktop');
-        // CRITICAL: Disable pointer events to prevent click bubbling
-        el.style.pointerEvents = 'none';
       }
     });
   }
@@ -171,10 +169,7 @@ class MobileUIManager {
     this.tabBar.className = 'mobile-tab-bar';
     this.tabBar.innerHTML = `
       <button class="mobile-tab" data-action="toggle-top-tabs">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="6"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
+        ${Icons.render('search', 'mobile-tab-icon')}
         <span>Browse</span>
       </button>
       <button class="mobile-tab" data-action="toggle-actions">
@@ -193,17 +188,11 @@ class MobileUIManager {
         <span>Canvas</span>
       </button>
       <button class="mobile-tab" data-tab="more">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="5" cy="12" r="2"></circle>
-          <circle cx="12" cy="12" r="2"></circle>
-          <circle cx="19" cy="12" r="2"></circle>
-        </svg>
+        ${Icons.render('moreHorizontal', 'mobile-tab-icon')}
         <span>More</span>
       </button>
       <button class="mobile-tab" data-action="new-layout">
-        <svg class="mobile-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
+        ${Icons.render('new', 'mobile-tab-icon')}
         <span>New</span>
       </button>
     `;
@@ -224,87 +213,75 @@ class MobileUIManager {
       </div>
       <div class="mobile-action-panel-grid">
         <button class="mobile-action-btn" data-action="zoom-in">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-          </svg>
+          ${Icons.render('zoomIn', 'mobile-action-icon')}
           <span>Zoom In</span>
         </button>
         <button class="mobile-action-btn" data-action="zoom-out">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
-          </svg>
+          ${Icons.render('zoomOut', 'mobile-action-icon')}
           <span>Zoom Out</span>
         </button>
         <button class="mobile-action-btn" data-action="fit-view">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
-          </svg>
+          ${Icons.render('fitView', 'mobile-action-icon')}
           <span>Fit View</span>
         </button>
         <button class="mobile-action-btn" data-action="rotate">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
-          </svg>
+          ${Icons.render('rotate', 'mobile-action-icon')}
           <span>Rotate</span>
         </button>
-        <button class="mobile-action-btn" data-action="toggle-measure" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 17h18v2H3z"></path>
-            <path d="M5 13v4"></path>
-            <path d="M9 9v8"></path>
-            <path d="M13 11v6"></path>
-            <path d="M17 7v10"></path>
-            <path d="M7 15h2"></path>
-            <path d="M11 15h2"></path>
-            <path d="M15 15h2"></path>
-          </svg>
-          <span>Measure</span>
-        </button>
-        <button class="mobile-action-btn" data-action="toggle-ruler-grid" aria-pressed="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <line x1="3" y1="9" x2="21" y2="9"></line>
-            <line x1="3" y1="15" x2="21" y2="15"></line>
-            <line x1="9" y1="3" x2="9" y2="21"></line>
-            <line x1="15" y1="3" x2="15" y2="21"></line>
-          </svg>
-          <span>Ruler/Grid</span>
-        </button>
+        
         <button class="mobile-action-btn" data-action="duplicate">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
+          ${Icons.render('duplicate', 'mobile-action-icon')}
           <span>Duplicate</span>
         </button>
         <button class="mobile-action-btn" data-action="delete">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-          </svg>
+          ${Icons.render('delete', 'mobile-action-icon')}
           <span>Delete</span>
         </button>
         <button class="mobile-action-btn" data-action="bring-front">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,15V20H20V15H15M16,8V11H13V8H16M11,16H8V13H11V16Z"/>
           </svg>
           <span>Bring Front</span>
         </button>
         <button class="mobile-action-btn" data-action="send-back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z"/>
           </svg>
           <span>Send Back</span>
         </button>
         <button class="mobile-action-btn" data-action="toggle-floorplan-lock">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
+          ${Icons.render('lock', 'mobile-action-icon')}
           <span class="mobile-floorplan-lock-label">Lock Floor Plan</span>
         </button>
         <button class="mobile-action-btn" data-action="recenter-floorplan">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
-          </svg>
+          ${Icons.render('recenter', 'mobile-action-icon')}
           <span>Re-center Floor Plan</span>
+        </button>
+        <button class="mobile-action-btn" data-action="toggle-grid" aria-pressed="true">
+          ${Icons.render('rulerGrid', 'mobile-action-icon')}
+          <span>Grid</span>
+        </button>
+        <button class="mobile-action-btn" data-action="toggle-rulers" aria-pressed="false">
+          ${Icons.render('rulerGrid', 'mobile-action-icon')}
+          <span>Rulers</span>
+        </button>
+        <button class="mobile-action-btn" data-action="toggle-snap" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <line x1="3" y1="12" x2="9" y2="12" />
+            <line x1="15" y1="12" x2="21" y2="12" />
+            <line x1="12" y1="3" x2="12" y2="9" />
+            <line x1="12" y1="15" x2="12" y2="21" />
+          </svg>
+          <span>Snap to Grid</span>
+        </button>
+        <button class="mobile-action-btn" data-action="toggle-measure" aria-pressed="false">
+          ${Icons.render('measure', 'mobile-action-icon')}
+          <span>Measure</span>
+        </button>
+        <button class="mobile-action-btn mobile-clear-measure" data-action="clear-measurement" style="display: none;">
+          ${Icons.render('close', 'mobile-action-icon')}
+          <span>Clear Measurement</span>
         </button>
       </div>
     `;
@@ -312,7 +289,10 @@ class MobileUIManager {
     document.body.appendChild(this.mobileToolbar);
     this.updateFloorPlanControls();
     this.setMeasurementModeActive(this.app?.isMeasurementModeActive?.());
-    this.setRulerGridActive(this.state.get('settings.showGrid'));
+    this.setRulerGridActive(
+      this.state.get('settings.showGrid') !== false,
+      this.state.get('settings.showRuler') !== false,
+    );
   }
 
   toggleActionPanel() {
@@ -329,6 +309,7 @@ class MobileUIManager {
     this.closeTopTabs();
     this.updateFloorPlanControls();
     this.mobileToolbar.classList.add('mobile-action-panel-open');
+    this.actionPanelOpen = true;
     const actionTab = this.tabBar?.querySelector('[data-action="toggle-actions"]');
     actionTab?.classList.add('mobile-tab-active');
   }
@@ -336,6 +317,7 @@ class MobileUIManager {
   closeActionPanel() {
     if (!this.mobileToolbar) return;
     this.mobileToolbar.classList.remove('mobile-action-panel-open');
+    this.actionPanelOpen = false;
     const actionTab = this.tabBar?.querySelector('[data-action="toggle-actions"]');
     actionTab?.classList.remove('mobile-tab-active');
   }
@@ -383,9 +365,11 @@ class MobileUIManager {
       );
 
       if (newName && newName.trim()) {
-        this.state.set('metadata', { ...metadata, projectName: newName.trim() });
+        const trimmed = newName.trim();
+        // Use the same high-level rename flow as desktop
+        this.app?.updateProjectName?.(trimmed);
         if (projectNameText) {
-          projectNameText.textContent = newName.trim();
+          projectNameText.textContent = trimmed;
         }
       }
     };
@@ -432,9 +416,10 @@ class MobileUIManager {
       t.classList.toggle('mobile-top-tab-active', t.dataset.topTab === tabName);
     });
 
-    // Update views
-    const views = document.querySelectorAll('#mobile-top-tabs .mobile-view');
-    views.forEach((v) => v.classList.remove('mobile-view-active'));
+    // Update views - Clear ALL views (not just top-tabs) for consistency
+    document
+      .querySelectorAll('.mobile-view')
+      .forEach((v) => v.classList.remove('mobile-view-active'));
 
     if (tabName === 'floorplans') {
       document.getElementById('mobile-floor-plans-view')?.classList.add('mobile-view-active');
@@ -490,13 +475,24 @@ class MobileUIManager {
         this.closeActionPanel();
         this.closeMorePanel();
         if (this.topTabOpen) {
+          // Closing browse: hide the sheet and return to canvas (empty state if no plan)
           this.closeTopTabs();
+          this.switchTab('canvas');
         } else {
-          this.switchTopTab(this.lastTopTab || 'floorplans');
+          // Ensure we show the browse content (floorplans/items/saved) when toggling open
+          this.switchTab(this.lastTopTab || 'floorplans');
         }
       } else if (action === 'toggle-actions') {
-        this.closeMorePanel();
-        this.toggleActionPanel();
+        // Close More panel if open (no forced state)
+        if (this.isMorePanelOpen()) {
+          this.closeMorePanel();
+        }
+        // Pure toggle - no forced canvas switch
+        if (this.actionPanelOpen) {
+          this.closeActionPanel();
+        } else {
+          this.openActionPanel();
+        }
       }
       return;
     }
@@ -511,6 +507,7 @@ class MobileUIManager {
    * Switch tabs
    */
   switchTab(tabName) {
+    // TOGGLE MORE PANEL - works like a drawer
     if (tabName === 'more') {
       if (this.isMorePanelOpen()) {
         this.closeMorePanel({ activateCanvas: true });
@@ -520,9 +517,11 @@ class MobileUIManager {
       return;
     }
 
-    // Any tab switch should hide the floating actions panel
+    // Close floating panels when switching to other tabs
     this.closeActionPanel();
-    this.closeMorePanel();
+    if (this.isMorePanelOpen()) {
+      this.closeMorePanel();
+    }
 
     // Update bottom tab bar active states
     const tabs = this.tabBar?.querySelectorAll('.mobile-tab');
@@ -533,12 +532,18 @@ class MobileUIManager {
     // Get key elements
     const canvasWrapper = document.querySelector('.canvas-wrapper');
     const mobileContent = document.getElementById('mobile-content');
+    const mobileTopTabs = document.getElementById('mobile-top-tabs');
 
     if (tabName === 'canvas') {
-      // Show canvas, hide content views, close top tabs
+      // Show canvas, hide ALL panels
       if (canvasWrapper) canvasWrapper.classList.add('mobile-show-canvas');
       if (mobileContent) mobileContent.classList.remove('mobile-show-content');
-      this.closeTopTabs();
+      if (mobileTopTabs) mobileTopTabs.classList.add('mobile-top-tabs-closed');
+
+      // Hide ALL content views
+      document
+        .querySelectorAll('.mobile-view')
+        .forEach((v) => v.classList.remove('mobile-view-active'));
 
       // Defer canvas resize/fit until visible
       requestAnimationFrame(() => {
@@ -548,49 +553,97 @@ class MobileUIManager {
         }
       });
     } else if (tabName === 'floorplans' || tabName === 'items' || tabName === 'saved') {
-      // Hide canvas, show content, show specific view
+      // Show Browse panel (top tabs), hide canvas and More panel
       if (canvasWrapper) canvasWrapper.classList.remove('mobile-show-canvas');
-      if (mobileContent) mobileContent.classList.add('mobile-show-content');
+      if (mobileContent) mobileContent.classList.remove('mobile-show-content');
 
-      // Switch to the specific top tab view (will open tabs with forceOpen=true by default)
+      // CRITICAL: Hide more-view before showing browse content
+      document.getElementById('mobile-more-view')?.classList.remove('mobile-view-active');
+
+      // Switch to the specific top tab view
       this.switchTopTab(tabName);
     }
   }
 
   isMorePanelOpen() {
-    return this.tabBar?.querySelector('[data-tab="more"]')?.classList.contains('mobile-tab-active') ?? false;
+    return (
+      this.tabBar?.querySelector('[data-tab="more"]')?.classList.contains('mobile-tab-active') ??
+      false
+    );
   }
 
   openMorePanel() {
     const canvasWrapper = document.querySelector('.canvas-wrapper');
     const mobileContent = document.getElementById('mobile-content');
+    const mobileTopTabs = document.getElementById('mobile-top-tabs');
     const moreTab = this.tabBar?.querySelector('[data-tab="more"]');
 
-    this.closeTopTabs();
+    // Close other panels
     this.closeActionPanel();
+    if (mobileTopTabs) mobileTopTabs.classList.add('mobile-top-tabs-closed');
 
-    this.tabBar?.querySelectorAll('.mobile-tab').forEach((t) => t.classList.remove('mobile-tab-active'));
+    // Update tab bar - only More is active
+    this.tabBar
+      ?.querySelectorAll('.mobile-tab')
+      .forEach((t) => t.classList.remove('mobile-tab-active'));
     moreTab?.classList.add('mobile-tab-active');
-    canvasWrapper?.classList.remove('mobile-show-canvas');
-    mobileContent?.classList.add('mobile-show-content');
 
-    document.querySelectorAll('.mobile-view').forEach((v) => v.classList.remove('mobile-view-active'));
+    // Hide canvas
+    canvasWrapper?.classList.remove('mobile-show-canvas');
+
+    // Show More panel with slide-in animation
+    if (mobileContent) {
+      mobileContent.classList.add('mobile-show-content');
+    }
+
+    // Hide all other views, show only more-view
+    document
+      .querySelectorAll('.mobile-view')
+      .forEach((v) => v.classList.remove('mobile-view-active'));
     document.getElementById('mobile-more-view')?.classList.add('mobile-view-active');
+
     this.renderMore();
   }
 
   closeMorePanel({ activateCanvas = false } = {}) {
     if (!this.isMorePanelOpen()) return;
-    const canvasWrapper = document.querySelector('.canvas-wrapper');
+
     const mobileContent = document.getElementById('mobile-content');
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
     const moreTab = this.tabBar?.querySelector('[data-tab="more"]');
+    const canvasTab = this.tabBar?.querySelector('[data-tab="canvas"]');
+    const moreView = document.getElementById('mobile-more-view');
 
+    // Remove active state from More button
     moreTab?.classList.remove('mobile-tab-active');
-    canvasWrapper?.classList.add('mobile-show-canvas');
-    mobileContent?.classList.remove('mobile-show-content');
 
+    // Hide More panel with slide-out animation (CSS handles the animation)
+    if (mobileContent) {
+      mobileContent.classList.remove('mobile-show-content');
+
+      // Keep the content visible during the slide-out, then hide once the transform finishes
+      if (moreView) {
+        const hideContent = () => {
+          moreView.classList.remove('mobile-view-active');
+        };
+
+        const onTransitionEnd = (evt) => {
+          if (evt.propertyName === 'transform') {
+            hideContent();
+          }
+        };
+
+        mobileContent.addEventListener('transitionend', onTransitionEnd, { once: true });
+        // Fallback timeout in case transitionend doesn't fire
+        setTimeout(hideContent, 500);
+      }
+    }
+
+    // Show canvas immediately behind the sliding panel
+    canvasWrapper?.classList.add('mobile-show-canvas');
+
+    // Activate canvas tab if requested
     if (activateCanvas) {
-      const canvasTab = this.tabBar?.querySelector('[data-tab="canvas"]');
       canvasTab?.classList.add('mobile-tab-active');
     }
   }
@@ -637,8 +690,7 @@ class MobileUIManager {
                   data-floor-plan-id="${plan.id}">
             <h3>${plan.name}</h3>
             <div class="mobile-card-meta">
-              <span>${plan.widthFt}' × ${plan.heightFt}'</span>
-              <span>Door: ${plan.description}</span>
+              <span>Door: ${plan.doorWidth}' × ${plan.doorHeight}'</span>
               <span>${plan.area} sq ft</span>
             </div>
           </button>
@@ -666,7 +718,8 @@ class MobileUIManager {
 
     // Get items from Items.getAll() (loaded from js/data/items.js)
     const items = window.Items?.getAll() || [];
-    const useImages = typeof window !== 'undefined' && window.Config ? window.Config.USE_IMAGES !== false : true;
+    const useImages =
+      typeof window !== 'undefined' && window.Config ? window.Config.USE_IMAGES !== false : true;
 
     container.innerHTML = `
       <div class="mobile-view-header">
@@ -779,6 +832,14 @@ class MobileUIManager {
           </svg>
           <span>Export as JSON</span>
         </button>
+        <button class="mobile-more-item" data-action="import-layout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Import Layout</span>
+        </button>
         <button class="mobile-more-item" data-action="share-email">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -789,9 +850,9 @@ class MobileUIManager {
       </div>
       <div class="mobile-view-options">
         <h3>View Options</h3>
-        <div class="mobile-view-options-group">
+          <div class="mobile-view-options-group">
           <h4>Display</h4>
-          <div class="mobile-view-options-toggles">
+          <div class="mobile-view-options-positions">
             <button class="mobile-toggle-btn ${showEntryZoneLabel ? 'mobile-toggle-active' : ''}" data-action="toggle-entry-label">
               <span>Entry Label</span>
               ${showEntryZoneLabel ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
@@ -800,6 +861,7 @@ class MobileUIManager {
               <span>Entry Border</span>
               ${showEntryZoneBorder ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
             </button>
+            <!-- Snap to Grid removed from More view (available under Actions) -->
           </div>
         </div>
         <div class="mobile-view-options-group">
@@ -871,7 +933,10 @@ class MobileUIManager {
             : layouts
                 .map((layout) => {
                   const layoutName = Helpers?.sanitizeLayoutName
-                    ? Helpers.sanitizeLayoutName(layout.name || 'Untitled Layout', 'Untitled Layout')
+                    ? Helpers.sanitizeLayoutName(
+                        layout.name || 'Untitled Layout',
+                        'Untitled Layout',
+                      )
                     : layout.name || 'Untitled Layout';
                   const layoutDate = new Date(layout.created).toLocaleDateString();
                   return `
@@ -960,6 +1025,7 @@ class MobileUIManager {
     let shouldCloseActionPanel = true;
     switch (action) {
       case 'zoom-in':
+        // Use the same zoom helpers as desktop (CanvasManager)
         this.canvasManager?.zoomIn();
         break;
       case 'zoom-out':
@@ -969,38 +1035,17 @@ class MobileUIManager {
         this.canvasManager?.centerAndFit();
         break;
       case 'rotate': {
-        const selection = this.canvasManager?.getCanvas()?.getActiveObjects() || [];
-        selection.forEach((item) => {
-          const currentAngle = item.angle || 0;
-          item.rotate(currentAngle + 90);
-        });
-        this.canvasManager?.getCanvas()?.renderAll();
+        // Reuse desktop rotation behavior
+        this.selectionManager?.rotateSelected?.(90);
         break;
       }
       case 'duplicate':
-        if (this.selectionManager) {
-          const activeObjects = this.canvasManager?.getCanvas()?.getActiveObjects() || [];
-          if (activeObjects.length > 1) {
-            this.selectionManager.duplicateSelected();
-          } else if (activeObjects.length === 1 && activeObjects[0].customData?.id) {
-            this.eventBus.emit('item:duplicate:requested', {
-              itemId: activeObjects[0].customData.id,
-              canvasObject: activeObjects[0],
-            });
-          } else {
-            window.Modal?.showInfo('Please select an item to duplicate');
-          }
-        }
+        // Mirror desktop duplicate behavior
+        this.selectionManager?.duplicateSelected?.();
         break;
       case 'delete':
-        this.canvasManager
-          ?.getCanvas()
-          ?.getActiveObjects()
-          .forEach((item) => {
-            if (item.customData?.id) {
-              this.itemManager?.removeItem(item.customData.id);
-            }
-          });
+        // Mirror desktop delete behavior
+        this.selectionManager?.deleteSelected?.();
         break;
       case 'bring-front':
         if (this.selectionManager) {
@@ -1022,10 +1067,67 @@ class MobileUIManager {
         this.app?.toggleMeasurementMode?.();
         shouldCloseActionPanel = false;
         break;
-      case 'toggle-ruler-grid':
-        this.app?.toggleRulerGrid?.();
+      case 'clear-measurement':
+        // Clear active measurement line
+        if (this.app?.measurementTool) {
+          this.app.measurementTool.disableMeasurementMode();
+          // Ensure UI state reflects that measurement mode is now off
+          this.setMeasurementModeActive(false);
+          this.clearAllMeasurements();
+        }
         shouldCloseActionPanel = false;
         break;
+      case 'toggle-grid':
+        // Toggle grid only
+        {
+          const showGrid = this.state.get('settings.showGrid') !== false;
+          const nextGrid = !showGrid;
+          this.state.set('settings.showGrid', nextGrid);
+          if (this.canvasManager) {
+            this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+          }
+          this.setRulerGridActive(nextGrid, this.state.get('settings.showRuler') !== false);
+        }
+        shouldCloseActionPanel = false;
+        break;
+      case 'toggle-rulers': {
+        // Toggle rulers only
+        const showRulers = this.state.get('settings.showRuler') !== false;
+        this.state.set('settings.showRuler', !showRulers);
+        // CRITICAL: Redraw floor plan to show/hide rulers
+        if (this.canvasManager) {
+          this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+        }
+        // Sync button states with current grid/ruler visibility
+        this.setRulerGridActive(this.state.get('settings.showGrid') !== false, !showRulers);
+        this.eventBus.emit('settings:ruler:changed', !showRulers);
+        shouldCloseActionPanel = false;
+        break;
+      }
+      case 'toggle-snap': {
+        // Toggle snap to grid immediately
+        const settings = this.state.get('settings') || {};
+        const currently = !!settings.snapToGrid;
+        settings.snapToGrid = !currently;
+        this.state.set('settings', settings);
+        // Notify canvas / emit event
+        this.eventBus.emit('settings:snap:changed', settings.snapToGrid);
+        if (this.canvasManager && this.canvasManager.updateSnapState) {
+          try {
+            this.canvasManager.updateSnapState(settings.snapToGrid);
+          } catch (e) {
+            // Ignore snap state update errors to avoid blocking UI flow
+          }
+        }
+        // Reflect snap state on the button for accessibility
+        const snapBtn = this.mobileToolbar?.querySelector('[data-action="toggle-snap"]');
+        if (snapBtn) {
+          snapBtn.classList.toggle('is-active', settings.snapToGrid);
+          snapBtn.setAttribute('aria-pressed', settings.snapToGrid ? 'true' : 'false');
+        }
+        shouldCloseActionPanel = false;
+        break;
+      }
     }
     // Close action panel after action (unless tool stays active)
     if (shouldCloseActionPanel) {
@@ -1044,6 +1146,11 @@ class MobileUIManager {
 
     if (lockLabel) {
       lockLabel.textContent = locked ? 'Unlock Floor Plan' : 'Lock Floor Plan';
+    }
+
+    if (lockBtn) {
+      lockBtn.classList.toggle('is-active', locked);
+      lockBtn.setAttribute('aria-pressed', locked ? 'true' : 'false');
     }
 
     [lockBtn, recenterBtn].forEach((btn) => {
@@ -1067,14 +1174,35 @@ class MobileUIManager {
       measureBtn.classList.toggle('is-active', this.measurementModeActive);
       measureBtn.setAttribute('aria-pressed', this.measurementModeActive ? 'true' : 'false');
     }
+
+    // Show/hide Clear Measurement button based on measurement mode state
+    const clearMeasureBtn = this.mobileToolbar?.querySelector('[data-action="clear-measurement"]');
+    if (clearMeasureBtn) {
+      clearMeasureBtn.style.display = this.measurementModeActive ? 'flex' : 'none';
+    }
   }
 
-  setRulerGridActive(isActive) {
-    const rulerBtn = this.mobileToolbar?.querySelector('[data-action="toggle-ruler-grid"]');
-    if (rulerBtn) {
-      rulerBtn.classList.toggle('is-active', !!isActive);
-      rulerBtn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  setRulerGridActive(gridActive, rulersActive) {
+    const gridBtn = this.mobileToolbar?.querySelector('[data-action="toggle-grid"]');
+    if (gridBtn) {
+      gridBtn.classList.toggle('is-active', !!gridActive);
+      gridBtn.setAttribute('aria-pressed', gridActive ? 'true' : 'false');
     }
+
+    const rulersBtn = this.mobileToolbar?.querySelector('[data-action="toggle-rulers"]');
+    if (rulersBtn) {
+      rulersBtn.classList.toggle('is-active', !!rulersActive);
+      rulersBtn.setAttribute('aria-pressed', rulersActive ? 'true' : 'false');
+    }
+  }
+
+  clearAllMeasurements() {
+    const canvas = this.canvasManager?.getCanvas?.();
+    if (!canvas) return;
+    const toRemove = canvas.getObjects().filter((obj) => obj.measurementId);
+    if (!toRemove.length) return;
+    toRemove.forEach((obj) => canvas.remove(obj));
+    canvas.requestRenderAll?.();
   }
 
   toggleFloorPlanLock() {
@@ -1105,6 +1233,7 @@ class MobileUIManager {
       'export-pdf': '#btn-export-pdf',
       'export-json': '#btn-export-json',
       'share-email': '#btn-share-email',
+      'import-layout': '#btn-import-json',
       new: '#btn-new',
     };
 
@@ -1148,6 +1277,22 @@ class MobileUIManager {
         this.redrawFloorPlan();
         this.switchTab('canvas');
         break;
+      case 'toggle-snap': {
+        // Toggle snapToGrid in state and notify canvas manager
+        const snapEnabled = !!settings.snapToGrid;
+        settings.snapToGrid = !snapEnabled;
+        this.state.set('settings', settings);
+        // Update canvas manager if available (CanvasManager checks state on move)
+        if (this.canvasManager && this.canvasManager.updateSnapState) {
+          try {
+            this.canvasManager.updateSnapState(settings.snapToGrid);
+          } catch (e) {
+            // ignore if not implemented
+          }
+        }
+        this.switchTab('canvas');
+        break;
+      }
     }
   }
 
@@ -1236,13 +1381,9 @@ class MobileUIManager {
     // Remove mobile classes
     document.body.classList.remove('mobile-layout');
 
-    // Remove mobile-hide-desktop classes and restore pointer events
+    // Remove mobile-hide-desktop classes so desktop UI is fully restored
     document.querySelectorAll('.mobile-hide-desktop').forEach((el) => {
       el.classList.remove('mobile-hide-desktop');
-      // Restore pointer events for desktop
-      if (el instanceof HTMLElement) {
-        el.style.pointerEvents = '';
-      }
     });
 
     // Remove mobile containers

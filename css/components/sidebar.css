@@ -79,7 +79,9 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: center;
-  transition: border-color var(--transition-base), transform var(--transition-base);
+  transition:
+    border-color var(--transition-base),
+    transform var(--transition-base);
   position: relative;
   background: var(--color-bg-panel);
   display: flex;
@@ -199,7 +201,9 @@
   background: var(--shape-color, #475569);
   border-radius: 12px;
   transition: transform var(--transition-fast);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 60%), 0 4px 8px rgb(15 23 42 / 8%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 60%),
+    0 4px 8px rgb(15 23 42 / 8%);
 }
 
 .palette-shape-preview--circle::before {
@@ -252,11 +256,7 @@
 
 .palette-item[data-category='mezzanine'] {
   border-style: dashed;
-  background: linear-gradient(
-    135deg,
-    rgb(248 250 252 / 90%) 0%,
-    rgb(241 245 249 / 90%) 100%
-  );
+  background: linear-gradient(135deg, rgb(248 250 252 / 90%) 0%, rgb(241 245 249 / 90%) 100%);
 }
 
 .palette-item[data-category='mezzanine'] .item-label {

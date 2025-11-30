@@ -31,7 +31,5 @@
     "Lanier",
     "storagecaves"
   ],
-  "ignorePaths": [
-    "js/vendor"
-  ]
+  "ignorePaths": ["js/vendor"]
 }

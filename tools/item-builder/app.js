@@ -111,7 +111,9 @@ async function downloadRender(target) {
   }
 }
 
-document.getElementById('downloadPalette').addEventListener('click', () => downloadRender('palette'));
+document
+  .getElementById('downloadPalette')
+  .addEventListener('click', () => downloadRender('palette'));
 document.getElementById('downloadCanvas').addEventListener('click', () => downloadRender('canvas'));
 
 document.getElementById('generateSnippet').addEventListener('click', () => {

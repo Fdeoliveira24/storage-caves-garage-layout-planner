@@ -15,7 +15,7 @@ class Modal {
       const existingOverlays = document.querySelectorAll('.modal-overlay');
       if (existingOverlays.length > 0) {
         console.warn('[Modal] Found', existingOverlays.length, 'existing overlays, removing them');
-        existingOverlays.forEach(o => o.remove());
+        existingOverlays.forEach((o) => o.remove());
       }
 
       const overlay = document.createElement('div');
@@ -91,8 +91,13 @@ class Modal {
 
   static showPrompt(title, message, defaultValue = '') {
     return new Promise((resolve) => {
-      console.log('[Modal] showPrompt called with title:', title, '| Stack trace:', new Error().stack);
-      
+      console.log(
+        '[Modal] showPrompt called with title:',
+        title,
+        '| Stack trace:',
+        new Error().stack,
+      );
+
       // Guard: Prevent multiple prompts from opening simultaneously
       if (Modal._currentPrompt) {
         console.warn('[Modal] ⚠️ BLOCKED: Prompt already open, returning null');
@@ -102,14 +107,14 @@ class Modal {
       }
 
       console.log('[Modal] ✓ Opening prompt:', title);
-      
+
       // CRITICAL FIX: Remove any orphaned modal overlays before creating new one
       const existingOverlays = document.querySelectorAll('.modal-overlay');
       if (existingOverlays.length > 0) {
         console.warn('[Modal] Found', existingOverlays.length, 'existing overlays, removing them');
-        existingOverlays.forEach(o => o.remove());
+        existingOverlays.forEach((o) => o.remove());
       }
-      
+
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
@@ -184,18 +189,18 @@ class Modal {
         document.removeEventListener('keydown', keyHandler);
         input.removeEventListener('focus', handleInputFocus);
         input.removeEventListener('blur', handleInputBlur);
-        
+
         // Restore scroll position
         document.body.classList.remove('modal-open');
         document.body.style.top = '';
         window.scrollTo(0, scrollY);
-        
+
         // Clear the prompt guard flag
         Modal._currentPrompt = false;
         // Track last prompt close time (used by mobile tap guards)
         Modal._lastPromptClosedAt = Date.now();
         console.log('[Modal] ✓ Prompt closed, guard flag cleared');
-        
+
         // Check if overlay still exists before removing
         if (overlay && overlay.parentNode) {
           console.log('[Modal] Removing overlay from DOM');
@@ -203,7 +208,7 @@ class Modal {
         } else {
           console.warn('[Modal] ⚠️ Overlay already removed or not in DOM');
         }
-        
+
         resolve(value);
       };
 

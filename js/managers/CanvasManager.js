@@ -1,4 +1,4 @@
-/* global Helpers, Config, Bounds, Modal, MeasurementTool, fabric */
+/* global Helpers, Config, Bounds, Modal, MeasurementTool */
 
 const SelectionFilters =
   (typeof window !== 'undefined' && window.SelectionFilters) ||
@@ -22,9 +22,7 @@ const SelectionFilters =
         if (!obj) return false;
         if (obj.customData && obj.customData.locked) return true;
         return (
-          obj.lockMovementX === true &&
-          obj.lockMovementY === true &&
-          obj.lockRotation === true
+          obj.lockMovementX === true && obj.lockMovementY === true && obj.lockRotation === true
         );
       },
       isSelectableObject(obj) {
@@ -472,7 +470,7 @@ class CanvasManager {
     });
 
     // Selection created
-    this.canvas.on('selection:created', (e) => {
+    this.canvas.on('selection:created', (_e) => {
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
         this.eventBus.emit('canvas:selection:cleared');
@@ -482,7 +480,7 @@ class CanvasManager {
     });
 
     // Selection updated
-    this.canvas.on('selection:updated', (e) => {
+    this.canvas.on('selection:updated', (_e) => {
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
         this.eventBus.emit('canvas:selection:cleared');
@@ -569,154 +567,157 @@ class CanvasManager {
    */
   drawFloorPlan(floorPlan, options = {}) {
     try {
-      const preserveViewport = options?.preserveViewport;
-      const currentViewport = preserveViewport && this.canvas ? [...this.canvas.viewportTransform] : null;
-      const currentZoom = preserveViewport && this.canvas ? this.canvas.getZoom() : null;
-
-      // Hide empty state
+      // Hide empty state when a floor plan is drawn
       this.hideEmptyState();
 
-    // Clear existing floor plan group
-    this._teardownFloorPlanGroup();
-    this.floorPlanRect = null;
-    this.entryZoneRect = null;
-    this.entryZoneLabel = null;
+      const preserveViewport = options?.preserveViewport;
+      const currentViewport =
+        preserveViewport && this.canvas ? [...this.canvas.viewportTransform] : null;
+      const currentZoom = preserveViewport && this.canvas ? this.canvas.getZoom() : null;
 
-    const width = Helpers.feetToPx(floorPlan.widthFt);
-    const height = Helpers.feetToPx(floorPlan.heightFt);
+      // Don't hide empty state here - keep it visible until first item is added
 
-    // Store dimensions for re-centering on resize
-    this.floorPlanWidth = width;
-    this.floorPlanHeight = height;
+      // Clear existing floor plan group
+      this._teardownFloorPlanGroup();
+      this.floorPlanRect = null;
+      this.entryZoneRect = null;
+      this.entryZoneLabel = null;
 
-    // Create floor plan rectangle
-    this.floorPlanRect = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: width,
-      height: height,
-      fill: Config.COLORS.floorPlan,
-      stroke: Config.COLORS.floorPlanStroke,
-      strokeWidth: 2,
-      selectable: false,
-      evented: false,
-    });
+      const width = Helpers.feetToPx(floorPlan.widthFt);
+      const height = Helpers.feetToPx(floorPlan.heightFt);
 
-    // Create entry zone
-    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
-    const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
-    const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
+      // Store dimensions for re-centering on resize
+      this.floorPlanWidth = width;
+      this.floorPlanHeight = height;
 
-    let entryLeft, entryTop, entryWidth, entryHeight, labelLeft, labelTop;
+      // Create floor plan rectangle
+      this.floorPlanRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: width,
+        height: height,
+        fill: Config.COLORS.floorPlan,
+        stroke: Config.COLORS.floorPlanStroke,
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+      });
 
-    if (entryZonePosition === 'left' || entryZonePosition === 'right') {
-      // Vertical entry zone (left or right side)
-      entryWidth = width * Config.ENTRY_ZONE_PERCENTAGE;
-      entryHeight = height;
-      entryLeft = entryZonePosition === 'left' ? 0 : width - entryWidth;
-      entryTop = 0;
-      labelLeft = entryLeft + entryWidth / 2;
-      labelTop = height / 2;
-    } else {
-      // Horizontal entry zone (top or bottom)
-      entryWidth = width;
-      entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
-      entryLeft = 0;
-      entryTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
-      labelLeft = width / 2;
-      labelTop = entryTop + entryHeight / 2;
-    }
+      // Create entry zone
+      const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+      const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
+      const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
 
-    this.entryZoneRect = new fabric.Rect({
-      left: entryLeft,
-      top: entryTop,
-      width: entryWidth,
-      height: entryHeight,
-      fill: Config.COLORS.entryZone,
-      stroke: '#D32F2F',
-      strokeWidth: 2,
-      selectable: false,
-      evented: false,
-      opacity: showEntryBorder ? 1 : 0,
-    });
+      let entryLeft, entryTop, entryWidth, entryHeight, labelLeft, labelTop;
 
-    // Add entry zone label with rotation for vertical positions
-    const labelAngle = entryZonePosition === 'left' || entryZonePosition === 'right' ? 90 : 0;
+      if (entryZonePosition === 'left' || entryZonePosition === 'right') {
+        // Vertical entry zone (left or right side)
+        entryWidth = width * Config.ENTRY_ZONE_PERCENTAGE;
+        entryHeight = height;
+        entryLeft = entryZonePosition === 'left' ? 0 : width - entryWidth;
+        entryTop = 0;
+        labelLeft = entryLeft + entryWidth / 2;
+        labelTop = height / 2;
+      } else {
+        // Horizontal entry zone (top or bottom)
+        entryWidth = width;
+        entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
+        entryLeft = 0;
+        entryTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
+        labelLeft = width / 2;
+        labelTop = entryTop + entryHeight / 2;
+      }
 
-    this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
-      left: labelLeft,
-      top: labelTop,
-      fontSize: 12,
-      fill: '#D32F2F',
-      fontWeight: 'bold',
-      originX: 'center',
-      originY: 'center',
-      angle: labelAngle,
-      selectable: false,
-      evented: false,
-      opacity: showEntryLabel ? 0.8 : 0,
-    });
+      this.entryZoneRect = new fabric.Rect({
+        left: entryLeft,
+        top: entryTop,
+        width: entryWidth,
+        height: entryHeight,
+        fill: Config.COLORS.entryZone,
+        stroke: '#D32F2F',
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        opacity: showEntryBorder ? 1 : 0,
+      });
 
-    const floorPlanElements = [this.floorPlanRect, this.entryZoneRect];
-    if (this.entryZoneLabel) {
-      floorPlanElements.push(this.entryZoneLabel);
-    }
+      // Add entry zone label with rotation for vertical positions
+      const labelAngle = entryZonePosition === 'left' || entryZonePosition === 'right' ? 90 : 0;
 
-    const showGrid = this.state.get('settings.showGrid');
-    const showRuler = this.state.get('settings.showRuler');
+      this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
+        left: labelLeft,
+        top: labelTop,
+        fontSize: 12,
+        fill: '#D32F2F',
+        fontWeight: 'bold',
+        originX: 'center',
+        originY: 'center',
+        angle: labelAngle,
+        selectable: false,
+        evented: false,
+        opacity: showEntryLabel ? 0.8 : 0,
+      });
 
-    if (showGrid) {
-      this.gridLines = this._createGridLines(width, height);
-      floorPlanElements.push(...this.gridLines);
-    } else {
-      this.gridLines = [];
-    }
+      const floorPlanElements = [this.floorPlanRect, this.entryZoneRect];
+      if (this.entryZoneLabel) {
+        floorPlanElements.push(this.entryZoneLabel);
+      }
 
-    if (showRuler) {
-      this.rulerMarks = this._createRulerMarks(width, height);
-      floorPlanElements.push(...this.rulerMarks);
-    } else {
-      this.rulerMarks = [];
-    }
+      const showGrid = this.state.get('settings.showGrid');
+      const showRuler = this.state.get('settings.showRuler');
 
-    this.floorPlanGroup = new fabric.Group(floorPlanElements, {
-      left: 0,
-      top: 0,
-      originX: 'center',
-      originY: 'center',
-      selectable: !this.floorPlanLocked,
-      evented: !this.floorPlanLocked,
-      hasBorders: false,
-      hasControls: false,
-    });
+      if (showGrid) {
+        this.gridLines = this._createGridLines(width, height);
+        floorPlanElements.push(...this.gridLines);
+      } else {
+        this.gridLines = [];
+      }
 
-    this.floorPlanGroup.lockScalingX = true;
-    this.floorPlanGroup.lockScalingY = true;
-    this.floorPlanGroup.lockRotation = true;
-    this.floorPlanGroup.lockSkewingX = true;
-    this.floorPlanGroup.lockSkewingY = true;
-    this.floorPlanGroup.customData = { isFloorPlan: true };
+      if (showRuler) {
+        this.rulerMarks = this._createRulerMarks(width, height);
+        floorPlanElements.push(...this.rulerMarks);
+      } else {
+        this.rulerMarks = [];
+      }
 
-    this.floorPlanGroup.on('moving', this._floorPlanMoveHandler);
+      this.floorPlanGroup = new fabric.Group(floorPlanElements, {
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        selectable: !this.floorPlanLocked,
+        evented: !this.floorPlanLocked,
+        hasBorders: false,
+        hasControls: false,
+      });
 
-    this.canvas.add(this.floorPlanGroup);
-    this.setFloorPlanLocked(this.floorPlanLocked);
-    this._positionFloorPlanGroup();
-    this._emitFloorPlanStateChanged();
+      this.floorPlanGroup.lockScalingX = true;
+      this.floorPlanGroup.lockScalingY = true;
+      this.floorPlanGroup.lockRotation = true;
+      this.floorPlanGroup.lockSkewingX = true;
+      this.floorPlanGroup.lockSkewingY = true;
+      this.floorPlanGroup.customData = { isFloorPlan: true };
 
-    // Ensure core layers remain in the correct order
-    this.setLayerOrder();
+      this.floorPlanGroup.on('moving', this._floorPlanMoveHandler);
 
-    // Center and fit unless preserving current viewport
-    if (!preserveViewport) {
-      this.centerAndFit(width, height);
-    } else if (currentViewport && currentZoom && this.canvas) {
-      this.canvas.setViewportTransform(currentViewport);
-      this.canvas.setZoom(currentZoom);
-      this.canvas.requestRenderAll();
-    }
+      this.canvas.add(this.floorPlanGroup);
+      this.setFloorPlanLocked(this.floorPlanLocked);
+      this._positionFloorPlanGroup();
+      this._emitFloorPlanStateChanged();
 
-    this.canvas.renderAll();
+      // Ensure core layers remain in the correct order
+      this.setLayerOrder();
+
+      // Center and fit unless preserving current viewport
+      if (!preserveViewport) {
+        this.centerAndFit(width, height);
+      } else if (currentViewport && currentZoom && this.canvas) {
+        this.canvas.setViewportTransform(currentViewport);
+        this.canvas.setZoom(currentZoom);
+        this.canvas.requestRenderAll();
+      }
+
+      this.canvas.renderAll();
     } catch (error) {
       this._handleCanvasError('drawFloorPlan', error);
     }
@@ -870,6 +871,9 @@ class CanvasManager {
    */
   addItem(itemData, x, y) {
     try {
+      // Hide empty state when first item is added
+      this.hideEmptyState();
+
       const group = this._createBaseGroup(itemData, x, y);
       let resolveImageLoad;
       const imageLoadPromise = new Promise((resolve) => {
@@ -1008,14 +1012,24 @@ class CanvasManager {
       });
     }
 
-    // Create label at center
+    // Create label at center, shrink font to fit item width
+    const maxLabelWidth = width * 0.9;
+    let fontSize = 11;
     const label = new fabric.Text(itemData.label, {
-      left: 0,
-      top: 0,
-      fontSize: 11,
-      fill: isMezzanine ? '#374151' : '#ffffff',
+      fontSize,
       fontFamily: 'system-ui, -apple-system, sans-serif',
       fontWeight: isMezzanine ? '600' : 'bold',
+    });
+
+    while (label.width > maxLabelWidth && fontSize > 7) {
+      fontSize -= 0.5;
+      label.set({ fontSize });
+    }
+
+    label.set({
+      left: 0,
+      top: 0,
+      fill: isMezzanine ? '#374151' : '#ffffff',
       originX: 'center',
       originY: 'center',
       shadow: new fabric.Shadow({
@@ -1131,10 +1145,7 @@ class CanvasManager {
   clearItems() {
     const objects = this.canvas.getObjects();
     objects.forEach((obj) => {
-      const isItemObject =
-        obj.customData &&
-        !obj.customData.isLabel &&
-        obj !== this.floorPlanGroup;
+      const isItemObject = obj.customData && !obj.customData.isLabel && obj !== this.floorPlanGroup;
       const isHelperObject =
         obj.measurement ||
         obj.isMeasurementLabel ||

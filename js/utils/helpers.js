@@ -138,11 +138,13 @@ const Helpers = {
     if (typeof name !== 'string') {
       return fallback;
     }
+    /* eslint-disable no-control-regex */
     const normalized = name
       .replace(/[\u0000-\u001f]+/g, '')
       .replace(/[\r\n\t]/g, ' ')
       .trim()
       .replace(/\s+/g, ' ');
+    /* eslint-enable no-control-regex */
     if (!normalized) {
       return fallback;
     }

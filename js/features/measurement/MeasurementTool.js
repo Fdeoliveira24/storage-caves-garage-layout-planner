@@ -11,13 +11,13 @@ class MeasurementTool {
     this._cursorApplied = false;
     this._prevDefaultCursor = null;
     this._prevHoverCursor = null;
-    
+
     this._handleCanvasMouseDown = this._handleCanvasMouseDown.bind(this);
     this._handleObjectMoving = this._handleObjectMoving.bind(this);
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
     this._handleSelectionEvent = this._handleSelectionEvent.bind(this);
-    
+
     this._setupInteractionHandlers();
   }
 
@@ -164,17 +164,15 @@ class MeasurementTool {
 
     const midX = (start.x + end.x) / 2;
     const midY = (start.y + end.y) / 2;
-    
+
     // Check if labels should be visible (respect showItemLabels setting)
     const showLabels = this.state?.get('settings.showItemLabels') !== false;
-    
+
     const text = new fabric.Text(`${Helpers.formatNumber(distanceFeet, 1)} ft`, {
       left: midX,
       top: midY - 20,
       fontSize: 14,
       fill: Config.COLORS.dimension,
-      backgroundColor: 'rgba(255,255,255,0.95)',
-      padding: 4,
       originX: 'center',
       originY: 'center',
       selectable: false,
@@ -197,7 +195,7 @@ class MeasurementTool {
     this.canvas.add(startHandle);
     this.canvas.add(endHandle);
     this.canvas.add(text);
-    
+
     this.canvas.renderAll();
     this.eventBus?.emit('tool:measure:complete', { distanceFeet, lineId: measurementId });
   }
@@ -207,7 +205,7 @@ class MeasurementTool {
     if (!obj || !obj.measurementId) return;
 
     const measurementId = obj.measurementId;
-    
+
     if (obj.measurementHandle) {
       // Handle moved - adjust endpoint
       this._updateFromHandle(measurementId, obj.measurementHandle, obj.left, obj.top);
@@ -218,11 +216,11 @@ class MeasurementTool {
   }
 
   _updateFromHandle(measurementId, handle, x, y) {
-    const objects = this.canvas.getObjects().filter(o => o.measurementId === measurementId);
-    const line = objects.find(o => o.measurement);
-    const otherHandle = objects.find(o => o.measurementHandle && o.measurementHandle !== handle);
-    const ticks = objects.filter(o => o.measurementPart === 'tick');
-    const text = objects.find(o => o.measurementPart === 'text');
+    const objects = this.canvas.getObjects().filter((o) => o.measurementId === measurementId);
+    const line = objects.find((o) => o.measurement);
+    const otherHandle = objects.find((o) => o.measurementHandle && o.measurementHandle !== handle);
+    const ticks = objects.filter((o) => o.measurementPart === 'tick');
+    const text = objects.find((o) => o.measurementPart === 'text');
 
     if (!line || !otherHandle) return;
 
@@ -251,7 +249,10 @@ class MeasurementTool {
       text.set({
         left: (start.x + end.x) / 2,
         top: (start.y + end.y) / 2 - 20,
-        text: `${Helpers.formatNumber(distanceFeet, 1)} ft`
+        text: `${Helpers.formatNumber(distanceFeet, 1)} ft`,
+        backgroundColor: undefined,
+        textBackgroundColor: undefined,
+        padding: 0,
       });
       text.setCoords();
     }
@@ -265,10 +266,10 @@ class MeasurementTool {
   }
 
   _updateFromLine(measurementId, line) {
-    const objects = this.canvas.getObjects().filter(o => o.measurementId === measurementId);
-    const handles = objects.filter(o => o.measurementHandle);
-    const ticks = objects.filter(o => o.measurementPart === 'tick');
-    const text = objects.find(o => o.measurementPart === 'text');
+    const objects = this.canvas.getObjects().filter((o) => o.measurementId === measurementId);
+    const handles = objects.filter((o) => o.measurementHandle);
+    const ticks = objects.filter((o) => o.measurementPart === 'tick');
+    const text = objects.find((o) => o.measurementPart === 'text');
 
     const data = line.measurementData || { left: line.left, top: line.top };
     const dx = line.left - data.left;
@@ -279,7 +280,7 @@ class MeasurementTool {
     }
 
     // Move handles
-    handles.forEach(handle => {
+    handles.forEach((handle) => {
       handle.set({
         left: handle.left + dx,
         top: handle.top + dy,
@@ -312,6 +313,9 @@ class MeasurementTool {
       text.set({
         left: text.left + dx,
         top: text.top + dy,
+        backgroundColor: undefined,
+        textBackgroundColor: undefined,
+        padding: 0,
       });
       text.setCoords();
     }
@@ -328,45 +332,45 @@ class MeasurementTool {
   _handleMouseOver(e) {
     const obj = e.target;
     if (!obj || !obj.measurementId) return;
-    
+
     if (obj.measurementHandle) {
       obj.set({ scaleX: 1.2, scaleY: 1.2 });
       this.canvas.renderAll();
     }
-    
+
     this._highlightMeasurement(obj.measurementId, true);
   }
 
   _handleMouseOut(e) {
     const obj = e.target;
     if (!obj || !obj.measurementId) return;
-    
+
     if (obj.measurementHandle) {
       obj.set({ scaleX: 1, scaleY: 1 });
       this.canvas.renderAll();
     }
-    
+
     this._highlightMeasurement(obj.measurementId, false);
   }
 
   _highlightMeasurement(measurementId, highlight) {
-    const objects = this.canvas.getObjects().filter(o => o.measurementId === measurementId);
+    const objects = this.canvas.getObjects().filter((o) => o.measurementId === measurementId);
     const color = highlight ? '#16a34a' : Config.COLORS.dimension;
     const handleColor = highlight ? '#16a34a' : '#6366F1';
-    
-    objects.forEach(obj => {
+
+    objects.forEach((obj) => {
       if (obj.type === 'line') {
         obj.set('stroke', color);
       } else if (obj.measurementHandle) {
         obj.set({ fill: handleColor });
       } else if (obj.measurementPart === 'text') {
-        obj.set({ 
+        obj.set({
           fill: highlight ? '#065f46' : Config.COLORS.dimension,
-          backgroundColor: highlight ? 'rgba(22,163,74,0.12)' : 'rgba(255,255,255,0.95)'
+          backgroundColor: highlight ? 'rgba(22,163,74,0.12)' : 'rgba(255,255,255,0.95)',
         });
       }
     });
-    
+
     this.canvas.renderAll();
   }
 
@@ -405,7 +409,7 @@ class MeasurementTool {
   _showStartIndicator(point) {
     if (!this.canvas) return;
     this._removeStartIndicator();
-    
+
     this.startPointIndicator = new fabric.Circle({
       left: point.x,
       top: point.y,
@@ -419,7 +423,7 @@ class MeasurementTool {
       evented: false,
       excludeFromSave: true,
     });
-    
+
     this.canvas.add(this.startPointIndicator);
     this.canvas.renderAll();
   }
@@ -451,8 +455,8 @@ class MeasurementTool {
     const measurementId = typeof target === 'string' ? target : target.measurementId;
     if (!measurementId) return;
 
-    const objects = this.canvas.getObjects().filter(obj => obj.measurementId === measurementId);
-    objects.forEach(obj => this.canvas.remove(obj));
+    const objects = this.canvas.getObjects().filter((obj) => obj.measurementId === measurementId);
+    objects.forEach((obj) => this.canvas.remove(obj));
     this.canvas.renderAll();
   }
 

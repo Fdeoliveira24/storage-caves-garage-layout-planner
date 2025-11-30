@@ -30,7 +30,9 @@ if (!PIXELSQUID_KEY_ID || !PIXELSQUID_KEY_SECRET) {
 }
 
 function buildAuthHeader() {
-  const credentials = Buffer.from(`${PIXELSQUID_KEY_ID}:${PIXELSQUID_KEY_SECRET}`).toString('base64');
+  const credentials = Buffer.from(`${PIXELSQUID_KEY_ID}:${PIXELSQUID_KEY_SECRET}`).toString(
+    'base64',
+  );
   return {
     Authorization: `Basic ${credentials}`,
     Accept: 'application/vnd.api+json; com.pixelsquid.api.version=1',
@@ -80,9 +82,12 @@ app.get('/ps/product/:id/spinner', async (req, res) => {
 
   try {
     console.log(`[PixelSquid] Fetching spinner: ${id}/${spinnerId}`);
-    const response = await axios.get(`${PIXELSQUID_API_BASE}/products/${id}/spinners/${spinnerId}`, {
-      headers: buildAuthHeader(),
-    });
+    const response = await axios.get(
+      `${PIXELSQUID_API_BASE}/products/${id}/spinners/${spinnerId}`,
+      {
+        headers: buildAuthHeader(),
+      },
+    );
     res.json(response.data);
   } catch (error) {
     console.error('[PixelSquid] Error fetching spinner:', error.message);
@@ -126,7 +131,7 @@ app.post('/ps/download', async (req, res) => {
           },
         },
       },
-      { headers }
+      { headers },
     );
 
     const dlData = Array.isArray(linksResponse.data?.data)

@@ -5,7 +5,12 @@
     <title>Garage Layout Planner – Build Checklist</title>
     <style>
       :root {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
         color: #0f172a;
         background: #f8fafc;
       }
@@ -82,34 +87,37 @@
           <li>
             <label>
               <input type="checkbox" checked />
-              Project satisfies “pure HTML/CSS/JS + Fabric/Turf/jsPDF/html2canvas via CDN” requirement.
+              Project satisfies “pure HTML/CSS/JS + Fabric/Turf/jsPDF/html2canvas via CDN”
+              requirement.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" checked />
               Core architecture in place: centralized <code>State</code>, <code>EventBus</code>,
-              Config module, and manager classes (Canvas, FloorPlan, Item, Selection, Export, History).
+              Config module, and manager classes (Canvas, FloorPlan, Item, Selection, Export,
+              History).
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" checked />
-              Module structure + file layout mirrors the mandated hierarchy (core/managers/utils/data/ui/etc.).
+              Module structure + file layout mirrors the mandated hierarchy
+              (core/managers/utils/data/ui/etc.).
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" checked />
-              Floor plan picker, item palette, drag/drop, boundary enforcement, entry-zone checks, info panel,
-              and base selection/transformations implemented.
+              Floor plan picker, item palette, drag/drop, boundary enforcement, entry-zone checks,
+              info panel, and base selection/transformations implemented.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" checked />
-              Save/Load/Export stack: autosave, saved layouts list, JSON export, PNG export, PDF export
-              (via ExportManager) working.
+              Save/Load/Export stack: autosave, saved layouts list, JSON export, PNG export, PDF
+              export (via ExportManager) working.
             </label>
           </li>
           <li>
@@ -122,7 +130,8 @@
           <li>
             <label>
               <input type="checkbox" checked />
-              Item library restructured (categories, helper methods) + Fabric CDN/local fallback + loading overlay.
+              Item library restructured (categories, helper methods) + Fabric CDN/local fallback +
+              loading overlay.
             </label>
           </li>
         </ul>
@@ -134,37 +143,37 @@
           <li>
             <label>
               <input type="checkbox" checked />
-              Selection tooling: multi-select, duplication, z-order, lock/unlock (baseline implemented; grouping and
-              advanced editing still pending).
+              Selection tooling: multi-select, duplication, z-order, lock/unlock (baseline
+              implemented; grouping and advanced editing still pending).
             </label>
             <div class="status-note">Need full group/ungroup logic + selection marquee polish.</div>
           </li>
           <li>
             <label>
               <input type="checkbox" checked />
-              Keyboard shortcuts: core ones wired (delete, duplicate, undo/redo). Remainder of cheat sheet (Ctrl+A,
-              snap toggles, Esc, etc.) to finish.
+              Keyboard shortcuts: core ones wired (delete, duplicate, undo/redo). Remainder of cheat
+              sheet (Ctrl+A, snap toggles, Esc, etc.) to finish.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Measurement & dimension overlays exist conceptually in code, but need full UX polish (distance tool,
-              annotations, ruler toggle).
+              Measurement & dimension overlays exist conceptually in code, but need full UX polish
+              (distance tool, annotations, ruler toggle).
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Alignment/distribution/snap-to-grid: basic snapping available; UI controls for align/distribute guides
-              still outstanding.
+              Alignment/distribution/snap-to-grid: basic snapping available; UI controls for
+              align/distribute guides still outstanding.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Template & saved layouts infrastructure partially there (saved layouts list working). Dedicated template
-              manager + thumbnails still needed.
+              Template & saved layouts infrastructure partially there (saved layouts list working).
+              Dedicated template manager + thumbnails still needed.
             </label>
           </li>
         </ul>
@@ -176,35 +185,36 @@
           <li>
             <label>
               <input type="checkbox" />
-              Advanced floor-plan authoring (custom polygon drawer, L/T shapes, edited dimensions, zones, doors/windows,
-              obstacles).
+              Advanced floor-plan authoring (custom polygon drawer, L/T shapes, edited dimensions,
+              zones, doors/windows, obstacles).
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Multi-room support, import floor-plan image with scaling, template marketplace, and layout templates
-              library.
+              Multi-room support, import floor-plan image with scaling, template marketplace, and
+              layout templates library.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Collaboration, sharing, QR codes, white-label branding panel, client/project management, proposal and cost
-              estimation modules.
+              Collaboration, sharing, QR codes, white-label branding panel, client/project
+              management, proposal and cost estimation modules.
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Analytics & enterprise features (usage tracking, template analytics, cloud sync, shareable URLs, etc.).
+              Analytics & enterprise features (usage tracking, template analytics, cloud sync,
+              shareable URLs, etc.).
             </label>
           </li>
           <li>
             <label>
               <input type="checkbox" />
-              Advanced export polish: branded PDF layouts with headers/footers, north arrow, scale indicators, multi-page
-              support, proposal generator.
+              Advanced export polish: branded PDF layouts with headers/footers, north arrow, scale
+              indicators, multi-page support, proposal generator.
             </label>
           </li>
         </ul>

@@ -245,7 +245,7 @@
   }
 
   /* Item palette 2-column grid */
-  .items-grid {
+  .category-items {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
@@ -285,54 +285,7 @@
     max-width: 140px;
   }
 
-  /* Hide desktop toolbar completely */
-  .toolbar {
-    display: none;
-  }
-
-  /* Mobile bottom toolbar */
-  .mobile-toolbar {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 56px;
-    background: var(--color-bg-panel);
-    border-top: 1px solid var(--color-border);
-    box-shadow: 0 -2px 8px rgb(0 0 0 / 10%);
-    z-index: 100;
-    padding: 6px 12px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-    gap: 8px;
-    align-items: center;
-    justify-content: space-around;
-  }
-
-  .mobile-toolbar .btn {
-    flex: 1;
-    max-width: 60px;
-    min-height: 44px;
-    padding: 6px 2px;
-    flex-direction: column;
-    gap: 2px;
-    font-size: 9px;
-    font-weight: 500;
-  }
-
-  .mobile-toolbar .btn svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .mobile-toolbar .btn-primary {
-    flex: 1.2;
-  }
-
-  /* Canvas adjusted for bottom toolbar */
-  .canvas-container {
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-  }
+  /* Hide desktop toolbar when MobileUIManager activates mobile layout */
 
   /* Sidebar full width on mobile */
   .sidebar {
@@ -341,14 +294,11 @@
   }
 
   /* Item palette single column for smallest screens */
-  .items-grid {
+  .category-items {
     grid-template-columns: 1fr;
   }
 
-  /* Info bar hidden on mobile (toolbar shows essential info) */
-  .info-bar {
-    display: none;
-  }
+  /* Info bar hidden when MobileUIManager activates mobile layout */
 
   /* Compact sidebar tabs */
   .sidebar-tabs {
@@ -381,15 +331,7 @@
     padding: 6px 10px;
   }
 
-  .mobile-toolbar {
-    height: 48px;
-    padding: 4px 10px;
-  }
-
-  .mobile-toolbar .btn {
-    min-height: 40px;
-    font-size: 9px;
-  }
+  /* Legacy mobile-toolbar rules removed */
 
   .sidebar {
     max-width: 280px;
@@ -434,8 +376,7 @@
 
   /* Prevent text selection during touch interactions */
   .canvas-container,
-  .toolbar,
-  .mobile-toolbar {
+  .toolbar {
     user-select: none;
     -webkit-touch-callout: none;
   }
@@ -448,7 +389,6 @@
 /* Use GPU acceleration for smooth animations */
 .sidebar,
 .sidebar-backdrop,
-.mobile-toolbar,
 .dropdown-menu {
   will-change: transform, opacity;
   backface-visibility: hidden;

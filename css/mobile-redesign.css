@@ -25,21 +25,21 @@
     z-index: 1;
   }
 
-  /* Mobile content area */
+  /* Mobile content area - slides from LEFT like Browse */
   .mobile-layout .mobile-content {
     position: fixed;
     inset: 56px 0 calc(var(--mobile-tab-height) + var(--mobile-safe-area-bottom));
     background: var(--color-bg);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    transform: translateX(100%);
+    transform: translateX(-100%);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition:
-      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
       opacity 0.25s ease,
-      visibility 0s linear 0.3s;
+      visibility 0s linear 0.4s;
   }
 
   .mobile-layout .mobile-content.mobile-show-content {
@@ -443,11 +443,7 @@
 
 .mobile-card-image--placeholder {
   border: 1px solid rgb(148 163 184 / 40%);
-  background: linear-gradient(
-    135deg,
-    rgb(248 250 252 / 80%) 0%,
-    rgb(241 245 249 / 80%) 100%
-  );
+  background: linear-gradient(135deg, rgb(248 250 252 / 80%) 0%, rgb(241 245 249 / 80%) 100%);
 }
 
 .mobile-card-image--shape {
@@ -466,7 +462,9 @@
   height: 58px;
   background: var(--shape-color, #475569);
   border-radius: 12px;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 55%), 0 4px 8px rgb(15 23 42 / 8%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 55%),
+    0 4px 8px rgb(15 23 42 / 8%);
 }
 
 .mobile-card-image--shape[data-shape='circle']::before {
@@ -516,11 +514,7 @@
   border-style: solid;
   border-width: 1px;
   border-color: rgb(148 163 184 / 50%);
-  background: linear-gradient(
-    135deg,
-    rgb(248 250 252 / 90%) 0%,
-    rgb(241 245 249 / 90%) 100%
-  );
+  background: linear-gradient(135deg, rgb(248 250 252 / 90%) 0%, rgb(241 245 249 / 90%) 100%);
 }
 
 /* ===== MORE MENU ===== */
@@ -774,7 +768,9 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   flex: 1;
   text-align: left;
 }

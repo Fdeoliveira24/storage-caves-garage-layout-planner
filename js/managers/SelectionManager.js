@@ -1,9 +1,8 @@
-/* global Bounds, fabric */
+/* global Bounds */
 
-const selectionFilters =
-  (typeof window !== 'undefined' && window.SelectionFilters) || {
-    isSelectableObject: () => true,
-  };
+const selectionFilters = (typeof window !== 'undefined' && window.SelectionFilters) || {
+  isSelectableObject: () => true,
+};
 
 /**
  * Selection Manager
@@ -53,10 +52,23 @@ class SelectionManager {
     if (!active) return [];
 
     if (active.type === 'activeSelection') {
-      return active.getObjects().filter((obj) => selectionFilters.isSelectableObject(obj));
+      return active
+        .getObjects()
+        .filter(
+          (obj) =>
+            selectionFilters.isSelectableObject(obj) ||
+            obj.measurement ||
+            obj.isMeasurementLabel ||
+            obj.measurementId,
+        );
     }
 
-    return selectionFilters.isSelectableObject(active) ? [active] : [];
+    return selectionFilters.isSelectableObject(active) ||
+      active.measurement ||
+      active.isMeasurementLabel ||
+      active.measurementId
+      ? [active]
+      : [];
   }
 
   /**
@@ -100,11 +112,16 @@ class SelectionManager {
    * Delete selected items
    */
   deleteSelected() {
-    const selected = this.getSelection();
+    // Include measurement objects even if SelectionFilters excludes them
+    const activeObjects =
+      typeof this.canvas.getActiveObjects === 'function'
+        ? this.canvas.getActiveObjects()
+        : [this.canvas.getActiveObject()].filter(Boolean);
+    const selected = activeObjects.length ? activeObjects : this.getSelection();
     const measurementTool = this.canvasManager?.getMeasurementTool?.();
 
     selected.forEach((item) => {
-      if (item.measurement || item.isMeasurementLabel) {
+      if (item.measurement || item.isMeasurementLabel || item.measurementId) {
         if (measurementTool && typeof measurementTool.removeMeasurement === 'function') {
           measurementTool.removeMeasurement(item);
         } else {

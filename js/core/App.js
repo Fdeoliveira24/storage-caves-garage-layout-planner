@@ -68,8 +68,8 @@ class App {
       this.mobileUIManager.init();
       this.mobileUIManager.setMeasurementModeActive?.(this.isMeasurementModeActive());
     } else {
-      // Fallback to legacy mobile features if MobileUIManager not available
-      this.setupMobileFeatures();
+      // MobileUIManager not present - legacy mobile toolbar disabled intentionally
+      console.warn('[App] MobileUIManager not found; mobile UI disabled');
     }
 
     // Setup autosave
@@ -583,11 +583,7 @@ class App {
 
   _handleMeasurementSelectionEvent(selected) {
     if (!this.measurementTool) return;
-    let selection = Array.isArray(selected)
-      ? selected
-      : selected
-        ? [selected]
-        : [];
+    let selection = Array.isArray(selected) ? selected : selected ? [selected] : [];
 
     if ((!selection || selection.length === 0) && this.selectionManager) {
       selection = this.selectionManager.getSelection();
@@ -626,7 +622,9 @@ class App {
     }
     const measureToggleText = document.getElementById('measure-toggle-text');
     if (measureToggleText) {
-      measureToggleText.textContent = this.measurementModeActive ? 'Measure Tool (On)' : 'Measure Tool (Off)';
+      measureToggleText.textContent = this.measurementModeActive
+        ? 'Measure Tool (On)'
+        : 'Measure Tool (Off)';
     }
 
     this.mobileUIManager?.setMeasurementModeActive?.(this.measurementModeActive);
@@ -1452,7 +1450,9 @@ class App {
     if (!container) return;
 
     const shouldCollapse =
-      typeof forceState === 'boolean' ? forceState : !container.classList.contains('sidebar-collapsed');
+      typeof forceState === 'boolean'
+        ? forceState
+        : !container.classList.contains('sidebar-collapsed');
 
     container.classList.toggle('sidebar-collapsed', shouldCollapse);
     this.sidebarCollapsed = shouldCollapse;
@@ -1550,7 +1550,12 @@ class App {
         ) {
           return false;
         }
-        return Bounds.isInEntryZone(item.canvasObject, floorPlan, entryZonePosition, floorPlanBounds);
+        return Bounds.isInEntryZone(
+          item.canvasObject,
+          floorPlan,
+          entryZonePosition,
+          floorPlanBounds,
+        );
       });
 
       this.updateEntryZoneWarning(hasViolation);
@@ -1606,206 +1611,9 @@ class App {
     }, 16);
   }
 
-  /**
-   * Setup mobile/responsive features
-   */
-  setupMobileFeatures() {
-    // Cache DOM elements
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const sidebarClose = document.getElementById('sidebar-close');
-    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-    const sidebar = document.querySelector('.sidebar');
-    const mobileToolbar = document.querySelector('.mobile-toolbar');
-
-    // Handle viewport changes
-    const handleViewportChange = () => {
-      const width = window.innerWidth;
-
-      // Show/hide mobile elements based on viewport
-      if (width <= 767) {
-        // Mobile/Tablet: Show hamburger, close button, backdrop
-        if (mobileMenuToggle) mobileMenuToggle.style.display = 'inline-flex';
-        if (sidebarClose) sidebarClose.style.display = 'flex';
-        if (width <= 480 && mobileToolbar) mobileToolbar.style.display = 'flex';
-      } else {
-        // Desktop: Hide mobile elements
-        if (mobileMenuToggle) mobileMenuToggle.style.display = 'none';
-        if (sidebarClose) sidebarClose.style.display = 'none';
-        if (mobileToolbar) mobileToolbar.style.display = 'none';
-        if (sidebar) sidebar.classList.remove('active');
-        if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
-      }
-    };
-
-    // Sidebar toggle function
-    const toggleSidebar = () => {
-      if (sidebar && sidebarBackdrop) {
-        const isActive = sidebar.classList.toggle('active');
-        sidebarBackdrop.classList.toggle('active', isActive);
-
-        // Prevent body scroll when sidebar is open
-        document.body.classList.toggle('drawer-open', isActive);
-      }
-    };
-
-    // Close sidebar
-    const closeSidebar = () => {
-      if (sidebar && sidebarBackdrop) {
-        sidebar.classList.remove('active');
-        sidebarBackdrop.classList.remove('active');
-        document.body.classList.remove('drawer-open');
-      }
-    };
-
-    // Hamburger menu toggle
-    if (mobileMenuToggle) {
-      mobileMenuToggle.addEventListener('click', toggleSidebar);
-    }
-
-    // Sidebar close button
-    if (sidebarClose) {
-      sidebarClose.addEventListener('click', closeSidebar);
-    }
-
-    // Backdrop click to close
-    if (sidebarBackdrop) {
-      sidebarBackdrop.addEventListener('click', closeSidebar);
-    }
-
-    // Close sidebar when selecting floor plan or item on mobile
-    if (sidebar) {
-      sidebar.addEventListener('click', (e) => {
-        if (window.innerWidth <= 767) {
-          const isFloorPlanItem = e.target.closest('.floorplan-item');
-          const isPaletteItem = e.target.closest('.palette-item');
-          const isSavedLayout = e.target.closest('.saved-layout-item');
-
-          if (isFloorPlanItem || isPaletteItem || isSavedLayout) {
-            setTimeout(closeSidebar, 300); // Delay for better UX
-          }
-        }
-      });
-    }
-
-    // Mobile toolbar button handlers
-    const mobileBtnNew = document.getElementById('mobile-btn-new');
-    const mobileBtnUndo = document.getElementById('mobile-btn-undo');
-    const mobileBtnRedo = document.getElementById('mobile-btn-redo');
-    const mobileBtnRotate = document.getElementById('mobile-btn-rotate');
-    const mobileBtnDuplicate = document.getElementById('mobile-btn-duplicate');
-    const mobileBtnDelete = document.getElementById('mobile-btn-delete');
-    const mobileBtnMore = document.getElementById('mobile-btn-more');
-
-    // Mobile toolbar: New button
-    if (mobileBtnNew) {
-      mobileBtnNew.addEventListener('click', async () => {
-        const confirmed = await Modal.showConfirm(
-          'Start New Layout?',
-          "This will clear the current layout. Make sure you've saved your work.",
-        );
-        if (confirmed) {
-          console.log('[App] Starting new layout (mobile)');
-
-          // Clear everything (same as desktop version)
-          this.state.reset();
-          this.canvasManager.clear();
-
-          // Clear history stack to prevent undoing back to old layout
-          this.historyManager.clear();
-
-          // CRITICAL: Clear autosave from localStorage immediately
-          StorageUtil.remove(Config.STORAGE_KEYS.autosave);
-          console.log('[App] Cleared autosave from localStorage');
-
-          // Ensure viewport is reset (clear() already does this, but be explicit)
-          this.canvasManager.resetViewport();
-
-          // Show empty state
-          this.canvasManager.showEmptyState();
-
-          // Reset project name in DOM and document title
-          this.updateProjectName('Untitled Layout');
-
-          this.renderFloorPlanList();
-          this.updateInfoPanel();
-          this.syncViewDropdownUI();
-          Modal.showSuccess('New layout started');
-        }
-      });
-    }
-
-    if (mobileBtnUndo) {
-      mobileBtnUndo.addEventListener('click', () => this.historyManager.undo());
-    }
-
-    if (mobileBtnRedo) {
-      mobileBtnRedo.addEventListener('click', () => this.historyManager.redo());
-    }
-
-    // Mobile toolbar: Rotate button
-    if (mobileBtnRotate) {
-      mobileBtnRotate.addEventListener('click', () => {
-        const selection = this.canvasManager.getCanvas().getActiveObject();
-        if (selection) {
-          selection.rotate((selection.angle || 0) + 90);
-          this.canvasManager.getCanvas().renderAll();
-
-          // Update item position in state (including rotation)
-          if (selection.customData && selection.customData.id) {
-            this.updateItemPosition(
-              selection.customData.id,
-              selection.left,
-              selection.top,
-              selection.angle,
-            );
-          }
-
-          this.saveHistorySnapshot();
-        } else {
-          Modal.showError('Please select an item to rotate');
-        }
-      });
-    }
-
-    // Mobile toolbar: Duplicate button
-    if (mobileBtnDuplicate) {
-      mobileBtnDuplicate.addEventListener('click', () => {
-        const selection = this.canvasManager.getCanvas().getActiveObject();
-        if (selection && selection.type === 'activeSelection') {
-          this.selectionManager.duplicateSelected();
-        } else if (selection && selection.customData) {
-          this.eventBus.emit('item:duplicate:requested', {
-            itemId: selection.customData.id,
-            canvasObject: selection,
-          });
-        } else {
-          Modal.showError('Please select an item to duplicate');
-        }
-      });
-    }
-
-    if (mobileBtnDelete) {
-      mobileBtnDelete.addEventListener('click', () => {
-        const selection = this.canvasManager.getCanvas().getActiveObject();
-        if (selection) {
-          this.eventBus.emit('item:delete:requested', selection.customData?.id);
-        }
-      });
-    }
-
-    if (mobileBtnMore) {
-      mobileBtnMore.addEventListener('click', () => {
-        this.showMobileMoreMenu();
-      });
-    }
-
-    // Setup touch gestures for canvas
-    this.setupTouchGestures();
-
-    // Listen for viewport changes
-    window.addEventListener('resize', handleViewportChange);
-    handleViewportChange(); // Initial call
-  }
+  // Legacy `setupMobileFeatures` removed. Mobile UI is handled exclusively
+  // by `MobileUIManager`. The legacy DOM toolbar and its event wiring
+  // were removed to prevent duplicate mobile controls.
 
   /**
    * Setup touch gestures (pinch zoom, pan, tap, long-press)
@@ -2382,7 +2190,9 @@ class App {
         'Your layouts will be saved for this session, but will be cleared when you close this tab',
       );
     } else if (mode === 'memory') {
-      Modal.showInfo('Your layouts will only be saved temporarily and will be lost when you reload this page');
+      Modal.showInfo(
+        'Your layouts will only be saved temporarily and will be lost when you reload this page',
+      );
     }
   }
 
@@ -2453,7 +2263,10 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
 
     container.innerHTML = layouts
       .map((layout) => {
-        const layoutName = Helpers.sanitizeLayoutName(layout.name || 'Untitled Layout', 'Untitled Layout');
+        const layoutName = Helpers.sanitizeLayoutName(
+          layout.name || 'Untitled Layout',
+          'Untitled Layout',
+        );
         const layoutDate = new Date(layout.created).toLocaleDateString();
         return `
       <div class="saved-layout-item" data-id="${layout.id}">

@@ -69,7 +69,6 @@
       alert('Garage Planner hit an error during startup. Please check the console logs.');
       return;
     }
-
   }
 
   function queueBootstrap() {

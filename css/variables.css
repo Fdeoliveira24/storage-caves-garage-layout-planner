@@ -5,6 +5,9 @@
  */
 
 :root {
+  /* Force light mode globally; prevent system dark mode overrides */
+  color-scheme: light only;
+
   /* ===== STORAGE CAVES BRAND COLORS ===== */
 
   /* Primary Brand Red - From logo */
@@ -126,18 +129,11 @@
   --mobile-safe-area-top: env(safe-area-inset-top, 0px);
 }
 
-/* ===== DARK MODE (future enhancement) ===== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: var(--color-graphite-900);
-    --color-bg-secondary: var(--color-graphite-800);
-    --color-bg-tertiary: var(--color-graphite-700);
-    --color-bg-elevated: var(--color-graphite-800);
-    --color-bg-panel: var(--color-graphite-800);
-    --color-text-primary: #fff;
-    --color-text-secondary: var(--color-graphite-300);
-    --color-text-tertiary: var(--color-graphite-400);
-    --color-border: var(--color-graphite-700);
-    --color-border-hover: var(--color-graphite-600);
-  }
+/* Additional enforcement for UA elements (Safari/WebKit) */
+html {
+  color-scheme: light only;
+}
+
+body {
+  color-scheme: light only;
 }

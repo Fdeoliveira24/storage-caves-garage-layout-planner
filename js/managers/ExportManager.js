@@ -201,7 +201,16 @@ class ExportManager {
         const aspect = logoMeta.width && logoMeta.height ? logoMeta.height / logoMeta.width : 0.3;
         const logoWidth = maxLogoWidth;
         const logoHeight = Math.max(10, logoWidth * aspect);
-        pdf.addImage(logoMeta.dataUrl, 'PNG', margin, margin, logoWidth, logoHeight, undefined, 'FAST');
+        pdf.addImage(
+          logoMeta.dataUrl,
+          'PNG',
+          margin,
+          margin,
+          logoWidth,
+          logoHeight,
+          undefined,
+          'FAST',
+        );
         logoBlockHeight = logoHeight;
       }
     } catch (logoError) {
@@ -220,7 +229,9 @@ class ExportManager {
     pdf.setFontSize(9);
     pdf.setFont(undefined, 'normal');
     pdf.setTextColor(100);
-    pdf.text(`Date: ${new Date().toLocaleDateString()}`, headerTextX, dateBaseline, { align: 'right' });
+    pdf.text(`Date: ${new Date().toLocaleDateString()}`, headerTextX, dateBaseline, {
+      align: 'right',
+    });
 
     // === CANVAS IMAGE ===
     pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight, undefined, 'FAST');
@@ -239,7 +250,9 @@ class ExportManager {
     const planLines = [];
     if (currentFloorPlan) {
       const planName =
-        currentFloorPlan.name || currentFloorPlan.label || `${currentFloorPlan.widthFt}' × ${currentFloorPlan.heightFt}'`;
+        currentFloorPlan.name ||
+        currentFloorPlan.label ||
+        `${currentFloorPlan.widthFt}' × ${currentFloorPlan.heightFt}'`;
       planLines.push(`Floor Plan: ${planName}`);
 
       const sizeParts = [];
