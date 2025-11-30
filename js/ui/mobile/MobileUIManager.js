@@ -717,47 +717,64 @@ class MobileUIManager {
     if (!container || !this.itemManager) return;
 
     // Get items from Items.getAll() (loaded from js/data/items.js)
-    const items = window.Items?.getAll() || [];
+    const categories = window.Items?.getCategoryNames() || [];
     const useImages =
       typeof window !== 'undefined' && window.Config ? window.Config.USE_IMAGES !== false : true;
+
+    const renderCard = (item) => {
+      const hasImage = useImages && item.paletteImage;
+      const isMezzanine = item.category === 'mezzanine';
+      const isShape = item.category === 'shapes';
+      const accentColor = item.color || '#6366F1';
+      let visualMarkup;
+      if (hasImage) {
+        visualMarkup = `
+          <div class="mobile-card-image" style="--fallback-color: ${accentColor};">
+            <img src="${item.paletteImage}" alt="${item.label}" loading="lazy">
+            <div class="mobile-image-fallback" aria-hidden="true"></div>
+          </div>
+        `;
+      } else if (isShape) {
+        const shapeType = item.shapeType || 'rectangle';
+        visualMarkup = `
+          <div class="mobile-card-image mobile-card-image--shape" data-shape="${shapeType}" style="--shape-color: ${accentColor};" aria-hidden="true"></div>
+        `;
+      } else {
+        const placeholderClasses = ['mobile-card-image', 'mobile-card-image--placeholder'];
+        if (isMezzanine) placeholderClasses.push('mobile-card-image--mezzanine');
+        visualMarkup = `<div class="${placeholderClasses.join(' ')}" aria-hidden="true"></div>`;
+      }
+
+      return `
+        <button class="mobile-item-card" data-item-id="${item.id}" data-category="${item.category || ''}">
+          ${visualMarkup}
+          <h4>${item.label}</h4>
+          <span class="mobile-item-size">${item.lengthFt}' × ${item.widthFt}'</span>
+        </button>
+      `;
+    };
 
     container.innerHTML = `
       <div class="mobile-view-header">
         <h2>Items</h2>
         <p>Add items to your layout</p>
       </div>
-      <div class="mobile-item-list">
-        ${items
-          .map((item) => {
-            const hasImage = useImages && item.paletteImage;
-            const isMezzanine = item.category === 'mezzanine';
-            const isShape = item.category === 'shapes';
-            const accentColor = item.color || '#6366F1';
-            let visualMarkup;
-            if (hasImage) {
-              visualMarkup = `
-                <div class="mobile-card-image" style="--fallback-color: ${accentColor};">
-                  <img src="${item.paletteImage}" alt="${item.label}" loading="lazy">
-                  <div class="mobile-image-fallback" aria-hidden="true"></div>
-                </div>
-              `;
-            } else if (isShape) {
-              const shapeType = item.shapeType || 'rectangle';
-              visualMarkup = `
-                <div class="mobile-card-image mobile-card-image--shape" data-shape="${shapeType}" style="--shape-color: ${accentColor};" aria-hidden="true"></div>
-              `;
-            } else {
-              const placeholderClasses = ['mobile-card-image', 'mobile-card-image--placeholder'];
-              if (isMezzanine) placeholderClasses.push('mobile-card-image--mezzanine');
-              visualMarkup = `<div class="${placeholderClasses.join(' ')}" aria-hidden="true"></div>`;
-            }
-
+      <div class="mobile-item-category-list">
+        ${categories
+          .map((catName) => {
+            const category = window.Items?.categories?.[catName];
+            if (!category) return '';
+            const items = category.items || [];
             return `
-              <button class="mobile-item-card" data-item-id="${item.id}" data-category="${item.category || ''}">
-                ${visualMarkup}
-                <h4>${item.label}</h4>
-                <span class="mobile-item-size">${item.lengthFt}' × ${item.widthFt}'</span>
-              </button>
+              <div class="mobile-item-category">
+                <div class="mobile-category-header">
+                  <div class="mobile-category-title">${category.name}</div>
+                  ${category.description ? `<div class="mobile-category-subtitle">${category.description}</div>` : ''}
+                </div>
+                <div class="mobile-item-list">
+                  ${items.map((item) => renderCard(item)).join('')}
+                </div>
+              </div>
             `;
           })
           .join('')}

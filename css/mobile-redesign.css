@@ -375,6 +375,36 @@
 
 /* ===== ITEMS LIST ===== */
 
+.mobile-item-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.mobile-item-category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.mobile-category-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-xs);
+}
+
+.mobile-category-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.mobile-category-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
 .mobile-item-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
