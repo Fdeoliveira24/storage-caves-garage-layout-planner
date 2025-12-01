@@ -137,9 +137,10 @@ body.modal-open {
 /* Mobile: Position toast at top below header */
 @media (width <= 767px) {
   .toast-container {
-    inset: calc(var(--mobile-header-height, 56px) + var(--spacing-sm)) var(--spacing-sm) auto
+    inset: auto var(--spacing-sm)
+      calc(var(--mobile-tab-height, 60px) + var(--mobile-safe-area-bottom, 0px) + var(--spacing-lg))
       var(--spacing-sm);
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
 }
 
@@ -158,7 +159,7 @@ body.modal-open {
   .toast {
     min-width: auto;
     width: 100%;
-    animation: slide-in-top 0.3s;
+    animation: slide-in-bottom 0.3s;
   }
 }
 
@@ -189,6 +190,18 @@ body.modal-open {
 @keyframes slide-in-top {
   from {
     transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
     opacity: 0;
   }
 
