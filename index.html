@@ -15,9 +15,14 @@
     <link rel="stylesheet" href="css/components/canvas.css" />
     <link rel="stylesheet" href="css/components/info-panel.css" />
     <link rel="stylesheet" href="css/components/modal.css" />
+    <link rel="stylesheet" href="css/components/client-cms.css" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/mobile-redesign.css" />
     <link rel="stylesheet" href="css/main.css" />
+    
+    <!-- Flatpickr Date Picker (MIT License, free, lightweight) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   </head>
   <body>
     <div id="app-loading">Loading Garage Planner…</div>
@@ -288,6 +293,23 @@
                 accept=".json,application/json"
                 style="display: none"
               />
+              <button id="btn-clients" class="btn btn-toolbar tooltip" data-tooltip="Manage Clients">
+                <span class="btn-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </span>
+                <span class="btn-label">Clients</span>
+              </button>
             </div>
 
             <span class="toolbar-divider" aria-hidden="true"></span>
@@ -797,6 +819,10 @@
       </div>
 
       <!-- Legacy mobile toolbar removed. Mobile UI is now provided by MobileUIManager -->
+
+      <!-- Client CMS Slide-in Panel -->
+      <div id="client-cms-panel" class="client-cms-panel"></div>
+      <div id="client-cms-backdrop" class="client-cms-backdrop"></div>
     </div>
 
     <!-- External Libraries -->
@@ -873,6 +899,7 @@
 
     <!-- UI -->
     <script src="js/ui/Modal.js?v=2.4.0" defer></script>
+    <script src="js/features/ClientCMS.js?v=1.0.0" defer></script>
     <script src="js/ui/mobile/MobileUIManager.js?v=2.5.0" defer></script>
 
     <!-- Features -->

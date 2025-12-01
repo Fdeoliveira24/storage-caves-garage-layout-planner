@@ -1,0 +1,1262 @@
+/* ==========================================================================
+   Client CMS - Enterprise Slide-in Panel
+   Figma/Canva-style right sidebar with professional design
+   ========================================================================== */
+
+/* Root-level variables for modal elements outside panel */
+:root {
+  --cms-primary: #e74c3c;
+  --cms-primary-hover: #c0392b;
+  --cms-primary-light: #fadbd8;
+  --cms-danger: #c0392b;
+}
+
+/* Backdrop */
+.client-cms-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+  z-index: 890; /* below panel, below modal (~1000) */
+}
+
+.client-cms-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Panel Container with CSS Custom Properties */
+.client-cms-panel {
+  /* Custom Properties - Storage Caves Brand Colors */
+  --cms-panel-width: 420px;
+  --cms-bg: #fff;
+  --cms-bg-secondary: #fafafa;
+  --cms-bg-tertiary: #f5f5f5;
+  --cms-text: #1a1a1a;
+  --cms-text-secondary: #525252;
+  --cms-text-tertiary: #858585;
+  --cms-border: #d4d4d4;
+  --cms-border-light: #e5e5e5;
+  --cms-primary: #e74c3c;
+  --cms-primary-hover: #c0392b;
+  --cms-primary-light: #fadbd8;
+  --cms-danger: #c0392b;
+  --cms-danger-hover: #a93226;
+  --cms-success: #27ae60;
+  --cms-shadow-sm: 0 1px 2px rgb(0 0 0 / 5%);
+  --cms-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+  --cms-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  --cms-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  --cms-radius-sm: 6px;
+  --cms-radius-md: 8px;
+  --cms-radius-lg: 12px;
+  --cms-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --cms-z-panel: var(--z-overlay, 1200);
+
+  /* Panel styles */
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 450px;
+  max-width: 100%;
+  background: var(--color-bg-panel, #fff);
+  border-left: 1px solid var(--color-border, #e4e4e7);
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 900; /* below modal */
+  display: flex;
+  flex-direction: column;
+}
+
+.client-cms-panel.open {
+  transform: translateX(0);
+}
+
+/* Inner wrapper */
+.client-cms {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.client-cms__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--cms-bg);
+  border-bottom: 1px solid var(--cms-border);
+  flex-shrink: 0;
+}
+
+.client-cms__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cms-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.client-cms__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--cms-radius-sm);
+  color: var(--cms-text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--cms-transition),
+    color var(--cms-transition);
+}
+
+.client-cms__close:hover {
+  background: var(--cms-primary-light);
+  color: var(--cms-primary);
+}
+
+.client-cms__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   Toolbar / Actions
+   ========================================================================== */
+
+.client-cms__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--cms-bg);
+  border-bottom: 1px solid var(--cms-border);
+  flex-shrink: 0;
+}
+
+.client-cms__search-wrapper {
+  position: relative;
+}
+
+.client-cms__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--cms-text-tertiary);
+  pointer-events: none;
+}
+
+.client-cms__search {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 38px;
+  border: 1px solid var(--cms-border);
+  border-radius: var(--cms-radius-md);
+  background: var(--cms-bg);
+  font-size: 14px;
+  color: var(--cms-text);
+  transition:
+    border-color var(--cms-transition),
+    box-shadow var(--cms-transition);
+}
+
+.client-cms__search::placeholder {
+  color: var(--cms-text-tertiary);
+}
+
+.client-cms__search:hover {
+  border-color: #cbd5e1;
+}
+
+.client-cms__search:focus {
+  outline: none;
+  border-color: var(--brand-primary, #e74c3c);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+}
+
+.client-cms__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Buttons - Enterprise Style
+   ========================================================================== */
+
+.client-cms .cms-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--cms-border);
+  border-radius: var(--cms-radius-md);
+  background: var(--cms-bg);
+  color: var(--cms-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--cms-transition),
+    border-color var(--cms-transition),
+    box-shadow var(--cms-transition);
+  white-space: nowrap;
+}
+
+.client-cms .cms-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.client-cms .cms-btn:hover {
+  background: var(--cms-bg-secondary);
+  border-color: #cbd5e1;
+}
+
+.client-cms .cms-btn:active {
+  background: var(--cms-bg-tertiary);
+}
+
+/* Primary Button */
+.client-cms .cms-btn--primary {
+  flex: 1;
+  background: var(--cms-primary);
+  border-color: var(--cms-primary);
+  color: #fff;
+}
+
+.client-cms .cms-btn--primary:hover {
+  background: var(--cms-primary-hover);
+  border-color: var(--cms-primary-hover);
+}
+
+.client-cms .cms-btn--primary:active {
+  background: #4338ca;
+}
+
+/* Icon-only button */
+.client-cms .cms-btn--icon {
+  width: 36px;
+  padding: 0;
+}
+
+/* Dropdown Buttons */
+.client-cms .cms-dropdown {
+  position: relative;
+}
+
+.client-cms .cms-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: var(--cms-bg);
+  border: 1px solid var(--cms-border);
+  border-radius: var(--cms-radius-md);
+  box-shadow: var(--cms-shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--cms-transition),
+    transform var(--cms-transition),
+    visibility var(--cms-transition);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.client-cms .cms-dropdown__menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.client-cms .cms-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--cms-text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--cms-transition);
+}
+
+.client-cms .cms-dropdown__item:hover {
+  background: var(--cms-bg-secondary);
+}
+
+.client-cms .cms-dropdown__item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--cms-text-secondary);
+}
+
+/* ==========================================================================
+   Client List
+   ========================================================================== */
+
+.client-cms__list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 16px 24px;
+}
+
+/* Empty State */
+.client-cms__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.client-cms__empty-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--cms-text-tertiary);
+}
+
+.client-cms__empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cms-text);
+  margin: 0 0 4px;
+}
+
+.client-cms__empty-desc {
+  font-size: 13px;
+  color: var(--cms-text-secondary);
+  margin: 0;
+}
+
+/* Client Card */
+.client-cms__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: var(--cms-bg);
+  border: 1px solid var(--cms-border);
+  border-radius: var(--cms-radius-lg);
+  margin-bottom: 8px;
+  transition:
+    border-color var(--cms-transition),
+    box-shadow var(--cms-transition);
+}
+
+.client-cms__card:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--cms-shadow-sm);
+}
+
+.client-cms__card-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--cms-primary-light);
+  border-radius: 50%;
+  color: var(--cms-primary);
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.client-cms__card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.client-cms__card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cms-text);
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-cms__card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12px;
+  color: var(--cms-text-secondary);
+}
+
+.client-cms__card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.client-cms__card-meta-item svg {
+  width: 12px;
+  height: 12px;
+  color: var(--cms-text-tertiary);
+}
+
+.client-cms__card-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* Action Buttons in Card */
+.client-cms__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--cms-radius-sm);
+  color: var(--cms-text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--cms-transition),
+    color var(--cms-transition);
+}
+
+.client-cms__action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.client-cms__action-btn:hover {
+  background: var(--cms-bg-tertiary);
+  color: var(--cms-text);
+}
+
+.client-cms__action-btn--danger:hover {
+  background: #fef2f2;
+  color: var(--cms-danger);
+}
+
+/* Tooltip for action buttons */
+.client-cms__action-btn[data-tooltip] {
+  position: relative;
+}
+
+.client-cms__action-btn[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  background: var(--cms-text);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-radius: var(--cms-radius-sm);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--cms-transition),
+    visibility var(--cms-transition);
+  pointer-events: none;
+  margin-bottom: 4px;
+}
+
+.client-cms__action-btn[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Form Styles (in Modal)
+   ========================================================================== */
+
+.client-cms-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.client-cms-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.client-cms-form__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cms-text, #0f172a);
+}
+
+.client-cms-form__label--required::after {
+  content: ' *';
+  color: var(--cms-danger, #ef4444);
+}
+
+.client-cms-form__input,
+.client-cms-form__select,
+.client-cms-form__textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  color: #0f172a;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.client-cms-form__input:hover,
+.client-cms-form__select:hover,
+.client-cms-form__textarea:hover {
+  border-color: #cbd5e1;
+}
+
+/* Calendar and date picker - Flatpickr Custom Theme (Storage Caves Brand)
+   Using !important to override CDN default styles */
+.flatpickr-calendar {
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%) !important;
+  font-family: inherit !important;
+  padding: 8px !important;
+}
+
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after {
+  border-bottom-color: #e2e8f0 !important;
+}
+
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after {
+  border-top-color: #e2e8f0 !important;
+}
+
+.flatpickr-months {
+  padding: 8px 4px 4px !important;
+}
+
+.flatpickr-months .flatpickr-month {
+  background: transparent !important;
+  color: #1a1a1a !important;
+  fill: #1a1a1a !important;
+  height: 34px !important;
+}
+
+.flatpickr-current-month {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+  padding-top: 6px !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background: transparent !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+  background: #f5f5f5 !important;
+}
+
+.flatpickr-current-month input.cur-year {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  color: #525252 !important;
+  fill: #525252 !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+  top: 6px !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  background: #fadbd8 !important;
+  color: #e74c3c !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+  fill: #e74c3c !important;
+}
+
+.flatpickr-weekdays {
+  background: transparent !important;
+  padding: 8px 0 !important;
+}
+
+span.flatpickr-weekday {
+  background: transparent !important;
+  color: #858585 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.flatpickr-days {
+  border: none !important;
+}
+
+.dayContainer {
+  padding: 0 !important;
+}
+
+.flatpickr-day {
+  color: #1a1a1a !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 2px !important;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+  border: 2px solid transparent !important;
+}
+
+.flatpickr-day:hover {
+  background: #fadbd8 !important;
+  border-color: transparent !important;
+  color: #e74c3c !important;
+}
+
+.flatpickr-day.today {
+  border-color: #e74c3c !important;
+  background: transparent !important;
+  color: #e74c3c !important;
+  font-weight: 700 !important;
+}
+
+.flatpickr-day.today:hover {
+  background: #fadbd8 !important;
+  border-color: #e74c3c !important;
+  color: #e74c3c !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.startRange.prevMonthDay,
+.flatpickr-day.endRange.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay,
+.flatpickr-day.startRange.nextMonthDay,
+.flatpickr-day.endRange.nextMonthDay {
+  background: #e74c3c !important;
+  border-color: #e74c3c !important;
+  color: #fff !important;
+}
+
+.flatpickr-day.inRange {
+  background: #fadbd8 !important;
+  border-color: #fadbd8 !important;
+  box-shadow: -5px 0 0 #fadbd8, 5px 0 0 #fadbd8 !important;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay,
+.flatpickr-day.notAllowed,
+.flatpickr-day.notAllowed.prevMonthDay,
+.flatpickr-day.notAllowed.nextMonthDay {
+  color: #c4c4c4 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.flatpickr-day.flatpickr-disabled:hover {
+  cursor: not-allowed !important;
+  background: #f5f5f5 !important;
+}
+
+/* Notes textarea with character counter */
+.client-cms-form__group--notes {
+  position: relative;
+}
+
+.client-cms-form__char-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.client-cms-form__char-count--warning {
+  color: #f59e0b;
+}
+
+.client-cms-form__char-count--limit {
+  color: var(--cms-danger);
+}
+
+.client-cms-form__input:focus,
+.client-cms-form__select:focus,
+.client-cms-form__textarea:focus {
+  outline: none;
+  border-color: var(--cms-primary);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+}
+
+.client-cms-form__input::placeholder,
+.client-cms-form__textarea::placeholder {
+  color: #94a3b8;
+}
+
+.client-cms-form__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+
+.client-cms-form__textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.client-cms-form__helper {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.client-cms-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Modal Footer */
+.client-cms-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.client-cms-modal-footer .modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
+}
+
+.client-cms-modal-footer .modal-btn-secondary {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #374151;
+}
+
+.client-cms-modal-footer .modal-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.client-cms-modal-footer .modal-btn-primary {
+  background: var(--cms-primary);
+  border: 1px solid var(--cms-primary);
+  color: #fff;
+}
+
+.client-cms-modal-footer .modal-btn-primary:hover {
+  background: var(--cms-primary-hover);
+  border-color: var(--cms-primary-hover);
+}
+
+/* ==========================================================================
+   View Client Modal
+   ========================================================================== */
+
+.client-cms-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.client-cms-view__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+}
+
+.client-cms-view__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--cms-primary-light);
+  border-radius: 50%;
+  color: var(--cms-primary);
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.client-cms-view__name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.client-cms-view__unit {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.client-cms-view__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.client-cms-view__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.client-cms-view__icon {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.client-cms-view__label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.client-cms-view__value {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.client-cms-view__value--empty {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.client-cms-view__notes {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (width <= 480px) {
+  .client-cms-panel {
+    --cms-panel-width: 100%;
+  }
+
+  .client-cms__card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .client-cms__card-actions {
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--cms-border-light);
+  }
+
+  .client-cms-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Modal Customizations for Client CMS
+   Remove divider lines and hide Close button for forms
+   ========================================================================== */
+
+/* Hide header/footer borders for CMS forms */
+.modal:has(.client-cms-form) .modal-header {
+  border-bottom: none !important;
+}
+
+.modal:has(.client-cms-form) .modal-footer {
+  border-top: none !important;
+}
+
+/* Hide the modal Close button for New/Edit Client forms (use Cancel instead) */
+.modal:has(.client-cms-form) .modal-close {
+  display: none !important;
+}
+
+/* For Client Details view: remove borders but keep Close button */
+.modal:has(.client-cms-view) .modal-header {
+  border-bottom: none !important;
+}
+
+.modal:has(.client-cms-view) .modal-footer {
+  border-top: none !important;
+}
+
+/* Ensure Client Details Close button is visible */
+.modal:has(.client-cms-view) .modal-close {
+  display: flex !important;
+}
+
+/* ==========================================================================
+   Button Styling - Ghost Button Variant
+   ========================================================================== */
+
+.btn-ghost {
+  border: 0;
+  background: transparent;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text, #1a1a1a);
+  transition: background 150ms ease;
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+.btn-ghost.danger {
+  color: #dc2626;
+}
+
+.btn-ghost.danger:hover {
+  background: #fee;
+}
+
+/* ==========================================================================
+   Modal Footer Styling
+   ========================================================================== */
+
+.cms-modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cms-border, #d4d4d4);
+}
+
+/* ==========================================================================
+   Phase-1 Polish - Focus, Hit Targets, Menus, Empty State, Counters
+   ========================================================================== */
+
+/* Larger hit targets + focus rings */
+.client-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.client-actions button {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 150ms ease;
+}
+
+.client-actions button:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+.client-cms__close:focus,
+.client-cms .cms-btn:focus,
+.client-actions button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 20%);
+}
+
+/* Search focus polish */
+.cms-search {
+  position: relative;
+}
+
+.cms-search input:focus {
+  outline: none;
+  border-color: var(--brand-primary, #e74c3c);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+}
+
+/* Dropdown menus inside panel actions */
+.client-cms__actions .dropdown {
+  position: relative;
+}
+
+.client-cms__actions .dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: var(--color-bg-panel, #fff);
+  border: 1px solid var(--color-border, #e4e4e7);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+  display: none;
+  z-index: 10;
+}
+
+.client-cms__actions .dropdown-menu.show {
+  display: block;
+}
+
+.client-cms__actions .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: 0;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.client-cms__actions .dropdown-item:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* Empty state when list is filtered or empty */
+.cms-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.cms-empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.35;
+}
+
+.cms-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #4b5563);
+  margin-bottom: 6px;
+}
+
+.cms-empty-subtitle {
+  font-size: 13px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* Notes counter */
+.client-form textarea {
+  padding-bottom: 32px;
+}
+
+.char-count {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 12px;
+  color: var(--color-text-tertiary, #9ca3af);
+  pointer-events: none;
+}
+
+.char-count.near-limit {
+  color: #f59e0b;
+}
+
+.char-count.at-limit {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Keep red primary buttons per brand */
+.cms-btn-primary,
+.cms-btn--primary,
+.cms-modal-footer .modal-btn-primary {
+  background: #d95747 !important;
+  color: #fff !important;
+  border: 1px solid transparent;
+}
+
+.cms-btn-primary:hover,
+.cms-btn--primary:hover,
+.cms-modal-footer .modal-btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+/* Hide default Modal.js footer when form is shown to avoid double Close */
+.modal-overlay:has(.client-form) .modal-footer {
+  display: none !important;
+}
+
+/* Hide default modal footer when CMS suppression is active */
+.modal.client-cms--no-default-footer .modal-footer {
+  display: none !important;
+}
+
+/* Hover polish for cards */
+.client-card {
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.client-card:hover {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  border-color: var(--color-border-hover, #d4d4d8);
+}
+
+/* Hide default Modal.js footer when a ClientCMS form is open */
+.modal-overlay:has(.client-form) .modal-footer {
+  display: none !important;
+}
+
+.flatpickr-input[readonly] {
+  cursor: text;
+  background: #fff;
+}
+
+/* Client action icons spacing/hover */
+.client-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.client-actions button {
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 150ms ease;
+}
+.client-actions button:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* Search focus ring */
+.client-cms__search:focus,
+.client-cms__search input:focus {
+  outline: none;
+  border-color: var(--color-primary, #d95747);
+  box-shadow: 0 0 0 3px rgba(217, 87, 71, 0.12);
+}
+
+/* Dropdown safety */
+.client-cms__actions .dropdown {
+  position: relative;
+}
+.client-cms__actions .dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  background: var(--client-bg, #fff);
+  border: 1px solid var(--client-border, #e4e4e7);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 10;
+}
+.client-cms__actions .dropdown-menu.show {
+  display: block;
+}
+.client-cms__actions .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.client-cms__actions .dropdown-item:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* Responsive width of panel */
+@media (max-width: 1024px) {
+  .client-cms-panel {
+    width: 400px;
+  }
+}
+
+@media (max-width: 767px) {
+  .client-cms-panel {
+    width: 100%;
+  }
+}

@@ -111,7 +111,7 @@ body.modal-open {
 }
 
 .modal-btn-primary:hover {
-  background: #1976d2;
+  background: var(--color-primary-hover);
 }
 
 .modal-btn-secondary {

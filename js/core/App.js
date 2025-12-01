@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, MobileUIManager */
 
 /**
  * Main Application Controller
@@ -16,6 +16,7 @@ class App {
     this.historyManager = null;
     this.sidebarCollapsed = false;
     this.mobileUIManager = null;
+    this.clientCMS = null;
     this.autosaveInterval = null;
     this.duplicateBatchDepth = 0;
     this.measurementTool = null;
@@ -70,6 +71,12 @@ class App {
     } else {
       // MobileUIManager not present - legacy mobile toolbar disabled intentionally
       console.warn('[App] MobileUIManager not found; mobile UI disabled');
+    }
+
+    // Initialize Client CMS if enabled
+    if (window.ClientCMS && Config.FEATURES?.enableClientManagement) {
+      this.clientCMS = new ClientCMS(this);
+      this.clientCMS.init();
     }
 
     // Setup autosave

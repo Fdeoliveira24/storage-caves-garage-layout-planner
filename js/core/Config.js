@@ -124,11 +124,18 @@ const Config = {
     dimension: '#666666',
   },
 
+  // Feature Flags
+  FEATURES: {
+    enableClientManagement: true,
+  },
+
   // Storage Keys
   STORAGE_KEYS: {
     layouts: 'garage-planner-layouts',
     settings: 'garage-planner-settings',
     autosave: 'garage-planner-autosave',
+    clients: 'storage-caves-clients',
+    sheetsConfig: 'storage-caves-sheets-config',
   },
 };
 

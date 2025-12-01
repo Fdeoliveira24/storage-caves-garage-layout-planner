@@ -855,8 +855,8 @@ const Items = {
           widthFt: 3,
           color: '#388E3C',
           category: 'fitness',
-          paletteImage: 'assets/images/items/palette/fosball-side.png',
-          canvasImage: 'assets/images/items/canvas/fosball-top.png',
+          paletteImage: 'assets/images/items/palette/foosball-side.png',
+          canvasImage: 'assets/images/items/canvas/foosball-top.png',
         },
 
         // === OUTDOOR RECREATION ===

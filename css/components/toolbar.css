@@ -321,7 +321,7 @@
 }
 
 .zoom-slider-label span:last-child {
-  color: var(--color-primary-600, #4f46e5);
+  color: var(--color-primary, #e74c3c);
   font-weight: 600;
   min-width: 40px;
   text-align: right;
@@ -362,7 +362,7 @@
   height: 16px;
   margin-top: -5px;
   border-radius: 50%;
-  background: var(--color-primary-600, #4f46e5);
+  background: var(--color-primary, #e74c3c);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
@@ -373,7 +373,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--color-primary-600, #4f46e5);
+  background: var(--color-primary, #e74c3c);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
@@ -383,13 +383,13 @@
 .zoom-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
   box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
-  background: var(--color-primary-700, #4338ca);
+  background: var(--color-primary-hover, #c0392b);
 }
 
 .zoom-slider::-moz-range-thumb:hover {
   transform: scale(1.15);
   box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
-  background: var(--color-primary-700, #4338ca);
+  background: var(--color-primary-hover, #c0392b);
 }
 
 .zoom-slider::-webkit-slider-thumb:active {
@@ -401,7 +401,7 @@
 }
 
 .zoom-slider:focus-visible {
-  outline: 2px solid var(--color-primary-500, #6366f1);
+  outline: 2px solid var(--color-primary, #e74c3c);
   outline-offset: 2px;
 }
 
