@@ -179,6 +179,7 @@
     calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
     fileText: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
     json: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+    cloudSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="m12 13 4 4 4-4"/><path d="m16 17-4-4-4 4"/></svg>`,
   };
 
   class ClientCMS {
@@ -192,6 +193,9 @@
       this.$list = null;
       this.$search = null;
 
+      // Google Sheets sync
+      this.sheetsSync = null; // Will be initialized after EventBus is available
+
       // Focus management
       this._lastFocus = null;
       this._focusTrapHandler = this._onFocusTrap.bind(this);
@@ -200,6 +204,21 @@
       this._escHandler = this._onEsc.bind(this);
       this._searchHandler = this._onSearch.bind(this);
       this._delegatedClickHandler = this._onListClick.bind(this);
+    }
+
+    /**
+     * Initialize Google Sheets sync
+     * Call this from App.js after ClientCMS is created
+     */
+    initGoogleSheets(eventBus) {
+      if (typeof GoogleSheetsSync !== 'undefined') {
+        this.sheetsSync = new GoogleSheetsSync(this, eventBus);
+        
+        // Hook into save events for auto-sync
+        if (this.sheetsSync.autoSyncEnabled) {
+          this.sheetsSync.scheduleAutoSync();
+        }
+      }
     }
 
     init() {
@@ -320,6 +339,28 @@
                   </button>
                 </div>
               </div>
+
+              <div class="cms-dropdown">
+                <button class="cms-btn" id="client-cms-sheets-btn" aria-haspopup="true" aria-expanded="false">
+                  ${ICONS.cloudSync}
+                  <span>Google Sheets</span>
+                </button>
+                <div class="cms-dropdown__menu" id="client-cms-sheets-menu">
+                  <button class="cms-dropdown__item" id="client-cms-sheets-sync">
+                    ${ICONS.cloudSync}
+                    <span>Sync to Google Sheets</span>
+                  </button>
+                  <button class="cms-dropdown__item" id="client-cms-sheets-fetch">
+                    ${ICONS.download}
+                    <span>Fetch from Google Sheets</span>
+                  </button>
+                  <div class="cms-dropdown__divider"></div>
+                  <button class="cms-dropdown__item" id="client-cms-sheets-settings">
+                    ${ICONS.edit}
+                    <span>Sync Settings</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -365,6 +406,10 @@
       // Dropdown toggles
       this._setupDropdown('client-cms-import-btn', 'client-cms-import-menu');
       this._setupDropdown('client-cms-export-btn', 'client-cms-export-menu');
+      this._setupDropdown('client-cms-sheets-btn', 'client-cms-sheets-menu');
+
+      // Google Sheets sync handlers
+      this._bindSheetsHandlers();
 
       // Close dropdowns when clicking outside
       document.addEventListener('click', (e) => {
@@ -372,6 +417,86 @@
           this._closeDropdowns();
         }
       });
+    }
+
+    _bindSheetsHandlers() {
+      // Google Sheets sync
+      const sheetsSyncBtn = this.$panel.querySelector('#client-cms-sheets-sync');
+      if (sheetsSyncBtn) {
+        sheetsSyncBtn.addEventListener('click', () => {
+          this._closeDropdowns();
+          if (this.sheetsSync) {
+            this.sheetsSync.syncToSheets();
+          } else {
+            this._toast('Google Sheets sync not initialized', 'error');
+          }
+        });
+      }
+
+      const sheetsFetchBtn = this.$panel.querySelector('#client-cms-sheets-fetch');
+      if (sheetsFetchBtn) {
+        sheetsFetchBtn.addEventListener('click', async () => {
+          this._closeDropdowns();
+          if (!this.sheetsSync) {
+            this._toast('Google Sheets sync not initialized', 'error');
+            return;
+          }
+          
+          const clients = await this.sheetsSync.fetchFromSheets();
+          if (clients && clients.length > 0) {
+            // Merge fetched clients with existing ones
+            const confirmResult = await Modal.showConfirm(
+              'Import from Google Sheets',
+              `Found ${clients.length} client(s). Merge with existing clients?`
+            );
+            
+            if (confirmResult) {
+              clients.forEach(client => {
+                // Ensure client has required structure
+                const cleanClient = {
+                  id: client.id || this._generateId(),
+                  name: client.name || '',
+                  email: client.email || '',
+                  phone: client.phone || '',
+                  unitPreference: client.unitPreference || '',
+                  notes: client.notes || '',
+                  followUpDate: client.followUpDate || '',
+                  layoutIds: Array.isArray(client.layoutIds) ? client.layoutIds : [],
+                  createdDate: client.createdDate || new Date().toISOString(),
+                  modifiedDate: new Date().toISOString()
+                };
+                
+                const existing = this.clients.find(c => c.id === cleanClient.id);
+                if (!existing) {
+                  this.clients.push(cleanClient);
+                } else {
+                  // Update existing client
+                  Object.assign(existing, cleanClient);
+                }
+              });
+              this._save();
+              this._renderList();
+              this._toast(`Imported ${clients.length} client(s)`, 'success');
+            }
+          }
+        });
+      }
+
+      const sheetsSettingsBtn = this.$panel.querySelector('#client-cms-sheets-settings');
+      if (sheetsSettingsBtn) {
+        sheetsSettingsBtn.addEventListener('click', () => {
+          this._closeDropdowns();
+          if (this.sheetsSync) {
+            this.sheetsSync.showSettingsModal();
+          } else {
+            this._toast('Google Sheets sync not initialized', 'error');
+          }
+        });
+      }
+    }
+
+    _generateId() {
+      return `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     _setupDropdown(btnId, menuId) {
@@ -457,6 +582,11 @@
         window.Storage.save(STORAGE_KEY_CLIENTS, this.clients);
       } else {
         localStorage.setItem(STORAGE_KEY_CLIENTS, safeJSON.stringify(this.clients));
+      }
+      
+      // Trigger auto-sync if enabled
+      if (this.sheetsSync && this.sheetsSync.autoSyncEnabled) {
+        this.sheetsSync.scheduleAutoSync();
       }
     }
 
@@ -897,7 +1027,13 @@
         </div>
       `;
 
-      Modal.show('Client Details', html);
+      Modal.show(
+        'Client Details', 
+        `${html}
+        <div class="cms-modal-footer">
+          <button class="modal-btn modal-btn-primary" onclick="if(window.Modal && Modal.close) Modal.close()">Close</button>
+        </div>`
+      );
     }
 
     _deleteClient(c) {

@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync */
 
 /**
  * Main Application Controller
@@ -78,6 +78,11 @@ class App {
     if (window.ClientCMS && Config.FEATURES?.enableClientManagement) {
       this.clientCMS = new ClientCMS(this);
       this.clientCMS.init();
+      
+      // Initialize Google Sheets sync for ClientCMS
+      if (window.GoogleSheetsSync) {
+        this.clientCMS.initGoogleSheets(this.eventBus);
+      }
     }
 
     // Setup autosave
