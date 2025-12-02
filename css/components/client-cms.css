@@ -1,14 +1,26 @@
 /* ==========================================================================
-   Client CMS - Enterprise Slide-in Panel
-   Figma/Canva-style right sidebar with professional design
+   Client CMS - Storage Caves Slide-in Panel
    ========================================================================== */
 
-/* Root-level variables for modal elements outside panel */
+/* Brand variables (scoped to CMS but can reuse globally if needed) */
 :root {
   --cms-primary: #e74c3c;
   --cms-primary-hover: #c0392b;
   --cms-primary-light: #fadbd8;
   --cms-danger: #c0392b;
+  --cms-danger-hover: #a93226;
+  --cms-success: #27ae60;
+  --cms-bg: #fff;
+  --cms-bg-secondary: #fafafa;
+  --cms-bg-tertiary: #f5f5f5;
+  --cms-text: #1a1a1a;
+  --cms-text-secondary: #525252;
+  --cms-text-tertiary: #858585;
+  --cms-border: #d4d4d4;
+  --cms-border-light: #e5e5e5;
+  --cms-shadow-sm: 0 1px 2px rgb(0 0 0 / 5%);
+  --cms-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+  --cms-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
 }
 
 /* Backdrop */
@@ -19,7 +31,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 200ms ease;
-  z-index: 890; /* below panel, below modal (~1000) */
+  z-index: 890;
 }
 
 .client-cms-backdrop.active {
@@ -27,46 +39,21 @@
   pointer-events: auto;
 }
 
-/* Panel Container with CSS Custom Properties */
+/* Panel */
 .client-cms-panel {
-  /* Custom Properties - Storage Caves Brand Colors */
-  --cms-panel-width: 420px;
-  --cms-bg: #fff;
-  --cms-bg-secondary: #fafafa;
-  --cms-bg-tertiary: #f5f5f5;
-  --cms-text: #1a1a1a;
-  --cms-text-secondary: #525252;
-  --cms-text-tertiary: #858585;
-  --cms-border: #d4d4d4;
-  --cms-border-light: #e5e5e5;
-  --cms-primary: #e74c3c;
-  --cms-primary-hover: #c0392b;
-  --cms-primary-light: #fadbd8;
-  --cms-danger: #c0392b;
-  --cms-danger-hover: #a93226;
-  --cms-success: #27ae60;
-  --cms-shadow-sm: 0 1px 2px rgb(0 0 0 / 5%);
-  --cms-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
-  --cms-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
-  --cms-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
-  --cms-radius-sm: 6px;
-  --cms-radius-md: 8px;
-  --cms-radius-lg: 12px;
-  --cms-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --cms-z-panel: var(--z-overlay, 1200);
+  --cms-panel-width: 450px;
 
-  /* Panel styles */
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
-  width: 450px;
+  width: var(--cms-panel-width);
   max-width: 100%;
-  background: var(--color-bg-panel, #fff);
-  border-left: 1px solid var(--color-border, #e4e4e7);
+  background: var(--color-bg-panel, var(--cms-bg));
+  border-left: 1px solid var(--color-border, var(--cms-border));
   transform: translateX(100%);
   transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: 900; /* below modal */
+  z-index: 900;
   display: flex;
   flex-direction: column;
 }
@@ -75,7 +62,7 @@
   transform: translateX(0);
 }
 
-/* Inner wrapper */
+/* Inner shell */
 .client-cms {
   display: flex;
   flex-direction: column;
@@ -114,12 +101,10 @@
   padding: 0;
   border: none;
   background: transparent;
-  border-radius: var(--cms-radius-sm);
+  border-radius: 6px;
   color: var(--cms-text-secondary);
   cursor: pointer;
-  transition:
-    background var(--cms-transition),
-    color var(--cms-transition);
+  transition: background 150ms ease, color 150ms ease;
 }
 
 .client-cms__close:hover {
@@ -133,7 +118,7 @@
 }
 
 /* ==========================================================================
-   Toolbar / Actions
+   Toolbar / Search / Actions
    ========================================================================== */
 
 .client-cms__toolbar {
@@ -166,13 +151,11 @@
   height: 40px;
   padding: 0 12px 0 38px;
   border: 1px solid var(--cms-border);
-  border-radius: var(--cms-radius-md);
+  border-radius: 8px;
   background: var(--cms-bg);
   font-size: 14px;
   color: var(--cms-text);
-  transition:
-    border-color var(--cms-transition),
-    box-shadow var(--cms-transition);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .client-cms__search::placeholder {
@@ -185,7 +168,7 @@
 
 .client-cms__search:focus {
   outline: none;
-  border-color: var(--brand-primary, #e74c3c);
+  border-color: var(--cms-primary);
   box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
 }
 
@@ -195,7 +178,7 @@
 }
 
 /* ==========================================================================
-   Buttons - Enterprise Style
+   Buttons / Dropdowns
    ========================================================================== */
 
 .client-cms .cms-btn {
@@ -206,17 +189,14 @@
   height: 36px;
   padding: 0 14px;
   border: 1px solid var(--cms-border);
-  border-radius: var(--cms-radius-md);
+  border-radius: 8px;
   background: var(--cms-bg);
   color: var(--cms-text);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background var(--cms-transition),
-    border-color var(--cms-transition),
-    box-shadow var(--cms-transition);
   white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .client-cms .cms-btn svg {
@@ -230,11 +210,6 @@
   border-color: #cbd5e1;
 }
 
-.client-cms .cms-btn:active {
-  background: var(--cms-bg-tertiary);
-}
-
-/* Primary Button */
 .client-cms .cms-btn--primary {
   flex: 1;
   background: var(--cms-primary);
@@ -247,17 +222,36 @@
   border-color: var(--cms-primary-hover);
 }
 
-.client-cms .cms-btn--primary:active {
-  background: #4338ca;
-}
-
-/* Icon-only button */
 .client-cms .cms-btn--icon {
   width: 36px;
   padding: 0;
 }
 
-/* Dropdown Buttons */
+/* Generic ghost buttons (for small actions) */
+.btn-ghost {
+  border: 0;
+  background: transparent;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--cms-text);
+  transition: background 150ms ease;
+}
+
+.btn-ghost:hover {
+  background: var(--cms-bg-tertiary);
+}
+
+.btn-ghost.danger {
+  color: var(--cms-danger);
+}
+
+.btn-ghost.danger:hover {
+  background: #fee;
+}
+
+/* Dropdown (inside CMS toolbar) */
 .client-cms .cms-dropdown {
   position: relative;
 }
@@ -269,15 +263,12 @@
   min-width: 160px;
   background: var(--cms-bg);
   border: 1px solid var(--cms-border);
-  border-radius: var(--cms-radius-md);
+  border-radius: 8px;
   box-shadow: var(--cms-shadow-lg);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
-  transition:
-    opacity var(--cms-transition),
-    transform var(--cms-transition),
-    visibility var(--cms-transition);
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
   z-index: 10;
   overflow: hidden;
 }
@@ -300,7 +291,7 @@
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: background var(--cms-transition);
+  transition: background 150ms ease;
 }
 
 .client-cms .cms-dropdown__item:hover {
@@ -314,47 +305,50 @@
 }
 
 /* ==========================================================================
-   Client List
+   List / Empty State / Cards
    ========================================================================== */
 
 .client-cms__list {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   padding: 12px 16px 24px;
 }
 
-/* Empty State */
-.client-cms__empty {
+/* Empty state */
+.client-cms__empty,
+.cms-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 60px 20px;
   text-align: center;
-}
-
-.client-cms__empty-icon {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 16px;
   color: var(--cms-text-tertiary);
 }
 
-.client-cms__empty-title {
-  font-size: 15px;
+.client-cms__empty-icon,
+.cms-empty-state svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.35;
+}
+
+.client-cms__empty-title,
+.cms-empty-title {
+  font-size: 16px;
   font-weight: 600;
-  color: var(--cms-text);
-  margin: 0 0 4px;
-}
-
-.client-cms__empty-desc {
-  font-size: 13px;
   color: var(--cms-text-secondary);
-  margin: 0;
+  margin-bottom: 6px;
 }
 
-/* Client Card */
+.client-cms__empty-desc,
+.cms-empty-subtitle {
+  font-size: 13px;
+  color: var(--cms-text-tertiary);
+}
+
+/* Card */
 .client-cms__card {
   display: flex;
   align-items: flex-start;
@@ -362,34 +356,32 @@
   padding: 14px;
   background: var(--cms-bg);
   border: 1px solid var(--cms-border);
-  border-radius: var(--cms-radius-lg);
-  margin-bottom: 8px;
-  transition:
-    border-color var(--cms-transition),
-    box-shadow var(--cms-transition);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  cursor: pointer;
 }
 
 .client-cms__card:hover {
-  border-color: #cbd5e1;
+  border-color: #d4d4d8;
   box-shadow: var(--cms-shadow-sm);
 }
 
 .client-cms__card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--cms-primary-light);
+  color: var(--cms-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--cms-primary-light);
-  border-radius: 50%;
-  color: var(--cms-primary);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   flex-shrink: 0;
-  text-transform: uppercase;
 }
 
-.client-cms__card-content {
+.client-cms__card-body {
   flex: 1;
   min-width: 0;
 }
@@ -399,38 +391,34 @@
   font-weight: 600;
   color: var(--cms-text);
   margin: 0 0 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .client-cms__card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 6px 10px;
   font-size: 12px;
   color: var(--cms-text-secondary);
 }
 
-.client-cms__card-meta-item {
-  display: flex;
+.client-cms__card-meta span {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.client-cms__card-meta-item svg {
-  width: 12px;
-  height: 12px;
-  color: var(--cms-text-tertiary);
+.client-cms__card-meta svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .client-cms__card-actions {
   display: flex;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-/* Action Buttons in Card */
 .client-cms__action-btn {
   display: flex;
   align-items: center;
@@ -440,12 +428,10 @@
   padding: 0;
   border: none;
   background: transparent;
-  border-radius: var(--cms-radius-sm);
+  border-radius: 6px;
   color: var(--cms-text-secondary);
   cursor: pointer;
-  transition:
-    background var(--cms-transition),
-    color var(--cms-transition);
+  transition: background 150ms ease, color 150ms ease;
 }
 
 .client-cms__action-btn svg {
@@ -480,12 +466,10 @@
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
-  border-radius: var(--cms-radius-sm);
+  border-radius: 6px;
   opacity: 0;
   visibility: hidden;
-  transition:
-    opacity var(--cms-transition),
-    visibility var(--cms-transition);
+  transition: opacity 150ms ease, visibility 150ms ease;
   pointer-events: none;
   margin-bottom: 4px;
 }
@@ -496,7 +480,7 @@
 }
 
 /* ==========================================================================
-   Form Styles (in Modal)
+   Form (New / Edit Client) inside Modal
    ========================================================================== */
 
 .client-cms-form {
@@ -505,21 +489,31 @@
   gap: 16px;
 }
 
+.client-cms-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 .client-cms-form__group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.client-cms-form__group--notes {
+  position: relative;
+}
+
 .client-cms-form__label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--cms-text, #0f172a);
+  color: var(--cms-text);
 }
 
 .client-cms-form__label--required::after {
-  content: ' *';
-  color: var(--cms-danger, #ef4444);
+  content: " *";
+  color: var(--cms-danger);
 }
 
 .client-cms-form__input,
@@ -532,9 +526,7 @@
   background: #fff;
   font-size: 14px;
   color: #0f172a;
-  transition:
-    border-color 200ms ease,
-    box-shadow 200ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .client-cms-form__input:hover,
@@ -543,68 +535,448 @@
   border-color: #cbd5e1;
 }
 
-/* Calendar and date picker - Flatpickr Custom Theme (Storage Caves Brand)
-   Using !important to override CDN default styles */
+.client-cms-form__input:focus,
+.client-cms-form__select:focus,
+.client-cms-form__textarea:focus {
+  outline: none;
+  border-color: var(--cms-primary);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+}
+
+.client-cms-form__input::placeholder,
+.client-cms-form__textarea::placeholder {
+  color: #94a3b8;
+}
+
+.client-cms-form__textarea {
+  resize: vertical;
+  min-height: 80px;
+  padding-bottom: 32px;
+}
+
+.client-cms-form__helper {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* Notes character counter */
+.client-cms-form__char-count,
+.char-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.client-cms-form__char-count--warning,
+.char-count.near-limit {
+  color: #f59e0b;
+}
+
+.client-cms-form__char-count--limit,
+.char-count.at-limit {
+  color: var(--cms-danger);
+  font-weight: 600;
+}
+
+/* Native select for unit preference (keep simple but branded) */
+.client-cms-form__select,
+.client-form select,
+.client-form #cf-unit {
+  appearance: none;
+  appearance: none;
+  appearance: none;
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23E74C3C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  border: 1px solid var(--cms-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cms-text);
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.client-cms-form__select:hover,
+.client-form select:hover,
+.client-form #cf-unit:hover {
+  border-color: var(--cms-primary);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 10%);
+}
+
+.client-cms-form__select:focus,
+.client-form select:focus,
+.client-form #cf-unit:focus {
+  outline: none;
+  border-color: var(--cms-primary);
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+}
+
+.client-form select option {
+  padding: 10px;
+  font-weight: 500;
+  color: var(--cms-text);
+}
+
+.client-form select option:checked {
+  background: var(--cms-primary-light);
+  color: var(--cms-primary);
+}
+
+/* Assigned Layouts Management in Edit Client */
+.client-cms-form__layouts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  align-items: center;
+}
+
+.client-cms-form__layout-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--cms-primary-light);
+  color: var(--cms-primary);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.client-cms-form__layout-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: var(--cms-primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.client-cms-form__layout-remove:hover {
+  background: var(--cms-primary-hover);
+}
+
+.client-cms-form__layout-empty {
+  font-size: 14px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.client-cms-form__layout-assign-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px dashed var(--cms-primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cms-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 150ms ease, border-style 150ms ease, color 150ms ease;
+}
+
+.client-cms-form__layout-assign-btn:hover:not(:disabled) {
+  background: var(--cms-primary-light);
+  border-style: solid;
+}
+
+.client-cms-form__layout-assign-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+}
+
+.client-cms-form__layout-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--cms-text-tertiary);
+}
+
+/* Modal footer for client form (custom layout) */
+.cms-modal-footer,
+.client-cms-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cms-modal-footer .modal-btn,
+.client-cms-modal-footer .modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.cms-modal-footer .modal-btn-secondary,
+.client-cms-modal-footer .modal-btn-secondary {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #374151;
+}
+
+.cms-modal-footer .modal-btn-secondary:hover,
+.client-cms-modal-footer .modal-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cms-modal-footer .modal-btn-primary,
+.client-cms-modal-footer .modal-btn-primary {
+  background: var(--cms-primary);
+  border: 1px solid var(--cms-primary);
+  color: #fff;
+}
+
+.cms-modal-footer .modal-btn-primary:hover,
+.client-cms-modal-footer .modal-btn-primary:hover {
+  background: var(--cms-primary-hover);
+  border-color: var(--cms-primary-hover);
+}
+
+/* Primary button color guard */
+.cms-btn-primary,
+.cms-btn--primary,
+.cms-modal-footer .modal-btn-primary {
+  background: #d95747 !important;
+  color: #fff !important;
+  border: 1px solid transparent;
+}
+
+/* ==========================================================================
+   Client Details View (REBUILT TO MATCH FORM)
+   ========================================================================== */
+
+.client-cms-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: none;
+}
+
+.client-cms-view__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.client-cms-view__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cms-text);
+}
+
+.client-cms-view__value {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  color: var(--cms-text);
+  word-wrap: break-word;
+  min-height: 42px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.client-cms-view__value--empty {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.client-cms-view__value--textarea {
+  min-height: 80px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  padding: 10px 12px;
+  display: block;
+}
+
+/* Grid layout for two-column fields */
+.client-cms-view__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ==========================================================================
+   Flatpickr brand theme
+   ========================================================================== */
+
 .flatpickr-calendar {
   background: #fff !important;
-  border: 1px solid #e2e8f0 !important;
   border-radius: 12px !important;
   box-shadow: 0 10px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%) !important;
   font-family: inherit !important;
-  padding: 8px !important;
+  padding: 10px 12px 14px !important;
+  min-width: 340px !important;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10000 !important;
+  margin: 0 !important;
+  width: auto !important;
+  max-width: calc(100vw - 32px) !important;
+  border: 1px dashed #e74c3c !important; /* debug */
 }
 
+.flatpickr-calendar .flatpickr-innerContainer {
+  padding: 6px 6px 10px !important;
+  position: relative;
+  top: auto;
+  border: 1px dashed #9ca3af !important; /* debug */
+}
+
+.flatpickr-calendar .flatpickr-rContainer {
+  padding: 0 4px !important;
+}
+
+/* Remove arrow pointers when centered */
 .flatpickr-calendar.arrowTop::before,
-.flatpickr-calendar.arrowTop::after {
-  border-bottom-color: #e2e8f0 !important;
-}
-
+.flatpickr-calendar.arrowTop::after,
 .flatpickr-calendar.arrowBottom::before,
 .flatpickr-calendar.arrowBottom::after {
-  border-top-color: #e2e8f0 !important;
+  display: none !important;
 }
 
 .flatpickr-months {
-  padding: 8px 4px 4px !important;
+  padding: 8px 12px !important;
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  border: 1px dashed #22c55e !important; /* debug */
 }
 
 .flatpickr-months .flatpickr-month {
-  background: transparent !important;
-  color: #1a1a1a !important;
-  fill: #1a1a1a !important;
-  height: 34px !important;
+  position: static !important;
+  flex: 0 1 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 180px !important;
+  max-width: none !important;
+  border: 1px dashed #3b82f6 !important; /* debug */
 }
 
 .flatpickr-current-month {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding-top: 0 !important;
   font-size: 15px !important;
   font-weight: 600 !important;
   color: #1a1a1a !important;
-  padding-top: 6px !important;
 }
 
+/* Month dropdown */
 .flatpickr-current-month .flatpickr-monthDropdown-months {
-  background: transparent !important;
-  font-weight: 600 !important;
+  min-width: 120px !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  padding: 8px 32px 8px 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
   font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23858585' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 12px 12px !important;
 }
 
-.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
-  background: #f5f5f5 !important;
+/* Year wrapper – keep it tight, not stretched */
+.flatpickr-current-month .numInputWrapper {
+  position: relative !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
+/* Year input */
 .flatpickr-current-month input.cur-year {
-  font-weight: 600 !important;
+  width: 80px !important;
+  height: 36px !important;
+  padding: 8px 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
   font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  appearance: textfield !important;
 }
 
+/* Keep arrow buttons as simple square buttons on left/right */
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
   color: #525252 !important;
   fill: #525252 !important;
   padding: 8px !important;
-  border-radius: 6px !important;
-  transition: background 0.15s ease, color 0.15s ease !important;
-  top: 6px !important;
+  border-radius: 8px !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: static !important;
+  flex: 0 0 auto !important;
+  cursor: pointer !important;
+  transition: background 150ms ease, color 150ms ease !important;
+  border: 1px dashed #f59e0b !important; /* debug */
 }
 
 .flatpickr-months .flatpickr-prev-month:hover,
@@ -618,9 +990,40 @@
   fill: #e74c3c !important;
 }
 
+.flatpickr-months .flatpickr-prev-month svg,
+.flatpickr-months .flatpickr-next-month svg {
+  width: 18px !important;
+  height: 18px !important;
+  position: relative;
+  top: auto;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+  border-color: #d4d4d4 !important;
+  background: #f5f5f5 !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:focus,
+.flatpickr-current-month input.cur-year:focus {
+  outline: none !important;
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgb(231 76 60 / 12%) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:focus-visible,
+.flatpickr-current-month input.cur-year:focus-visible {
+  outline: none !important;
+}
+
+.flatpickr-current-month input.cur-year::-webkit-outer-spin-button,
+.flatpickr-current-month input.cur-year::-webkit-inner-spin-button {
+  appearance: none !important;
+  margin: 0 !important;
+}
+
 .flatpickr-weekdays {
   background: transparent !important;
-  padding: 8px 0 !important;
+  padding: 6px 4px !important;
 }
 
 span.flatpickr-weekday {
@@ -628,14 +1031,27 @@ span.flatpickr-weekday {
   color: #858585 !important;
   font-size: 12px !important;
   font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.flatpickr-weekdaycontainer {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  justify-items: center !important;
 }
 
 .flatpickr-days {
   border: none !important;
+  width: 100% !important;
 }
 
 .dayContainer {
-  padding: 0 !important;
+  padding: 2px 2px 6px !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 6px 4px !important;
+  width: 100% !important;
 }
 
 .flatpickr-day {
@@ -643,12 +1059,15 @@ span.flatpickr-weekday {
   border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  max-width: 40px !important;
+  width: 100% !important;
   height: 40px !important;
   line-height: 40px !important;
-  margin: 2px !important;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
   border: 2px solid transparent !important;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .flatpickr-day:hover {
@@ -691,12 +1110,13 @@ span.flatpickr-weekday {
   background: #e74c3c !important;
   border-color: #e74c3c !important;
   color: #fff !important;
+  box-shadow: none !important;
 }
 
 .flatpickr-day.inRange {
-  background: #fadbd8 !important;
-  border-color: #fadbd8 !important;
-  box-shadow: -5px 0 0 #fadbd8, 5px 0 0 #fadbd8 !important;
+  background: #fde5e1 !important;
+  border-color: #fde5e1 !important;
+  box-shadow: -5px 0 0 #fde5e1, 5px 0 0 #fde5e1 !important;
 }
 
 .flatpickr-day.flatpickr-disabled,
@@ -716,77 +1136,53 @@ span.flatpickr-weekday {
   background: #f5f5f5 !important;
 }
 
-/* Notes textarea with character counter */
-.client-cms-form__group--notes {
-  position: relative;
+.flatpickr-input[readonly] {
+  cursor: text;
+  background: #fff;
 }
 
-.client-cms-form__char-count {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
-  font-size: 11px;
-  color: #94a3b8;
-  pointer-events: none;
+/* ==========================================================================
+   Modal tweaks for CMS
+   ========================================================================== */
+
+/* Remove header/footer borders and default footer for forms to avoid double Close button */
+.modal:has(.client-cms-form) .modal-header {
+  border-bottom: none !important;
 }
 
-.client-cms-form__char-count--warning {
-  color: #f59e0b;
+.modal:has(.client-cms-form) .modal-footer {
+  display: none !important;
 }
 
-.client-cms-form__char-count--limit {
-  color: var(--cms-danger);
+/* Hide modal X button for forms (use Cancel / Save in footer) */
+.modal:has(.client-cms-form) .modal-close {
+  display: none !important;
 }
 
-.client-cms-form__input:focus,
-.client-cms-form__select:focus,
-.client-cms-form__textarea:focus {
-  outline: none;
-  border-color: var(--cms-primary);
-  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
+/* For Client Details: keep Close button, just remove extra borders */
+.modal:has(.client-cms-view) .modal-header {
+  border-bottom: none !important;
 }
 
-.client-cms-form__input::placeholder,
-.client-cms-form__textarea::placeholder {
-  color: #94a3b8;
+.modal:has(.client-cms-view) .modal-footer {
+  border-top: none !important;
 }
 
-.client-cms-form__select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 40px;
+/* Make Client modals taller to prevent scrolling */
+.modal:has(.client-cms-form),
+.modal:has(.client-cms-view) {
+  max-height: 92vh !important;
 }
 
-.client-cms-form__textarea {
-  resize: vertical;
-  min-height: 80px;
+.modal:has(.client-cms-form) .modal-body,
+.modal:has(.client-cms-view) .modal-body {
+  max-height: none !important;
+  overflow-y: visible !important;
 }
 
-.client-cms-form__helper {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.client-cms-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-/* Modal Footer */
-.client-cms-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.client-cms-modal-footer .modal-btn {
+/* Style Close button in Client Details - RED BUTTON WITH WHITE TEXT like Save Changes */
+.modal:has(.client-cms-view) .modal-footer .modal-btn,
+.modal:has(.client-cms-view) .modal-footer button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -796,130 +1192,29 @@ span.flatpickr-weekday {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background 200ms ease,
-    border-color 200ms ease;
-}
-
-.client-cms-modal-footer .modal-btn-secondary {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  color: #374151;
-}
-
-.client-cms-modal-footer .modal-btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-}
-
-.client-cms-modal-footer .modal-btn-primary {
   background: var(--cms-primary);
   border: 1px solid var(--cms-primary);
   color: #fff;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
-.client-cms-modal-footer .modal-btn-primary:hover {
+.modal:has(.client-cms-view) .modal-footer .modal-btn:hover,
+.modal:has(.client-cms-view) .modal-footer button:hover {
   background: var(--cms-primary-hover);
   border-color: var(--cms-primary-hover);
-}
-
-/* ==========================================================================
-   View Client Modal
-   ========================================================================== */
-
-.client-cms-view {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.client-cms-view__header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-bottom: 16px;
-}
-
-.client-cms-view__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  background: var(--cms-primary-light);
-  border-radius: 50%;
-  color: var(--cms-primary);
-  font-size: 20px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.client-cms-view__name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0;
-}
-
-.client-cms-view__unit {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-.client-cms-view__section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.client-cms-view__row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.client-cms-view__icon {
-  width: 18px;
-  height: 18px;
-  color: #94a3b8;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.client-cms-view__label {
-  font-size: 12px;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 2px;
-}
-
-.client-cms-view__value {
-  font-size: 14px;
-  color: #0f172a;
-}
-
-.client-cms-view__value--empty {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-.client-cms-view__notes {
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #374151;
-  white-space: pre-wrap;
-  line-height: 1.5;
 }
 
 /* ==========================================================================
    Responsive
    ========================================================================== */
 
-@media (width <= 480px) {
+@media (width <= 1024px) {
+  .client-cms-panel {
+    --cms-panel-width: 400px;
+  }
+}
+
+@media (width <= 767px) {
   .client-cms-panel {
     --cms-panel-width: 100%;
   }
@@ -936,327 +1231,8 @@ span.flatpickr-weekday {
     border-top: 1px solid var(--cms-border-light);
   }
 
-  .client-cms-form__row {
+  .client-cms-form__row,
+  .client-cms-view__row {
     grid-template-columns: 1fr;
-  }
-}
-
-/* ==========================================================================
-   Modal Customizations for Client CMS
-   Remove divider lines and hide Close button for forms
-   ========================================================================== */
-
-/* Hide header/footer borders for CMS forms */
-.modal:has(.client-cms-form) .modal-header {
-  border-bottom: none !important;
-}
-
-.modal:has(.client-cms-form) .modal-footer {
-  border-top: none !important;
-}
-
-/* Hide the modal Close button for New/Edit Client forms (use Cancel instead) */
-.modal:has(.client-cms-form) .modal-close {
-  display: none !important;
-}
-
-/* For Client Details view: remove borders but keep Close button */
-.modal:has(.client-cms-view) .modal-header {
-  border-bottom: none !important;
-}
-
-.modal:has(.client-cms-view) .modal-footer {
-  border-top: none !important;
-}
-
-/* Ensure Client Details Close button is visible */
-.modal:has(.client-cms-view) .modal-close {
-  display: flex !important;
-}
-
-/* ==========================================================================
-   Button Styling - Ghost Button Variant
-   ========================================================================== */
-
-.btn-ghost {
-  border: 0;
-  background: transparent;
-  padding: 6px 10px;
-  font-size: 13px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--color-text, #1a1a1a);
-  transition: background 150ms ease;
-}
-
-.btn-ghost:hover {
-  background: var(--color-bg-hover, #f5f5f5);
-}
-
-.btn-ghost.danger {
-  color: #dc2626;
-}
-
-.btn-ghost.danger:hover {
-  background: #fee;
-}
-
-/* ==========================================================================
-   Modal Footer Styling
-   ========================================================================== */
-
-.cms-modal-footer {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--cms-border, #d4d4d4);
-}
-
-/* ==========================================================================
-   Phase-1 Polish - Focus, Hit Targets, Menus, Empty State, Counters
-   ========================================================================== */
-
-/* Larger hit targets + focus rings */
-.client-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.client-actions button {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: background 150ms ease;
-}
-
-.client-actions button:hover {
-  background: var(--color-bg-hover, #f5f5f5);
-}
-
-.client-cms__close:focus,
-.client-cms .cms-btn:focus,
-.client-actions button:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgb(231 76 60 / 20%);
-}
-
-/* Search focus polish */
-.cms-search {
-  position: relative;
-}
-
-.cms-search input:focus {
-  outline: none;
-  border-color: var(--brand-primary, #e74c3c);
-  box-shadow: 0 0 0 3px rgb(231 76 60 / 15%);
-}
-
-/* Dropdown menus inside panel actions */
-.client-cms__actions .dropdown {
-  position: relative;
-}
-
-.client-cms__actions .dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 160px;
-  background: var(--color-bg-panel, #fff);
-  border: 1px solid var(--color-border, #e4e4e7);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
-  display: none;
-  z-index: 10;
-}
-
-.client-cms__actions .dropdown-menu.show {
-  display: block;
-}
-
-.client-cms__actions .dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  background: none;
-  border: 0;
-  text-align: left;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 150ms ease;
-}
-
-.client-cms__actions .dropdown-item:hover {
-  background: var(--color-bg-hover, #f5f5f5);
-}
-
-/* Empty state when list is filtered or empty */
-.cms-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--color-text-tertiary, #9ca3af);
-}
-
-.cms-empty-state svg {
-  margin-bottom: 16px;
-  opacity: 0.35;
-}
-
-.cms-empty-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-secondary, #4b5563);
-  margin-bottom: 6px;
-}
-
-.cms-empty-subtitle {
-  font-size: 13px;
-  color: var(--color-text-tertiary, #9ca3af);
-}
-
-/* Notes counter */
-.client-form textarea {
-  padding-bottom: 32px;
-}
-
-.char-count {
-  position: absolute;
-  bottom: 10px;
-  right: 12px;
-  font-size: 12px;
-  color: var(--color-text-tertiary, #9ca3af);
-  pointer-events: none;
-}
-
-.char-count.near-limit {
-  color: #f59e0b;
-}
-
-.char-count.at-limit {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-/* Keep red primary buttons per brand */
-.cms-btn-primary,
-.cms-btn--primary,
-.cms-modal-footer .modal-btn-primary {
-  background: #d95747 !important;
-  color: #fff !important;
-  border: 1px solid transparent;
-}
-
-.cms-btn-primary:hover,
-.cms-btn--primary:hover,
-.cms-modal-footer .modal-btn-primary:hover {
-  filter: brightness(0.95);
-}
-
-/* Hide default Modal.js footer when form is shown to avoid double Close */
-.modal-overlay:has(.client-form) .modal-footer {
-  display: none !important;
-}
-
-/* Hide default modal footer when CMS suppression is active */
-.modal.client-cms--no-default-footer .modal-footer {
-  display: none !important;
-}
-
-/* Hover polish for cards */
-.client-card {
-  transition: box-shadow 150ms ease, border-color 150ms ease;
-}
-
-.client-card:hover {
-  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
-  border-color: var(--color-border-hover, #d4d4d8);
-}
-
-/* Hide default Modal.js footer when a ClientCMS form is open */
-.modal-overlay:has(.client-form) .modal-footer {
-  display: none !important;
-}
-
-.flatpickr-input[readonly] {
-  cursor: text;
-  background: #fff;
-}
-
-/* Client action icons spacing/hover */
-.client-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.client-actions button {
-  padding: 6px;
-  border-radius: 6px;
-  transition: background 150ms ease;
-}
-.client-actions button:hover {
-  background: var(--color-bg-hover, #f5f5f5);
-}
-
-/* Search focus ring */
-.client-cms__search:focus,
-.client-cms__search input:focus {
-  outline: none;
-  border-color: var(--color-primary, #d95747);
-  box-shadow: 0 0 0 3px rgba(217, 87, 71, 0.12);
-}
-
-/* Dropdown safety */
-.client-cms__actions .dropdown {
-  position: relative;
-}
-.client-cms__actions .dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 160px;
-  background: var(--client-bg, #fff);
-  border: 1px solid var(--client-border, #e4e4e7);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  display: none;
-  z-index: 10;
-}
-.client-cms__actions .dropdown-menu.show {
-  display: block;
-}
-.client-cms__actions .dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  background: none;
-  text-align: left;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 150ms ease;
-}
-.client-cms__actions .dropdown-item:hover {
-  background: var(--color-bg-hover, #f5f5f5);
-}
-
-/* Responsive width of panel */
-@media (max-width: 1024px) {
-  .client-cms-panel {
-    width: 400px;
-  }
-}
-
-@media (max-width: 767px) {
-  .client-cms-panel {
-    width: 100%;
   }
 }

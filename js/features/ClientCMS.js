@@ -2,7 +2,7 @@
  * Enterprise-grade Client Management slide-in panel
  * Figma/Canva-style design with professional UX
  */
-/* global Modal, Config, Storage, flatpickr */
+/* global Modal, Config, flatpickr */
 (function (window) {
   'use strict';
 
@@ -10,7 +10,7 @@
   const STORAGE_KEYS = (window.Config && Config.STORAGE_KEYS) || {};
   const STORAGE_KEY_CLIENTS = STORAGE_KEYS.clients || 'storage-caves-clients';
   const STORAGE_KEY_LAYOUTS = STORAGE_KEYS.layouts || 'garage-planner-layouts';
-  const STORAGE_KEY_AUTOSAVE = STORAGE_KEYS.autosave || 'garage-planner-autosave';
+  const STORAGE_KEY_ACTIVE_LAYOUT = STORAGE_KEYS.activeLayout || 'garage-planner-active-layout';
 
   // Check if Storage utility exists
   const hasStorage = () =>
@@ -143,15 +143,6 @@
     return String(phone)
       .trim()
       .replace(/[^0-9\s()+-]/g, '');
-  }
-
-  // Get today's date in YYYY-MM-DD format
-  function getTodayDateString() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   // Get initials from name
@@ -574,6 +565,7 @@
         unitPreference: '',
         notes: '',
         followUpDate: '',
+        layoutIds: [],
       };
 
       this._unitOptions = this._getAllFloorPlanOptions();
@@ -585,6 +577,30 @@
             }>${escapeHTML(fp.label)}</option>`,
         )
         .join('');
+
+      // Get current layout for "Assign Current" button
+      const currentLayoutId = this._getCurrentLayoutId();
+      const currentLayoutName = this._getCurrentLayoutName();
+
+      // Get assigned layouts with names
+      const assignedLayouts = this._getLayoutNamesByIds(data.layoutIds || []);
+      const layoutIdsArray = data.layoutIds || [];
+      
+      const assignedLayoutsHTML = isEdit && assignedLayouts.length > 0
+        ? assignedLayouts
+            .map((name, idx) => {
+              const layoutId = layoutIdsArray[idx];
+              return `
+                <div class="client-cms-form__layout-tag" data-layout-id="${escapeAttr(layoutId)}">
+                  <span>${escapeHTML(name)}</span>
+                  <button type="button" class="client-cms-form__layout-remove" data-layout-id="${escapeAttr(layoutId)}">&times;</button>
+                </div>
+              `;
+            })
+            .join('')
+        : '<span class="client-cms-form__layout-empty">No layouts assigned yet</span>';
+
+      const isCurrentLayoutAssigned = currentLayoutId && layoutIdsArray.includes(currentLayoutId);
 
       const html = `
         <form id="client-form" class="client-cms-form client-form">
@@ -617,6 +633,29 @@
               <input id="cf-date" name="followUpDate" class="client-cms-form__input" type="text" value="${escapeAttr(data.followUpDate || '')}" placeholder="Select date..." autocomplete="off" />
             </div>
           </div>
+
+          ${
+            isEdit
+              ? `
+          <div class="client-cms-form__group">
+            <label class="client-cms-form__label">Assigned Layouts</label>
+            <div class="client-cms-form__layouts-list" id="cf-layouts-list">
+              ${assignedLayoutsHTML}
+            </div>
+            ${
+              currentLayoutId
+                ? `
+              <button type="button" class="client-cms-form__layout-assign-btn" id="cf-assign-current" ${isCurrentLayoutAssigned ? 'disabled' : ''}>
+                ${isCurrentLayoutAssigned ? 'Current layout already assigned' : '+ Assign current layout'}
+              </button>
+              <div class="client-cms-form__layout-hint">Current layout: ${escapeHTML(currentLayoutName)}</div>
+              `
+                : ''
+            }
+          </div>
+          `
+              : ''
+          }
 
           <div class="client-cms-form__group client-cms-form__group--notes">
             <label class="client-cms-form__label" for="cf-notes">Notes</label>
@@ -711,7 +750,6 @@
         const submitBtn = document.getElementById('client-form-submit');
         const cancelBtn = document.getElementById('client-form-cancel');
         const notesTextarea = document.getElementById('cf-notes');
-        const notesCounter = document.getElementById('cf-notes-counter');
 
         submitBtn?.addEventListener('click', (e) => {
           e.preventDefault();
@@ -734,22 +772,65 @@
           });
           notesTextarea.dispatchEvent(new Event('input'));
         }
+
+        // Layout management handlers
+        if (isEdit) {
+          // Handle assign current layout button
+          const assignBtn = document.getElementById('cf-assign-current');
+          if (assignBtn && !assignBtn.disabled) {
+            assignBtn.addEventListener('click', () => {
+              const currentLayoutId = this._getCurrentLayoutId();
+              if (!currentLayoutId) return;
+              
+              if (!data.layoutIds) data.layoutIds = [];
+              if (!data.layoutIds.includes(currentLayoutId)) {
+                data.layoutIds.push(currentLayoutId);
+                // Re-render the form to show the updated list
+                this._openForm(data);
+                this._toast('Layout assigned', 'success');
+              }
+            });
+          }
+
+          // Handle remove layout buttons
+          const layoutsList = document.getElementById('cf-layouts-list');
+          if (layoutsList) {
+            layoutsList.addEventListener('click', (e) => {
+              const removeBtn = e.target.closest('.client-cms-form__layout-remove');
+              if (!removeBtn) return;
+
+              const layoutId = removeBtn.getAttribute('data-layout-id');
+              if (data.layoutIds && layoutId) {
+                data.layoutIds = data.layoutIds.filter((id) => id !== layoutId);
+                // Re-render the form to show the updated list
+                this._openForm(data);
+                this._toast('Layout removed', 'success');
+              }
+            });
+          }
+        }
       });
 
       // Ensure date picker wires up after modal content is mounted
       setTimeout(() => {
         const dateInput = document.getElementById('cf-date');
-        if (dateInput && typeof flatpickr !== 'undefined') {
-          flatpickr(dateInput, {
-            dateFormat: 'Y-m-d',
-            altInput: true,
-            altFormat: 'M j, Y',
-            defaultDate: data.followUpDate || null,
-            allowInput: true,
-            // keep basic keyboard nav + close on select
-            clickOpens: true,
-            wrap: false,
-          });
+        if (dateInput) {
+          if (typeof flatpickr !== 'undefined') {
+            flatpickr(dateInput, {
+              dateFormat: 'Y-m-d',
+              altInput: true,
+              altFormat: 'M j, Y',
+              defaultDate: data.followUpDate || null,
+              allowInput: true,
+              // keep basic keyboard nav + close on select
+              clickOpens: true,
+              wrap: false,
+            });
+          } else {
+            // Graceful fallback: native date input
+            dateInput.type = 'date';
+            dateInput.value = data.followUpDate || '';
+          }
         }
       }, 50);
     }
@@ -758,84 +839,61 @@
       const unitLabel = this._getUnitLabelById(c.unitPreference) || 'Not selected';
       const formattedDate = (c.followUpDate || '').trim();
 
-      // Get assigned layouts info - always show section
+      // Get assigned layouts info with actual names
       const layoutCount = Array.isArray(c.layoutIds) ? c.layoutIds.length : 0;
-      const assignedLayoutsHTML = `
-        <div class="client-cms-view__row">
-          <span class="client-cms-view__icon">${ICONS.link}</span>
-          <div>
-            <div class="client-cms-view__label">Assigned Layouts</div>
-            <div class="client-cms-view__value${layoutCount === 0 ? ' client-cms-view__value--empty' : ''}">
-              ${layoutCount > 0 ? `${layoutCount} layout${layoutCount === 1 ? '' : 's'} assigned` : 'No layouts assigned yet'}
-            </div>
-          </div>
-        </div>
-      `;
-
-      // Follow-up date - always show section
-      const followUpHTML = `
-        <div class="client-cms-view__row">
-          <span class="client-cms-view__icon">${ICONS.calendar}</span>
-          <div>
-            <div class="client-cms-view__label">Follow-up Date</div>
-            <div class="client-cms-view__value${!c.followUpDate ? ' client-cms-view__value--empty' : ''}">
-              ${c.followUpDate ? escapeHTML(formattedDate) : 'Not scheduled'}
-            </div>
-          </div>
-        </div>
-      `;
+      const layoutNames = this._getLayoutNamesByIds(c.layoutIds);
+      const layoutsText = layoutNames.length > 0 
+        ? layoutNames.join(', ') 
+        : 'No layouts assigned yet';
 
       const html = `
-        <div class="client-cms-view">
-            <div class="client-cms-view__header">
-              <div class="client-cms-view__avatar">${getInitials(c.name)}</div>
-              <div>
-                <h4 class="client-cms-view__name">${escapeHTML(c.name)}</h4>
-                <div class="client-cms-view__unit">${escapeHTML(unitLabel)}</div>
-              </div>
-            </div>
-
-          <div class="client-cms-view__section">
-            ${
-              c.email
-                ? `
-              <div class="client-cms-view__row">
-                <span class="client-cms-view__icon">${ICONS.mail}</span>
-                <div>
-                  <div class="client-cms-view__label">Email</div>
-                  <div class="client-cms-view__value">${escapeHTML(c.email)}</div>
-                </div>
-              </div>
-            `
-                : ''
-            }
-            ${
-              c.phone
-                ? `
-              <div class="client-cms-view__row">
-                <span class="client-cms-view__icon">${ICONS.phone}</span>
-                <div>
-                  <div class="client-cms-view__label">Phone</div>
-                  <div class="client-cms-view__value">${escapeHTML(c.phone)}</div>
-                </div>
-              </div>
-            `
-                : ''
-            }
-            ${followUpHTML}
-            ${assignedLayoutsHTML}
+        <div class="client-cms-view client-cms-form">
+          <div class="client-cms-form__group">
+            <label class="client-cms-view__label">Name</label>
+            <div class="client-cms-view__value">${escapeHTML(c.name)}</div>
           </div>
 
-          ${
-            c.notes
-              ? `
-            <div class="client-cms-view__section">
-              <div class="client-cms-view__label">Notes</div>
-              <div class="client-cms-view__notes">${escapeHTML(c.notes)}</div>
+          <div class="client-cms-form__row">
+            <div class="client-cms-form__group">
+              <label class="client-cms-view__label">Email</label>
+              <div class="client-cms-view__value${!c.email ? ' client-cms-view__value--empty' : ''}">
+                ${c.email ? escapeHTML(c.email) : 'Not provided'}
+              </div>
             </div>
-          `
-              : ''
-          }
+            <div class="client-cms-form__group">
+              <label class="client-cms-view__label">Phone</label>
+              <div class="client-cms-view__value${!c.phone ? ' client-cms-view__value--empty' : ''}">
+                ${c.phone ? escapeHTML(c.phone) : 'Not provided'}
+              </div>
+            </div>
+          </div>
+
+          <div class="client-cms-form__row">
+            <div class="client-cms-form__group">
+              <label class="client-cms-view__label">Unit Preference</label>
+              <div class="client-cms-view__value">${escapeHTML(unitLabel)}</div>
+            </div>
+            <div class="client-cms-form__group">
+              <label class="client-cms-view__label">Follow-up Date</label>
+              <div class="client-cms-view__value${!c.followUpDate ? ' client-cms-view__value--empty' : ''}">
+                ${c.followUpDate ? escapeHTML(formattedDate) : 'Not scheduled'}
+              </div>
+            </div>
+          </div>
+
+          <div class="client-cms-form__group">
+            <label class="client-cms-view__label">Assigned Layouts</label>
+            <div class="client-cms-view__value${layoutCount === 0 ? ' client-cms-view__value--empty' : ''}">
+              ${escapeHTML(layoutsText)}
+            </div>
+          </div>
+
+          <div class="client-cms-form__group">
+            <label class="client-cms-view__label">Notes</label>
+            <div class="client-cms-view__value client-cms-view__value--textarea${!c.notes ? ' client-cms-view__value--empty' : ''}">
+              ${c.notes ? escapeHTML(c.notes) : 'No notes added'}
+            </div>
+          </div>
         </div>
       `;
 
@@ -894,32 +952,46 @@
     }
 
     _getCurrentLayoutId() {
-      let autosave = null;
-      let layouts = [];
+      const layouts = this._loadStoredLayouts();
+      const active = this._getActiveLayoutMeta();
+      const activeLayout = active?.id
+        ? layouts.find((l) => l.id === active.id || l.layoutId === active.id)
+        : null;
 
-      if (hasStorage()) {
-        autosave = window.Storage.load(STORAGE_KEY_AUTOSAVE);
-        layouts = window.Storage.load(STORAGE_KEY_LAYOUTS) || [];
-      } else {
-        autosave = safeJSON.parse(localStorage.getItem(STORAGE_KEY_AUTOSAVE), null);
-        layouts = safeJSON.parse(localStorage.getItem(STORAGE_KEY_LAYOUTS), []);
-      }
+      if (activeLayout) return activeLayout.id || activeLayout.layoutId || null;
 
-      if (autosave && autosave.id) return autosave.id;
-      if (Array.isArray(layouts) && layouts.length) {
-        return layouts[0].id || layouts[0].layoutId || null;
-      }
+      const latestLayout = this._getMostRecentLayout(layouts);
+      if (latestLayout) return latestLayout.id || latestLayout.layoutId || null;
+
       return null;
     }
 
     _getCurrentLayoutName() {
-      let autosave = null;
-      if (hasStorage()) {
-        autosave = window.Storage.load(STORAGE_KEY_AUTOSAVE);
-      } else {
-        autosave = safeJSON.parse(localStorage.getItem(STORAGE_KEY_AUTOSAVE), null);
+      const layouts = this._loadStoredLayouts();
+      const active = this._getActiveLayoutMeta();
+      const activeLayout = active?.id
+        ? layouts.find((l) => l.id === active.id || l.layoutId === active.id)
+        : null;
+
+      if (activeLayout) {
+        return (
+          active?.name ||
+          activeLayout.name ||
+          activeLayout.metadata?.projectName ||
+          'Current Layout'
+        );
       }
-      return autosave?.name || autosave?.metadata?.projectName || 'Current Layout';
+
+      if (active?.name) {
+        return active.name;
+      }
+
+      const latestLayout = this._getMostRecentLayout(layouts);
+      if (latestLayout) {
+        return latestLayout.name || latestLayout.metadata?.projectName || 'Current Layout';
+      }
+
+      return 'Current Layout';
     }
 
     _getAllFloorPlanOptions() {
@@ -935,6 +1007,50 @@
       const opts = this._unitOptions || this._getAllFloorPlanOptions();
       const match = opts.find((o) => o.value === id || o.label === id);
       return match ? match.label : id;
+    }
+
+    _loadStoredLayouts() {
+      if (hasStorage()) {
+        return window.Storage.load(STORAGE_KEY_LAYOUTS) || [];
+      }
+      return safeJSON.parse(localStorage.getItem(STORAGE_KEY_LAYOUTS), []);
+    }
+
+    _getActiveLayoutMeta() {
+      if (hasStorage()) {
+        return window.Storage.load(STORAGE_KEY_ACTIVE_LAYOUT) || null;
+      }
+      return safeJSON.parse(localStorage.getItem(STORAGE_KEY_ACTIVE_LAYOUT), null);
+    }
+
+    _getMostRecentLayout(layouts) {
+      if (!Array.isArray(layouts) || layouts.length === 0) return null;
+      return [...layouts].sort((a, b) => {
+        const aDate = new Date(a.created || 0).getTime();
+        const bDate = new Date(b.created || 0).getTime();
+        return bDate - aDate;
+      })[0];
+    }
+
+    _getLayoutNamesByIds(layoutIds) {
+      if (!Array.isArray(layoutIds) || layoutIds.length === 0) {
+        return [];
+      }
+
+      const layouts = this._loadStoredLayouts();
+      const active = this._getActiveLayoutMeta();
+
+      // Map layout IDs to names
+      const names = layoutIds
+        .map((id) => {
+          const layout =
+            layouts.find((l) => l.id === id || l.layoutId === id) ||
+            (active?.id === id ? { name: active.name } : null);
+          return layout?.name || layout?.metadata?.projectName || null;
+        })
+        .filter(Boolean);
+
+      return names;
     }
 
     // --- Import / Export ---

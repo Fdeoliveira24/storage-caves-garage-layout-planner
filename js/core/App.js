@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, MobileUIManager */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS */
 
 /**
  * Main Application Controller
@@ -65,7 +65,8 @@ class App {
 
     // Initialize modern mobile UI (NEW - replaces old mobile features)
     if (window.MobileUIManager) {
-      this.mobileUIManager = new MobileUIManager(this);
+      // eslint-disable-next-line new-cap
+      this.mobileUIManager = new window.MobileUIManager(this);
       this.mobileUIManager.init();
       this.mobileUIManager.setMeasurementModeActive?.(this.isMeasurementModeActive());
     } else {
@@ -2092,6 +2093,9 @@ class App {
       // Sync project name from loaded state to UI
       this.updateProjectName(savedState.metadata?.projectName);
 
+      // Autosave has no layout id; clear any stale active layout pointers
+      this._setActiveLayoutMeta(null);
+
       console.log('[App] Autosave loaded successfully: floor plan + ' + items.length + ' items');
       return true;
     } catch (error) {
@@ -2173,6 +2177,7 @@ class App {
     const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
     if (saved) {
       Modal.showSuccess('Layout saved successfully!');
+      this._setActiveLayoutMeta(layoutRecord);
       this.renderSavedLayouts();
       if (typeof onAfterSave === 'function') {
         onAfterSave(layoutRecord);
@@ -2200,6 +2205,38 @@ class App {
       Modal.showInfo(
         'Your layouts will only be saved temporarily and will be lost when you reload this page',
       );
+    }
+  }
+
+  /**
+   * Persist which layout is currently active so Client CMS can reference it reliably.
+   * @param {object|null} layout
+   * @private
+   */
+  _setActiveLayoutMeta(layout) {
+    try {
+      if (!layout || !layout.id) {
+        StorageUtil.remove(Config.STORAGE_KEYS.activeLayout);
+        return;
+      }
+
+      const layoutName =
+        (Helpers?.sanitizeLayoutName &&
+          Helpers.sanitizeLayoutName(
+            layout.name || layout.state?.metadata?.projectName || 'Current Layout',
+            'Current Layout',
+          )) ||
+        layout.name ||
+        layout.state?.metadata?.projectName ||
+        'Current Layout';
+
+      StorageUtil.save(Config.STORAGE_KEYS.activeLayout, {
+        id: layout.id,
+        name: layoutName,
+        updated: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('[App] Failed to update active layout metadata', error);
     }
   }
 
@@ -2355,6 +2392,7 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
       this.renderFloorPlanList();
       this.renderSavedLayouts();
       this.updateInfoPanel();
+      this._setActiveLayoutMeta(layout);
 
       Modal.showSuccess('Layout loaded successfully!');
     } catch (error) {
@@ -2373,6 +2411,8 @@ Occupancy: ${this.floorPlanManager.getOccupancyPercentage().toFixed(1)}%
       const saved = StorageUtil.save(Config.STORAGE_KEYS.layouts, layouts);
 
       if (saved) {
+        const fallbackLayout = layouts.length ? layouts[layouts.length - 1] : null;
+        this._setActiveLayoutMeta(fallbackLayout);
         // Update both desktop and mobile saved lists
         this.renderSavedLayouts();
         if (this.mobileUIManager) {

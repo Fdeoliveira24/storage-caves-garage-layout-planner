@@ -134,6 +134,7 @@ const Config = {
     layouts: 'garage-planner-layouts',
     settings: 'garage-planner-settings',
     autosave: 'garage-planner-autosave',
+    activeLayout: 'garage-planner-active-layout',
     clients: 'storage-caves-clients',
     sheetsConfig: 'storage-caves-sheets-config',
   },
