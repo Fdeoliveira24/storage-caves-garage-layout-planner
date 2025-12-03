@@ -14,9 +14,14 @@ const SHEET_NAME = 'Buford'; // Your sheet name
 function findSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
+  // Log all available sheets for debugging
+  const sheets = ss.getSheets();
+  Logger.log(`Available sheets: ${sheets.map(s => s.getName()).join(', ')}`);
+  
   // Try exact name first
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (sheet) {
+    Logger.log(`Found exact match: ${SHEET_NAME}`);
     return sheet;
   }
   
@@ -25,16 +30,18 @@ function findSheet() {
   for (const name of possibleNames) {
     sheet = ss.getSheetByName(name);
     if (sheet) {
+      Logger.log(`Found alternative sheet: ${name}`);
       return sheet;
     }
   }
   
   // Use first sheet as fallback
-  const sheets = ss.getSheets();
   if (sheets.length > 0) {
+    Logger.log(`Using first sheet as fallback: ${sheets[0].getName()}`);
     return sheets[0];
   }
   
+  Logger.log('ERROR: No sheets found at all!');
   return null;
 }
 
@@ -107,9 +114,17 @@ function handleSync(e, output) {
     const sheet = findSheet();
     
     if (!sheet) {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheets = ss.getSheets();
       const errorResponse = {
         success: false,
-        message: 'No sheets found in spreadsheet',
+        message: `Sheet not found. Tried: '${SHEET_NAME}', 'Sheet1', 'Clients', 'Data'. Available sheets: ${sheets.map(s => s.getName()).join(', ')}`,
+        debug: {
+          spreadsheetId: ss.getId(),
+          spreadsheetName: ss.getName(),
+          availableSheets: sheets.map(s => s.getName()),
+          searchedFor: SHEET_NAME
+        },
         timestamp: new Date().toISOString()
       };
       output.setContent(JSON.stringify(errorResponse));
@@ -122,18 +137,38 @@ function handleSync(e, output) {
       sheet.deleteRows(2, lastRow - 1);
     }
     
-    // Add new data
+    // Add new data with enhanced unit preference handling
     if (clients.length > 0) {
-      const rows = clients.map(client => [
-        client.id || '',
-        client.name || '',
-        client.email || '',
-        client.phone || '',
-        client.unitPreference || '',
-        client.followUpDate || '',
-        client.notes || '',
-        client.createdDate || new Date().toISOString()
-      ]);
+      const rows = clients.map(client => {
+        // Convert unit preference ID to user-friendly label if needed
+        let unitDisplay = client.unitPreference || '';
+        
+        // Common unit ID to label mappings
+        const unitMappings = {
+          'fp-unit-a': 'Unit A (12×24)',
+          'fp-unit-b': 'Unit B (12×30)', 
+          'fp-unit-c': 'Unit C (14×30)',
+          'fp-unit-d': 'Unit D (14×35)',
+          'fp-unit-e': 'Unit E (16×35)',
+          'fp-unit-f': 'Unit F (20×35)'
+        };
+        
+        // Use mapped label if ID found, otherwise use original value
+        if (unitMappings[unitDisplay]) {
+          unitDisplay = unitMappings[unitDisplay];
+        }
+        
+        return [
+          client.id || '',
+          client.name || '',
+          client.email || '',
+          client.phone || '',
+          unitDisplay,
+          client.followUpDate || '',
+          client.notes || '',
+          client.createdDate || new Date().toISOString()
+        ];
+      });
       
       sheet.getRange(2, 1, rows.length, 8).setValues(rows);
     }
@@ -169,9 +204,17 @@ function handleFetch(e, output) {
     const sheet = findSheet();
     
     if (!sheet) {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheets = ss.getSheets();
       const errorResponse = {
         success: false,
-        message: 'No sheets found in spreadsheet',
+        message: `Sheet not found. Tried: '${SHEET_NAME}', 'Sheet1', 'Clients', 'Data'. Available sheets: ${sheets.map(s => s.getName()).join(', ')}`,
+        debug: {
+          spreadsheetId: ss.getId(),
+          spreadsheetName: ss.getName(),
+          availableSheets: sheets.map(s => s.getName()),
+          searchedFor: SHEET_NAME
+        },
         timestamp: new Date().toISOString()
       };
       output.setContent(JSON.stringify(errorResponse));
@@ -284,8 +327,30 @@ function testSetup() {
 }
 
 /**
- * Test the API from the script editor
+ * Quick debug test - run this to check current sheet status
  */
+function debugSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log('=== DEBUG SHEET INFO ===');
+  Logger.log('Spreadsheet ID: ' + ss.getId());
+  Logger.log('Spreadsheet Name: ' + ss.getName());
+  Logger.log('SHEET_NAME constant: ' + SHEET_NAME);
+  
+  const sheets = ss.getSheets();
+  Logger.log('Total sheets: ' + sheets.length);
+  
+  sheets.forEach((sheet, index) => {
+    Logger.log(`Sheet ${index + 1}: "${sheet.getName()}" (${sheet.getLastRow()} rows)`);
+    Logger.log(`  - Exact match with SHEET_NAME: ${sheet.getName() === SHEET_NAME}`);
+  });
+  
+  const foundSheet = findSheet();
+  if (foundSheet) {
+    Logger.log('✅ findSheet() found: ' + foundSheet.getName());
+  } else {
+    Logger.log('❌ findSheet() returned null');
+  }
+}
 function testAPI() {
   Logger.log('=== Testing API Functions ===');
   
