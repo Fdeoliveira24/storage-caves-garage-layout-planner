@@ -323,12 +323,6 @@ class GoogleSheetsSync {
     const modalHtml = `
       <div class="sheets-settings-container">
         <div class="setting-group">
-          <label for="webapp-url">Google Apps Script Web App URL:</label>
-          <input type="url" id="webapp-url" value="${this.webAppUrl}" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" class="setting-input">
-          <p class="setting-help">Enter your Google Apps Script web app URL for sync functionality.</p>
-        </div>
-        
-        <div class="setting-group">
           <label class="checkbox-container">
             <input type="checkbox" id="auto-sync-checkbox" ${this.autoSyncEnabled ? 'checked' : ''}>
             <span class="checkbox-text">Enable Auto-Sync (2-minute delay after changes)</span>
@@ -336,15 +330,6 @@ class GoogleSheetsSync {
         </div>
 
         <div class="setting-info">
-          <h4>Setup Instructions:</h4>
-          <ol>
-            <li>Go to <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a></li>
-            <li>Create a new project and paste the provided Google Apps Script code</li>
-            <li>Deploy as web app with "Execute as: Me" and "Who has access: Anyone"</li>
-            <li>Copy the web app URL and paste it above</li>
-            <li>Ensure your Google Sheet is named "Buford" (or update the script)</li>
-          </ol>
-          
           <h4>Sync Behavior:</h4>
           <ul>
             <li>When enabled, changes automatically sync after 2 minutes of inactivity</li>
@@ -357,7 +342,14 @@ class GoogleSheetsSync {
           <div class="sync-status">
             <h4>Last Sync:</h4>
             <p><strong>Time:</strong> ${new Date(this.lastSyncTime).toLocaleString()}</p>
-            <p><strong>Status:</strong> <span class="status-${this.lastSyncStatus}">${this.lastSyncStatus === 'success' ? '✅ Success' : '❌ Error'}</span></p>
+            <p>
+              <strong>Status:</strong>
+              <span class="status-badge status-${this.lastSyncStatus}">
+                ${this.lastSyncStatus === 'success'
+                  ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><span>Success</span>'
+                  : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>Error</span>'}
+              </span>
+            </p>
           </div>
         ` : ''}
 
@@ -376,17 +368,8 @@ class GoogleSheetsSync {
 
       if (saveBtn) {
         saveBtn.onclick = () => {
-          const webappUrlInput = document.getElementById('webapp-url');
           const autoSyncCheckbox = document.getElementById('auto-sync-checkbox');
-          
-          const newWebAppUrl = webappUrlInput?.value?.trim() || this.webAppUrl;
           const newAutoSyncEnabled = autoSyncCheckbox?.checked || false;
-          
-          // Update URL if changed
-          if (newWebAppUrl !== this.webAppUrl) {
-            this.webAppUrl = newWebAppUrl;
-            this.updateConnectionIndicator(); // Update the indicator when URL changes
-          }
           
           if (newAutoSyncEnabled !== this.autoSyncEnabled) {
             if (newAutoSyncEnabled) {

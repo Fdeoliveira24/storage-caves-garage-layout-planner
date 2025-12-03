@@ -27,6 +27,7 @@ class Modal {
 
       const modal = document.createElement('div');
       modal.className = 'modal';
+      modal.setAttribute('data-variant', 'confirm');
 
       const header = document.createElement('div');
       header.className = 'modal-header';
@@ -38,6 +39,7 @@ class Modal {
       const body = document.createElement('div');
       body.className = 'modal-body';
       const messageEl = document.createElement('p');
+      messageEl.className = 'modal-text';
       messageEl.textContent = message;
       body.appendChild(messageEl);
 

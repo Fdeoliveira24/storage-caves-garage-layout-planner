@@ -173,6 +173,7 @@
     chevronDown: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
     eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
     edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
+    wrench: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
     link: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
     trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
     users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
@@ -182,7 +183,7 @@
     calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
     fileText: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
     json: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
-    cloudSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
+    cloudSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>`,
   };
 
   class ClientCMS {
@@ -310,11 +311,11 @@
               </button>
 
               <div class="cms-dropdown">
-                <button class="cms-btn" id="client-cms-import-btn" aria-haspopup="true" aria-expanded="false">
+                <button class="cms-btn" id="client-cms-io-btn" aria-haspopup="true" aria-expanded="false">
                   ${ICONS.upload}
-                  <span>Import</span>
+                  <span>Import / Export</span>
                 </button>
-                <div class="cms-dropdown__menu" id="client-cms-import-menu">
+                <div class="cms-dropdown__menu" id="client-cms-io-menu">
                   <button class="cms-dropdown__item" id="client-cms-import-json">
                     ${ICONS.json}
                     <span>Import JSON</span>
@@ -323,15 +324,7 @@
                     ${ICONS.fileText}
                     <span>Import CSV</span>
                   </button>
-                </div>
-              </div>
-
-              <div class="cms-dropdown">
-                <button class="cms-btn" id="client-cms-export-btn" aria-haspopup="true" aria-expanded="false">
-                  ${ICONS.download}
-                  <span>Export</span>
-                </button>
-                <div class="cms-dropdown__menu" id="client-cms-export-menu">
+                  <div class="cms-dropdown__divider"></div>
                   <button class="cms-dropdown__item" id="client-cms-export-json">
                     ${ICONS.json}
                     <span>Export JSON</span>
@@ -346,7 +339,7 @@
               <div class="cms-dropdown">
                 <button class="cms-btn" id="client-cms-sheets-btn" aria-haspopup="true" aria-expanded="false">
                   ${ICONS.cloudSync}
-                  <span>Google Sheets</span>
+                  <span>Sync</span>
                   <span class="connection-indicator" id="sheets-connection-indicator"></span>
                 </button>
                 <div class="cms-dropdown__menu" id="client-cms-sheets-menu">
@@ -360,7 +353,7 @@
                   </button>
                   <div class="cms-dropdown__divider"></div>
                   <button class="cms-dropdown__item" id="client-cms-sheets-settings">
-                    ${ICONS.edit}
+                    ${ICONS.wrench}
                     <span>Sync Settings</span>
                   </button>
                 </div>
@@ -408,8 +401,7 @@
       });
 
       // Dropdown toggles
-      this._setupDropdown('client-cms-import-btn', 'client-cms-import-menu');
-      this._setupDropdown('client-cms-export-btn', 'client-cms-export-menu');
+      this._setupDropdown('client-cms-io-btn', 'client-cms-io-menu');
       this._setupDropdown('client-cms-sheets-btn', 'client-cms-sheets-menu');
 
       // Google Sheets sync handlers

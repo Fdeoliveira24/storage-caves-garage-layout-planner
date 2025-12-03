@@ -302,6 +302,22 @@
   width: 16px;
   height: 16px;
   color: var(--cms-text-secondary);
+  flex-shrink: 0;
+}
+
+/* Visual divider inside combined Import/Export menu */
+.cms-dropdown__divider {
+  height: 1px;
+  background: var(--cms-border-light, #e6e9ef);
+  margin: 8px 0;
+}
+
+/* Tighter padding for primary New Client button */
+#client-cms-new {
+  padding-left: 12px;
+  padding-right: 12px;
+  flex: none; /* prevent stretching */
+  min-width: auto;
 }
 
 /* ==========================================================================
@@ -1296,6 +1312,56 @@ span.flatpickr-weekday {
   to { transform: rotate(360deg); }
 }
 
+/* Fix dropdown positioning and prevent cutoff */
+.client-cms__header {
+  padding-right: 20px; /* Add extra padding to prevent dropdown cutoff */
+}
+
+.cms-dropdown {
+  position: relative;
+}
+
+.cms-dropdown__menu {
+  min-width: 160px;
+  right: 0; /* Align to right edge by default */
+  box-sizing: border-box;
+  max-width: calc(100vw - 48px); /* never overflow viewport */
+  padding: 0; /* inner spacing handled by items */
+}
+
+/* Sheets menu: make compact, add small offset from screen edge and prevent overflow */
+#client-cms-sheets-menu {
+  left: auto;
+  right: 8px; /* small gap from right screen edge */
+  min-width: 160px;
+  max-width: calc(100vw - 64px);
+  padding: 4px 0;
+}
+
+/* Make items in the Sheets menu slightly more compact */
+#client-cms-sheets-menu .cms-dropdown__item {
+  padding: 8px 12px;
+}
+
+/* Ensure the menu uses the correct transform origin for animations */
+#client-cms-sheets-menu.show {
+  transform-origin: top right;
+}
+
+/* Fix dropdown positioning and prevent cutoff */
+.client-cms__header {
+  padding-right: 24px; /* Add extra padding to prevent dropdown cutoff */
+}
+
+.cms-dropdown {
+  position: relative;
+}
+
+.cms-dropdown__menu {
+  min-width: 200px;
+  right: 0; /* Align to right edge to prevent cutoff */
+}
+
 /* Connection Indicator */
 .connection-indicator {
   display: inline-block;
@@ -1353,40 +1419,48 @@ span.flatpickr-weekday {
 .sheets-settings-container {
   max-width: 500px;
   padding: 0;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
 }
 
 .sheets-settings-container .setting-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .sheets-settings-container .setting-group label {
   display: block;
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: var(--cms-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-primary);
 }
 
 .sheets-settings-container .setting-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--cms-border);
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   box-sizing: border-box;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 .sheets-settings-container .setting-input:focus {
   outline: none;
-  border-color: var(--cms-primary);
+  border-color: var(--color-border-focus);
   box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
 }
 
 .sheets-settings-container .setting-help {
-  font-size: 12px;
-  color: var(--cms-text-secondary);
-  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
   margin-bottom: 0;
+  line-height: var(--line-height-tight);
 }
 
 .sheets-settings-container .checkbox-container {
@@ -1397,43 +1471,49 @@ span.flatpickr-weekday {
 }
 
 .sheets-settings-container .checkbox-container input[type="checkbox"] {
-  margin-right: 8px;
+  margin-right: var(--spacing-sm);
   transform: scale(1.1);
 }
 
 .sheets-settings-container .checkbox-text {
-  font-size: 14px;
-  color: var(--cms-text);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
 }
 
 .sheets-settings-container .setting-info {
-  background: var(--cms-bg-secondary);
-  padding: 16px;
-  border-radius: 6px;
-  margin: 20px 0;
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-xl) 0;
+  border: 1px solid var(--color-border-light);
 }
 
 .sheets-settings-container .setting-info h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--cms-text);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
 }
 
 .sheets-settings-container .setting-info ol,
 .sheets-settings-container .setting-info ul {
-  margin: 8px 0 0 20px;
-  font-size: 13px;
-  color: var(--cms-text-secondary);
-  line-height: 1.4;
+  margin: var(--spacing-sm) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.sheets-settings-container .setting-info ul {
+  list-style: disc;
+  padding-left: var(--spacing-md);
 }
 
 .sheets-settings-container .setting-info li {
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .sheets-settings-container .setting-info a {
-  color: var(--cms-primary);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -1442,40 +1522,110 @@ span.flatpickr-weekday {
 }
 
 .sheets-settings-container .sync-status {
-  background: var(--cms-bg-tertiary);
-  padding: 12px;
-  border-radius: 4px;
-  margin: 20px 0;
+  background: var(--color-bg-tertiary);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-xl) 0;
+  border: 1px solid var(--color-border-light);
 }
 
 .sheets-settings-container .sync-status h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--cms-text);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
 }
 
 .sheets-settings-container .sync-status p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: var(--cms-text-secondary);
+  margin: var(--spacing-xs) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sheets-settings-container .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.sheets-settings-container .status-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sheets-settings-container .status-badge.status-success {
+  color: var(--color-success);
+}
+
+.sheets-settings-container .status-badge.status-success svg {
+  stroke: var(--color-success);
+}
+
+.sheets-settings-container .status-badge.status-error {
+  color: var(--color-danger);
+}
+
+.sheets-settings-container .status-badge.status-error svg {
+  stroke: var(--color-danger);
 }
 
 .sheets-settings-container .status-success {
-  color: var(--cms-success);
+  color: var(--color-success);
 }
 
 .sheets-settings-container .status-error {
-  color: var(--cms-danger);
+  color: var(--color-danger);
 }
 
 .sheets-settings-container .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--cms-border-light);
+  margin-top: var(--spacing-2xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Brand-compliant button styling for Google Sheets modal */
+.sheets-settings-container .btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-primary);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  line-height: var(--line-height-normal);
+}
+
+.sheets-settings-container .btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.sheets-settings-container .btn-secondary {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: var(--line-height-normal);
+}
+
+.sheets-settings-container .btn-secondary:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .sheets-settings-content {
