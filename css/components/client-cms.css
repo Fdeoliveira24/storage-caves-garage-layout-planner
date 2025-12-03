@@ -1296,7 +1296,60 @@ span.flatpickr-weekday {
   to { transform: rotate(360deg); }
 }
 
-/* Google Sheets Settings Modal - Fixed Layout */
+/* Connection Indicator */
+.connection-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+  transition: all 0.2s ease;
+}
+
+.connection-indicator.connected {
+  background: var(--cms-success);
+  box-shadow: 0 0 4px rgba(39, 174, 96, 0.4);
+}
+
+.connection-indicator.disconnected {
+  background: var(--cms-text-tertiary);
+}
+
+/* Updated Modal Styling to Match Design System */
+.modal .modal-content {
+  background: var(--cms-bg);
+  border-radius: 12px;
+  box-shadow: var(--cms-shadow-lg);
+  max-width: 540px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+.modal .modal-header {
+  padding: 20px 24px 0 24px;
+  border-bottom: none;
+}
+
+.modal .modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cms-text);
+  margin: 0;
+}
+
+.modal .modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: calc(85vh - 140px);
+}
+
+.modal .modal-footer {
+  padding: 0 24px 20px 24px;
+  border-top: 1px solid var(--cms-border-light);
+  background: var(--cms-bg-secondary);
+  margin: 0;
+}
 .sheets-settings-container {
   max-width: 500px;
   padding: 0;

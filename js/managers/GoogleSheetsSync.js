@@ -28,6 +28,9 @@ class GoogleSheetsSync {
     // Load settings from storage
     this.loadSettings();
     
+    // Initialize connection indicator
+    setTimeout(() => this.updateConnectionIndicator(), 100);
+    
     // Initialize sync status
     this.updateSyncStatus(this.isLocalDevelopment ? 'disconnected' : 'connected');
     
@@ -83,6 +86,24 @@ class GoogleSheetsSync {
       lastSyncStatus: this.lastSyncStatus
     };
     this.setStorageItem('garage-planner-sheets-config', settings);
+  }
+
+  /**
+   * Update connection indicator
+   */
+  updateConnectionIndicator() {
+    const indicator = document.getElementById('sheets-connection-indicator');
+    if (!indicator) return;
+    
+    indicator.className = 'connection-indicator';
+    
+    if (this.webAppUrl && this.webAppUrl.includes('script.google.com')) {
+      indicator.classList.add('connected');
+      indicator.title = 'Google Sheets connected';
+    } else {
+      indicator.classList.add('disconnected');
+      indicator.title = 'Google Sheets not configured';
+    }
   }
 
   /**
@@ -364,6 +385,7 @@ class GoogleSheetsSync {
           // Update URL if changed
           if (newWebAppUrl !== this.webAppUrl) {
             this.webAppUrl = newWebAppUrl;
+            this.updateConnectionIndicator(); // Update the indicator when URL changes
           }
           
           if (newAutoSyncEnabled !== this.autoSyncEnabled) {

@@ -347,6 +347,7 @@
                 <button class="cms-btn" id="client-cms-sheets-btn" aria-haspopup="true" aria-expanded="false">
                   ${ICONS.cloudSync}
                   <span>Google Sheets</span>
+                  <span class="connection-indicator" id="sheets-connection-indicator"></span>
                 </button>
                 <div class="cms-dropdown__menu" id="client-cms-sheets-menu">
                   <button class="cms-dropdown__item" id="client-cms-sheets-sync">
