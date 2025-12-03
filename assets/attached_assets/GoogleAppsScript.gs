@@ -11,18 +11,34 @@ const HEADER_ROW = 1;
  * Handle GET requests (fetch all clients)
  */
 function doGet(e) {
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     
     if (!sheet) {
-      return createResponse(false, 'Sheet not found');
+      const errorResponse = {
+        success: false,
+        message: 'Sheet not found',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
     }
     
     const data = sheet.getDataRange().getValues();
     
     // Skip header row
     if (data.length <= 1) {
-      return createResponse(true, 'No clients found', []);
+      const response = {
+        success: true,
+        message: 'No clients found',
+        data: [],
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(response));
+      return output;
     }
     
     // Convert rows to client objects
@@ -45,10 +61,23 @@ function doGet(e) {
       });
     }
     
-    return createResponse(true, 'Clients fetched successfully', clients);
+    const response = {
+      success: true,
+      message: 'Clients fetched successfully',
+      data: clients,
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(response));
+    return output;
     
   } catch (error) {
-    return createResponse(false, 'Error fetching clients: ' + error.toString());
+    const errorResponse = {
+      success: false,
+      message: 'Error fetching clients: ' + error.toString(),
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(errorResponse));
+    return output;
   }
 }
 
@@ -56,19 +85,34 @@ function doGet(e) {
  * Handle POST requests (sync clients from CMS to Sheets)
  */
 function doPost(e) {
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+
   try {
     // Parse incoming data
     const postData = JSON.parse(e.postData.contents);
     const clients = postData.clients;
     
     if (!Array.isArray(clients)) {
-      return createResponse(false, 'Invalid data format: clients must be an array');
+      const errorResponse = {
+        success: false,
+        message: 'Invalid data format: clients must be an array',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
     }
     
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     
     if (!sheet) {
-      return createResponse(false, 'Sheet not found');
+      const errorResponse = {
+        success: false,
+        message: 'Sheet not found',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
     }
     
     // Clear existing data (except header)
@@ -93,33 +137,27 @@ function doPost(e) {
       sheet.getRange(2, 1, rows.length, 8).setValues(rows);
     }
     
-    return createResponse(true, `Successfully synced ${clients.length} client(s)`, {
-      syncedCount: clients.length,
+    const response = {
+      success: true,
+      message: `Successfully synced ${clients.length} client(s)`,
+      data: {
+        syncedCount: clients.length,
+        timestamp: new Date().toISOString()
+      },
       timestamp: new Date().toISOString()
-    });
+    };
+    output.setContent(JSON.stringify(response));
+    return output;
     
   } catch (error) {
-    return createResponse(false, 'Error syncing clients: ' + error.toString());
+    const errorResponse = {
+      success: false,
+      message: 'Error syncing clients: ' + error.toString(),
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(errorResponse));
+    return output;
   }
-}
-
-/**
- * Create standardized JSON response (CORS is handled by deployment settings)
- */
-function createResponse(success, message, data = null) {
-  const response = {
-    success: success,
-    message: message,
-    timestamp: new Date().toISOString()
-  };
-  
-  if (data !== null) {
-    response.data = data;
-  }
-  
-  return ContentService
-    .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
