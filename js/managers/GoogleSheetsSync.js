@@ -364,7 +364,7 @@ class GoogleSheetsSync {
             <li>Create a new project and paste the provided Google Apps Script code</li>
             <li>Deploy as web app with "Execute as: Me" and "Who has access: Anyone"</li>
             <li>Copy the web app URL and paste it above</li>
-            <li>Ensure your Google Sheet is named "Buford"</li>
+            <li>Ensure your Google Sheet is named "Sheet1" (or update the script)</li>
           </ol>
           <p><strong>Sync behavior:</strong></p>
           <ul style="margin: 8px 0 0 16px; color: var(--cms-text-secondary);">
