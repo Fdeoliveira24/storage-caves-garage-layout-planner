@@ -190,10 +190,10 @@ class GoogleSheetsSync {
         if (this.isLocalDevelopment) {
           errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
         } else {
-          errorMessage = 'Network error - Click the sync status to configure your Google Apps Script URL';
+          errorMessage = 'CORS error - Your Google Apps Script needs to be deployed as a web app with "Anyone" access. Click the sync status to update your script URL.';
         }
       } else if (error.message.includes('Sheet not found')) {
-        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration';
+        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration and ensure the sheet is named "Buford"';
       } else {
         errorMessage = `Sync failed: ${error.message}`;
       }
@@ -266,10 +266,10 @@ class GoogleSheetsSync {
         if (this.isLocalDevelopment) {
           errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
         } else {
-          errorMessage = 'Network error - Click the sync status to configure your Google Apps Script URL';
+          errorMessage = 'CORS error - Your Google Apps Script needs to be deployed as a web app with "Anyone" access. Click the sync status to update your script URL.';
         }
       } else if (error.message.includes('Sheet not found')) {
-        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration';
+        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration and ensure the sheet is named "Buford"';
       } else {
         errorMessage = `Fetch failed: ${error.message}`;
       }
@@ -358,9 +358,16 @@ class GoogleSheetsSync {
         </div>
 
         <div class="setting-info">
-          <p><strong>How it works:</strong></p>
-          <ul>
-            <li>Configure your Google Apps Script URL above</li>
+          <p><strong>How to set up Google Apps Script:</strong></p>
+          <ol style="margin: 8px 0 0 16px; color: var(--cms-text-secondary);">
+            <li>Go to <a href="https://script.google.com" target="_blank">script.google.com</a></li>
+            <li>Create a new project and paste the provided Google Apps Script code</li>
+            <li>Deploy as web app with "Execute as: Me" and "Who has access: Anyone"</li>
+            <li>Copy the web app URL and paste it above</li>
+            <li>Ensure your Google Sheet is named "Buford"</li>
+          </ol>
+          <p><strong>Sync behavior:</strong></p>
+          <ul style="margin: 8px 0 0 16px; color: var(--cms-text-secondary);">
             <li>When enabled, changes automatically sync after 2 minutes of inactivity</li>
             <li>You can always trigger manual sync with the "Sync Now" button</li>
             <li>Sync status shows in the toolbar</li>
