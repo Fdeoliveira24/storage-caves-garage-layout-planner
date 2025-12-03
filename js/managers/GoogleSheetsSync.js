@@ -30,6 +30,9 @@ class GoogleSheetsSync {
     
     // Initialize sync status
     this.updateSyncStatus(this.isLocalDevelopment ? 'disconnected' : 'connected');
+    
+    // Make sync status clickable to open settings
+    this.initSyncStatusClick();
   }
 
   /**
@@ -44,11 +47,25 @@ class GoogleSheetsSync {
   }
 
   /**
+   * Initialize sync status click handler
+   */
+  initSyncStatusClick() {
+    const indicator = document.getElementById('sheets-sync-status');
+    if (indicator) {
+      indicator.style.cursor = 'pointer';
+      indicator.addEventListener('click', () => {
+        this.showSettingsModal();
+      });
+    }
+  }
+
+  /**
    * Load sync settings from storage
    */
   loadSettings() {
     const settings = this.getStorageItem('garage-planner-sheets-config');
     if (settings) {
+      this.webAppUrl = settings.webAppUrl || this.webAppUrl;
       this.autoSyncEnabled = settings.autoSyncEnabled || false;
       this.autoSyncDelay = settings.autoSyncDelay || 120000;
     }
@@ -59,6 +76,7 @@ class GoogleSheetsSync {
    */
   saveSettings() {
     const settings = {
+      webAppUrl: this.webAppUrl,
       autoSyncEnabled: this.autoSyncEnabled,
       autoSyncDelay: this.autoSyncDelay,
       lastSyncTime: this.lastSyncTime,
@@ -172,8 +190,10 @@ class GoogleSheetsSync {
         if (this.isLocalDevelopment) {
           errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
         } else {
-          errorMessage = 'Network error - please check your internet connection';
+          errorMessage = 'Network error - Click the sync status to configure your Google Apps Script URL';
         }
+      } else if (error.message.includes('Sheet not found')) {
+        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration';
       } else {
         errorMessage = `Sync failed: ${error.message}`;
       }
@@ -241,7 +261,20 @@ class GoogleSheetsSync {
       this.saveSettings();
       this.updateSyncStatus('error');
       
-      Modal.showError(`Fetch failed: ${error.message}`);
+      let errorMessage = 'Fetch failed';
+      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+        if (this.isLocalDevelopment) {
+          errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
+        } else {
+          errorMessage = 'Network error - Click the sync status to configure your Google Apps Script URL';
+        }
+      } else if (error.message.includes('Sheet not found')) {
+        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration';
+      } else {
+        errorMessage = `Fetch failed: ${error.message}`;
+      }
+      
+      Modal.showError(errorMessage);
       this.eventBus?.emit?.('sheets:fetch:error', error);
       
       return null;
@@ -312,6 +345,12 @@ class GoogleSheetsSync {
         <h3>Google Sheets Sync Settings</h3>
         
         <div class="setting-group">
+          <label for="webapp-url">Google Apps Script Web App URL:</label>
+          <input type="url" id="webapp-url" value="${this.webAppUrl}" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
+          <p class="setting-help">Enter your Google Apps Script web app URL for sync functionality.</p>
+        </div>
+        
+        <div class="setting-group">
           <label class="checkbox-label">
             <input type="checkbox" id="auto-sync-checkbox" ${this.autoSyncEnabled ? 'checked' : ''}>
             <span>Enable Auto-Sync (2-minute delay after changes)</span>
@@ -321,6 +360,7 @@ class GoogleSheetsSync {
         <div class="setting-info">
           <p><strong>How it works:</strong></p>
           <ul>
+            <li>Configure your Google Apps Script URL above</li>
             <li>When enabled, changes automatically sync after 2 minutes of inactivity</li>
             <li>You can always trigger manual sync with the "Sync Now" button</li>
             <li>Sync status shows in the toolbar</li>
@@ -349,8 +389,16 @@ class GoogleSheetsSync {
 
       if (saveBtn) {
         saveBtn.onclick = () => {
+          const webappUrlInput = document.getElementById('webapp-url');
           const autoSyncCheckbox = document.getElementById('auto-sync-checkbox');
+          
+          const newWebAppUrl = webappUrlInput?.value?.trim() || this.webAppUrl;
           const newAutoSyncEnabled = autoSyncCheckbox?.checked || false;
+          
+          // Update URL if changed
+          if (newWebAppUrl !== this.webAppUrl) {
+            this.webAppUrl = newWebAppUrl;
+          }
           
           if (newAutoSyncEnabled !== this.autoSyncEnabled) {
             if (newAutoSyncEnabled) {
@@ -359,7 +407,8 @@ class GoogleSheetsSync {
               this.disableAutoSync();
             }
           }
-          
+
+          this.saveSettings();
           Modal.close && Modal.close();
           resolve(true);
         };
