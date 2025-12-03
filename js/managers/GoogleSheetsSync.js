@@ -242,20 +242,6 @@ class GoogleSheetsSync {
       this.isSyncing = false;
     }
   }
-        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration and ensure the sheet is named "Buford"';
-      } else {
-        errorMessage = `Fetch failed: ${error.message}`;
-      }
-      
-      Modal.showError(errorMessage);
-      this.eventBus?.emit?.('sheets:fetch:error', error);
-      
-      return null;
-
-    } finally {
-      this.isSyncing = false;
-    }
-  }
 
   /**
    * Update sync status indicator in UI
