@@ -1296,58 +1296,147 @@ span.flatpickr-weekday {
   to { transform: rotate(360deg); }
 }
 
-/* Settings Modal */
+/* Google Sheets Settings Modal - Fixed Layout */
 .sheets-settings-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.sheets-settings-content {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
+.sheets-settings-modal h3 {
+  margin: 0 0 20px 0;
+  color: var(--cms-text);
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.sheets-settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.setting-group {
   margin-bottom: 20px;
 }
 
-.sheets-settings-title {
-  font-size: 20px;
-  font-weight: 600;
+.setting-group label {
+  display: block;
+  margin-bottom: 8px;
   color: var(--cms-text);
+  font-weight: 500;
 }
 
-.sheets-settings-close {
-  background: none;
-  border: none;
-  font-size: 24px;
+.setting-group input[type="url"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--cms-border);
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.setting-group input[type="url"]:focus {
+  outline: none;
+  border-color: var(--cms-primary);
+  box-shadow: 0 0 0 2px var(--cms-primary-light);
+}
+
+.setting-help {
+  margin: 6px 0 0 0;
+  font-size: 13px;
+  color: var(--cms-text-secondary);
+  line-height: 1.4;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  padding: 4px;
+  margin-bottom: 0 !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0 !important;
+}
+
+.setting-info {
+  background: var(--cms-bg-tertiary);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.setting-info p {
+  margin: 0 0 8px 0;
+  color: var(--cms-text);
+  font-weight: 500;
+}
+
+.setting-info ol,
+.setting-info ul {
+  margin: 8px 0 0 16px;
   color: var(--cms-text-secondary);
 }
 
-.sheets-settings-close:hover {
+.setting-info li {
+  margin-bottom: 4px;
+}
+
+.setting-info a {
+  color: var(--cms-primary);
+  text-decoration: none;
+}
+
+.setting-info a:hover {
+  text-decoration: underline;
+}
+
+.sync-history {
+  background: var(--cms-bg-secondary);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 16px 0;
+}
+
+.sync-history p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: var(--cms-text-secondary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cms-border-light);
+}
+
+.btn-secondary, .btn-primary {
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-secondary {
+  background: var(--cms-bg-tertiary);
+  color: var(--cms-text-secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--cms-border);
   color: var(--cms-text);
 }
 
-.sheets-settings-form .form-group {
-  margin-bottom: 16px;
+.btn-primary {
+  background: var(--cms-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--cms-primary-hover);
+}
 }
 
 .sheets-settings-form label {

@@ -296,58 +296,96 @@ class GoogleSheetsSync {
   }
 
   /**
-   * Show sync settings modal
+   * Show sync settings modal with improved layout
    */
   async showSettingsModal() {
     const modalHtml = `
       <div class="sheets-settings-modal">
-        <h3>Google Sheets Sync Settings</h3>
+        <h3>🔗 Google Sheets Sync Settings</h3>
         
         <div class="setting-group">
           <label for="webapp-url">Google Apps Script Web App URL:</label>
           <input type="url" id="webapp-url" value="${this.webAppUrl}" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
-          <p class="setting-help">Enter your Google Apps Script web app URL for sync functionality.</p>
+          <p class="setting-help">📋 Paste your Google Apps Script web app URL here to enable sync functionality.</p>
         </div>
         
         <div class="setting-group">
           <label class="checkbox-label">
             <input type="checkbox" id="auto-sync-checkbox" ${this.autoSyncEnabled ? 'checked' : ''}>
-            <span>Enable Auto-Sync (2-minute delay after changes)</span>
+            <span>⚡ Enable Auto-Sync (2-minute delay after changes)</span>
           </label>
         </div>
 
         <div class="setting-info">
-          <p><strong>How to set up Google Apps Script:</strong></p>
-          <ol style="margin: 8px 0 0 16px; color: var(--cms-text-secondary);">
-            <li>Go to <a href="https://script.google.com" target="_blank">script.google.com</a></li>
-            <li>Create a new project and paste the provided Google Apps Script code</li>
-            <li>Deploy as web app with "Execute as: Me" and "Who has access: Anyone"</li>
-            <li>Copy the web app URL and paste it above</li>
-            <li>Ensure your Google Sheet is named "Sheet1" (or update the script)</li>
+          <p>📝 <strong>Quick Setup Guide:</strong></p>
+          <ol>
+            <li>Go to <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a></li>
+            <li>Create new project → paste provided Google Apps Script code</li>
+            <li>Deploy as web app: "Execute as: Me" + "Who has access: Anyone"</li>
+            <li>Copy web app URL and paste above ⬆️</li>
+            <li>Ensure your Google Sheet is named "Buford" (or update script)</li>
           </ol>
-          <p><strong>Sync behavior:</strong></p>
-          <ul style="margin: 8px 0 0 16px; color: var(--cms-text-secondary);">
-            <li>When enabled, changes automatically sync after 2 minutes of inactivity</li>
-            <li>You can always trigger manual sync with the "Sync Now" button</li>
-            <li>Sync status shows in the toolbar</li>
+          <p>🔄 <strong>How Auto-Sync Works:</strong></p>
+          <ul>
+            <li>Changes sync automatically after 2 minutes of inactivity</li>
+            <li>Manual sync always available with "Sync Now" button</li>
+            <li>Sync status indicator shows in toolbar</li>
           </ul>
         </div>
 
         ${this.lastSyncTime ? `
           <div class="sync-history">
-            <p><strong>Last Sync:</strong> ${new Date(this.lastSyncTime).toLocaleString()}</p>
-            <p><strong>Status:</strong> ${this.lastSyncStatus === 'success' ? '✅ Success' : '❌ Error'}</p>
+            <p>📅 <strong>Last Sync:</strong> ${new Date(this.lastSyncTime).toLocaleString()}</p>
+            <p>📊 <strong>Status:</strong> ${this.lastSyncStatus === 'success' ? '✅ Success' : '❌ Error'}</p>
           </div>
         ` : ''}
 
         <div class="modal-actions">
           <button class="btn-secondary" id="sheets-cancel-btn">Cancel</button>
-          <button class="btn-primary" id="sheets-save-btn">Save Settings</button>
+          <button class="btn-primary" id="sheets-save-btn">💾 Save Settings</button>
         </div>
       </div>
     `;
 
-    Modal.show('Google Sheets Sync', modalHtml);
+    return new Promise((resolve) => {
+      Modal.show('Google Sheets Sync', modalHtml);
+
+      const saveBtn = document.getElementById('sheets-save-btn');
+      const cancelBtn = document.getElementById('sheets-cancel-btn');
+      const urlInput = document.getElementById('webapp-url');
+      const autoSyncCheckbox = document.getElementById('auto-sync-checkbox');
+
+      if (saveBtn) {
+        saveBtn.onclick = () => {
+          const newUrl = urlInput?.value?.trim();
+          const newAutoSyncEnabled = autoSyncCheckbox?.checked || false;
+          
+          if (newUrl && newUrl !== this.webAppUrl) {
+            this.webAppUrl = newUrl;
+          }
+          
+          if (newAutoSyncEnabled !== this.autoSyncEnabled) {
+            if (newAutoSyncEnabled) {
+              this.enableAutoSync();
+            } else {
+              this.disableAutoSync();
+            }
+          }
+          
+          this.saveSettings();
+          Modal.close();
+          resolve(true);
+        };
+      }
+
+      if (cancelBtn) {
+        cancelBtn.onclick = () => {
+          Modal.close();
+          resolve(false);
+        };
+      }
+    });
+  }
 
     return new Promise((resolve) => {
       const saveBtn = document.getElementById('sheets-save-btn');

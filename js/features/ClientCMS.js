@@ -39,9 +39,12 @@
     },
   };
 
-  // Unique ID generator
-  const uid = (prefix = 'client') =>
-    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  // Unique ID generator - shorter format
+  const uid = (prefix = 'client') => {
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    const random = Math.random().toString(36).slice(2, 5); // 3 random chars
+    return `${prefix}-${timestamp}-${random}`;
+  };
 
   // Download helper
   function downloadFile(filename, mime, content) {
