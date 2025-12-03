@@ -41,8 +41,8 @@
 
   // Unique ID generator - shorter format
   const uid = (prefix = 'client') => {
-    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-    const random = Math.random().toString(36).slice(2, 5); // 3 random chars
+    const timestamp = Date.now().toString(36); // Base36 timestamp (shorter)
+    const random = Math.random().toString(36).slice(2, 5); // 3 chars instead of 6
     return `${prefix}-${timestamp}-${random}`;
   };
 
