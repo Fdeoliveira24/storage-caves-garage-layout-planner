@@ -15,8 +15,8 @@ class GoogleSheetsSync {
     this.clientCMS = clientCMS;
     this.eventBus = eventBus;
     
-    // Configuration
-    this.webAppUrl = 'https://script.google.com/macros/s/AKfycbzc_75IRZnHzKGZN4G-7909VNhpzAS4nqqZefFEPORBQJmyvNo7yjtLmfbNAqapTP8y/exec';
+    // Configuration - CORS FIX VERSION
+    this.webAppUrl = 'https://script.google.com/macros/s/AKfycbyAtAAQ1oyHiXaxgve4uCXoHq2uKyKiEJjZGQt-pvSzB4nnfpV-b5O9of_iZp99GfiKGQ/exec';
     this.autoSyncEnabled = false;
     this.autoSyncDelay = 120000; // 2 minutes (120000ms)
     this.autoSyncTimer = null;
@@ -128,18 +128,11 @@ class GoogleSheetsSync {
 
   /**
    * Manual sync to Google Sheets (user-triggered)
+   * CORS FIX: Uses GET with URL parameters instead of POST with JSON body
    */
   async syncToSheets() {
     if (this.isSyncing) {
       Modal.showInfo('Sync already in progress...');
-      return false;
-    }
-
-    // Check for local development
-    if (this.isLocalDevelopment) {
-      Modal.showInfo('Google Sheets sync is disabled in local development mode due to CORS restrictions. Deploy to a live server to test the sync functionality.');
-      console.log('[GoogleSheetsSync] Local development detected - sync disabled to prevent CORS errors');
-      this.updateSyncStatus('disconnected');
       return false;
     }
 
@@ -149,13 +142,13 @@ class GoogleSheetsSync {
     try {
       const clients = this.clientCMS.clients;
 
-      const response = await fetch(this.webAppUrl, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ clients })
+      // CORS FIX: Send data as URL parameter instead of POST body
+      const dataParam = encodeURIComponent(JSON.stringify(clients));
+      const url = `${this.webAppUrl}?action=sync&data=${dataParam}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow'
       });
 
       if (!response.ok) {
@@ -184,21 +177,7 @@ class GoogleSheetsSync {
       this.saveSettings();
       this.updateSyncStatus('error');
       
-      // Provide more specific error messages
-      let errorMessage = 'Sync failed';
-      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-        if (this.isLocalDevelopment) {
-          errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
-        } else {
-          errorMessage = 'CORS error - Your Google Apps Script needs to be deployed as a web app with "Anyone" access. Click the sync status to update your script URL.';
-        }
-      } else if (error.message.includes('Sheet not found')) {
-        errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration and ensure the sheet is named "Buford"';
-      } else {
-        errorMessage = `Sync failed: ${error.message}`;
-      }
-      
-      Modal.showError(errorMessage);
+      Modal.showError(`Sync failed: ${error.message}`);
       this.eventBus?.emit?.('sheets:sync:error', error);
       
       return false;
@@ -210,6 +189,7 @@ class GoogleSheetsSync {
 
   /**
    * Fetch clients from Google Sheets
+   * CORS FIX: Uses simple GET request with action parameter
    */
   async fetchFromSheets() {
     if (this.isSyncing) {
@@ -217,21 +197,13 @@ class GoogleSheetsSync {
       return null;
     }
 
-    // Check for local development
-    if (this.isLocalDevelopment) {
-      Modal.showInfo('Google Sheets sync is disabled in local development mode due to CORS restrictions.');
-      console.log('[GoogleSheetsSync] Local development detected - fetch disabled to prevent CORS errors');
-      this.updateSyncStatus('disconnected');
-      return null;
-    }
-
     this.isSyncing = true;
     this.updateSyncStatus('syncing');
 
     try {
-      const response = await fetch(this.webAppUrl, {
+      const response = await fetch(`${this.webAppUrl}?action=fetch`, {
         method: 'GET',
-        mode: 'cors'
+        redirect: 'follow'
       });
 
       if (!response.ok) {
@@ -261,14 +233,15 @@ class GoogleSheetsSync {
       this.saveSettings();
       this.updateSyncStatus('error');
       
-      let errorMessage = 'Fetch failed';
-      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-        if (this.isLocalDevelopment) {
-          errorMessage = 'CORS error - Google Sheets sync requires deployment to a live server';
-        } else {
-          errorMessage = 'CORS error - Your Google Apps Script needs to be deployed as a web app with "Anyone" access. Click the sync status to update your script URL.';
-        }
-      } else if (error.message.includes('Sheet not found')) {
+      Modal.showError(`Fetch failed: ${error.message}`);
+      this.eventBus?.emit?.('sheets:fetch:error', error);
+      
+      return null;
+
+    } finally {
+      this.isSyncing = false;
+    }
+  }
         errorMessage = 'Google Sheet not found - Please check your Google Apps Script configuration and ensure the sheet is named "Buford"';
       } else {
         errorMessage = `Fetch failed: ${error.message}`;

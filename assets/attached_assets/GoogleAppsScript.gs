@@ -1,26 +1,177 @@
 /**
- * Storage Caves Client Database - Apps Script API
+ * Storage Caves Client Database - Apps Script API (CORS FIX VERSION)
  * Handles sync between Client CMS and Google Sheets
+ * 
+ * CORS FIX: Uses GET requests with URL parameters to avoid preflight
  */
 
 // Configuration
-const SHEET_NAME = 'Sheet1'; // Change if you renamed your sheet
-const HEADER_ROW = 1;
+const SHEET_NAME = 'Buford'; // Your sheet name
 
 /**
- * Handle GET requests (fetch all clients)
+ * Get the correct sheet
+ */
+function findSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Try exact name first
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (sheet) {
+    return sheet;
+  }
+  
+  // Try other common names
+  const possibleNames = ['Sheet1', 'Clients', 'Data'];
+  for (const name of possibleNames) {
+    sheet = ss.getSheetByName(name);
+    if (sheet) {
+      return sheet;
+    }
+  }
+  
+  // Use first sheet as fallback
+  const sheets = ss.getSheets();
+  if (sheets.length > 0) {
+    return sheets[0];
+  }
+  
+  return null;
+}
+
+/**
+ * Handle ALL requests (GET only to avoid CORS preflight)
  */
 function doGet(e) {
   const output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
 
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    const action = e.parameter.action || 'fetch';
+    
+    if (action === 'sync') {
+      return handleSync(e, output);
+    } else if (action === 'fetch') {
+      return handleFetch(e, output);
+    } else {
+      const errorResponse = {
+        success: false,
+        message: 'Invalid action. Use action=sync or action=fetch',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
+    }
+    
+  } catch (error) {
+    const errorResponse = {
+      success: false,
+      message: 'Error: ' + error.toString(),
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(errorResponse));
+    return output;
+  }
+}
+
+/**
+ * Handle sync (write to sheet)
+ */
+function handleSync(e, output) {
+  try {
+    // Get data from URL parameter
+    const dataParam = e.parameter.data;
+    
+    if (!dataParam) {
+      const errorResponse = {
+        success: false,
+        message: 'No data provided. Use ?action=sync&data=...',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
+    }
+    
+    // Parse the data
+    const clients = JSON.parse(decodeURIComponent(dataParam));
+    
+    if (!Array.isArray(clients)) {
+      const errorResponse = {
+        success: false,
+        message: 'Invalid data format: clients must be an array',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
+    }
+    
+    const sheet = findSheet();
     
     if (!sheet) {
       const errorResponse = {
         success: false,
-        message: 'Sheet not found',
+        message: 'No sheets found in spreadsheet',
+        timestamp: new Date().toISOString()
+      };
+      output.setContent(JSON.stringify(errorResponse));
+      return output;
+    }
+    
+    // Clear existing data (except header)
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.deleteRows(2, lastRow - 1);
+    }
+    
+    // Add new data
+    if (clients.length > 0) {
+      const rows = clients.map(client => [
+        client.id || '',
+        client.name || '',
+        client.email || '',
+        client.phone || '',
+        client.unitPreference || '',
+        client.followUpDate || '',
+        client.notes || '',
+        client.createdDate || new Date().toISOString()
+      ]);
+      
+      sheet.getRange(2, 1, rows.length, 8).setValues(rows);
+    }
+    
+    const response = {
+      success: true,
+      message: `Successfully synced ${clients.length} client(s)`,
+      data: {
+        syncedCount: clients.length,
+        sheetName: sheet.getName()
+      },
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(response));
+    return output;
+    
+  } catch (error) {
+    const errorResponse = {
+      success: false,
+      message: 'Sync error: ' + error.toString(),
+      timestamp: new Date().toISOString()
+    };
+    output.setContent(JSON.stringify(errorResponse));
+    return output;
+  }
+}
+
+/**
+ * Handle fetch (read from sheet)
+ */
+function handleFetch(e, output) {
+  try {
+    const sheet = findSheet();
+    
+    if (!sheet) {
+      const errorResponse = {
+        success: false,
+        message: 'No sheets found in spreadsheet',
         timestamp: new Date().toISOString()
       };
       output.setContent(JSON.stringify(errorResponse));
@@ -65,6 +216,7 @@ function doGet(e) {
       success: true,
       message: 'Clients fetched successfully',
       data: clients,
+      sheetName: sheet.getName(),
       timestamp: new Date().toISOString()
     };
     output.setContent(JSON.stringify(response));
@@ -73,86 +225,7 @@ function doGet(e) {
   } catch (error) {
     const errorResponse = {
       success: false,
-      message: 'Error fetching clients: ' + error.toString(),
-      timestamp: new Date().toISOString()
-    };
-    output.setContent(JSON.stringify(errorResponse));
-    return output;
-  }
-}
-
-/**
- * Handle POST requests (sync clients from CMS to Sheets)
- */
-function doPost(e) {
-  const output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
-
-  try {
-    // Parse incoming data
-    const postData = JSON.parse(e.postData.contents);
-    const clients = postData.clients;
-    
-    if (!Array.isArray(clients)) {
-      const errorResponse = {
-        success: false,
-        message: 'Invalid data format: clients must be an array',
-        timestamp: new Date().toISOString()
-      };
-      output.setContent(JSON.stringify(errorResponse));
-      return output;
-    }
-    
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-    
-    if (!sheet) {
-      const errorResponse = {
-        success: false,
-        message: 'Sheet not found',
-        timestamp: new Date().toISOString()
-      };
-      output.setContent(JSON.stringify(errorResponse));
-      return output;
-    }
-    
-    // Clear existing data (except header)
-    const lastRow = sheet.getLastRow();
-    if (lastRow > 1) {
-      sheet.deleteRows(2, lastRow - 1);
-    }
-    
-    // Add new data
-    if (clients.length > 0) {
-      const rows = clients.map(client => [
-        client.id || '',
-        client.name || '',
-        client.email || '',
-        client.phone || '',
-        client.unitPreference || '',
-        client.followUpDate || '',
-        client.notes || '',
-        client.createdDate || new Date().toISOString()
-      ]);
-      
-      sheet.getRange(2, 1, rows.length, 8).setValues(rows);
-    }
-    
-    const response = {
-      success: true,
-      message: `Successfully synced ${clients.length} client(s)`,
-      data: {
-        syncedCount: clients.length,
-        timestamp: new Date().toISOString()
-      },
-      timestamp: new Date().toISOString()
-    };
-    output.setContent(JSON.stringify(response));
-    return output;
-    
-  } catch (error) {
-    const errorResponse = {
-      success: false,
-      message: 'Error syncing clients: ' + error.toString(),
+      message: 'Fetch error: ' + error.toString(),
       timestamp: new Date().toISOString()
     };
     output.setContent(JSON.stringify(errorResponse));
@@ -164,20 +237,32 @@ function doPost(e) {
  * Test function - run this to verify setup
  */
 function testSetup() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log('=== Google Sheets Debug Info ===');
+  Logger.log('Spreadsheet ID: ' + ss.getId());
+  Logger.log('Spreadsheet Name: ' + ss.getName());
+  
+  const sheets = ss.getSheets();
+  Logger.log('Total sheets: ' + sheets.length);
+  
+  sheets.forEach((sheet, index) => {
+    Logger.log(`Sheet ${index + 1}: "${sheet.getName()}" (${sheet.getLastRow()} rows)`);
+  });
+  
+  const sheet = findSheet();
   
   if (!sheet) {
-    Logger.log('ERROR: Sheet not found!');
-    return;
+    Logger.log('❌ ERROR: No suitable sheet found!');
+    Logger.log('Available sheets: ' + sheets.map(s => s.getName()).join(', '));
+    return false;
   }
   
-  Logger.log('✅ Sheet found: ' + sheet.getName());
-  Logger.log('✅ Spreadsheet ID: ' + SpreadsheetApp.getActiveSpreadsheet().getId());
+  Logger.log('✅ Using sheet: ' + sheet.getName());
   Logger.log('✅ Current rows: ' + sheet.getLastRow());
   
   // Test adding sample data
   const testClient = [
-    'test-123',
+    'test-' + Date.now(),
     'Test Client',
     'test@example.com',
     '(555) 123-4567',
@@ -187,25 +272,65 @@ function testSetup() {
     new Date().toISOString()
   ];
   
-  sheet.appendRow(testClient);
-  Logger.log('✅ Test client added successfully!');
-  Logger.log('✅ Setup complete - ready for deployment!');
+  try {
+    sheet.appendRow(testClient);
+    Logger.log('✅ Test client added successfully!');
+    Logger.log('✅ Setup complete - ready for deployment!');
+    return true;
+  } catch (error) {
+    Logger.log('❌ Error adding test data: ' + error.toString());
+    return false;
+  }
+}
+
+/**
+ * Test the API from the script editor
+ */
+function testAPI() {
+  Logger.log('=== Testing API Functions ===');
+  
+  // Test fetch
+  Logger.log('\n--- Testing Fetch ---');
+  const fetchResult = doGet({ parameter: { action: 'fetch' } });
+  Logger.log('Fetch result: ' + fetchResult.getContent());
+  
+  // Test sync with sample data
+  Logger.log('\n--- Testing Sync ---');
+  const sampleClients = [
+    {
+      id: 'test-api-1',
+      name: 'API Test Client',
+      email: 'api@test.com',
+      phone: '(555) 999-8888',
+      unitPreference: 'fp-unit-a',
+      followUpDate: '2025-12-10',
+      notes: 'API test',
+      createdDate: new Date().toISOString()
+    }
+  ];
+  
+  const dataParam = encodeURIComponent(JSON.stringify(sampleClients));
+  const syncResult = doGet({ parameter: { action: 'sync', data: dataParam } });
+  Logger.log('Sync result: ' + syncResult.getContent());
+  
+  Logger.log('\n✅ API test complete!');
 }
 
 /**
  * DEPLOYMENT INSTRUCTIONS:
  * 
- * 1. Copy this entire script to your Google Apps Script project
- * 2. Save the project
- * 3. Click "Deploy" > "New deployment"
- * 4. Choose type: "Web app"
- * 5. Set these settings:
- *    - Execute as: Me
+ * 1. Replace the old script with this new version
+ * 2. Save the project (Ctrl+S)
+ * 3. Run testAPI() to verify it works
+ * 4. Click "Deploy" > "New deployment"
+ * 5. Choose type: "Web app"
+ * 6. Settings:
+ *    - Description: "Storage Caves Client Sync - CORS Fix v2"
+ *    - Execute as: Me (your-email@gmail.com)
  *    - Who has access: Anyone
- * 6. Click "Deploy"
- * 7. Copy the web app URL
- * 8. Paste the URL in your app's sync settings
+ * 7. Click "Deploy"
+ * 8. Copy the new web app URL
+ * 9. Update GoogleSheetsSync.js with the new URL
  * 
- * Note: CORS headers are automatically handled by Google Apps Script 
- * when deployed as a web app with "Anyone" access.
+ * IMPORTANT: Make sure you create a NEW deployment, not a test deployment!
  */
