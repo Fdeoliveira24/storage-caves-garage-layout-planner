@@ -8,20 +8,6 @@ const SHEET_NAME = 'Sheet1'; // Change if you renamed your sheet
 const HEADER_ROW = 1;
 
 /**
- * Handle OPTIONS requests (CORS preflight)
- */
-function doOptions(e) {
-  return ContentService
-    .createTextOutput('')
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-}
-
-/**
  * Handle GET requests (fetch all clients)
  */
 function doGet(e) {
@@ -118,7 +104,7 @@ function doPost(e) {
 }
 
 /**
- * Create standardized JSON response with CORS headers
+ * Create standardized JSON response (CORS is handled by deployment settings)
  */
 function createResponse(success, message, data = null) {
   const response = {
@@ -133,12 +119,7 @@ function createResponse(success, message, data = null) {
   
   return ContentService
     .createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
@@ -172,3 +153,21 @@ function testSetup() {
   Logger.log('✅ Test client added successfully!');
   Logger.log('✅ Setup complete - ready for deployment!');
 }
+
+/**
+ * DEPLOYMENT INSTRUCTIONS:
+ * 
+ * 1. Copy this entire script to your Google Apps Script project
+ * 2. Save the project
+ * 3. Click "Deploy" > "New deployment"
+ * 4. Choose type: "Web app"
+ * 5. Set these settings:
+ *    - Execute as: Me
+ *    - Who has access: Anyone
+ * 6. Click "Deploy"
+ * 7. Copy the web app URL
+ * 8. Paste the URL in your app's sync settings
+ * 
+ * Note: CORS headers are automatically handled by Google Apps Script 
+ * when deployed as a web app with "Anyone" access.
+ */
