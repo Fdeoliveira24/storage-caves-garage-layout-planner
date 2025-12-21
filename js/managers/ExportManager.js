@@ -36,6 +36,22 @@ class ExportManager {
         category: item.category,
         color: item.color,
       })),
+      texts: (state.texts || []).map((text) => ({
+        id: text.id,
+        text: text.text,
+        x: text.x,
+        y: text.y,
+        angle: text.angle,
+        fontFamily: text.fontFamily,
+        fontSize: text.fontSize,
+        fill: text.fill,
+        fontWeight: text.fontWeight,
+        scaleX: text.scaleX,
+        scaleY: text.scaleY,
+        originX: text.originX,
+        originY: text.originY,
+        textAlign: text.textAlign,
+      })),
       settings: state.settings,
     };
 
@@ -423,6 +439,9 @@ class ExportManager {
               this.eventBus.emit('item:add:imported', itemData);
             });
           }
+
+          const importedTexts = Array.isArray(importData.texts) ? importData.texts : [];
+          this.eventBus.emit('text:imported:batch', importedTexts);
 
           Modal.showSuccess(
             `Layout "${importData.metadata?.projectName || 'Untitled'}" imported successfully!`,

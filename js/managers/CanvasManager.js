@@ -27,6 +27,12 @@ const SelectionFilters =
       },
       isSelectableObject(obj) {
         if (!obj) return false;
+        if (obj.type === 'i-text') {
+          if (this.isMeasurementObject(obj)) return false;
+          if (this.isLockedObject(obj)) return false;
+          if (obj.excludeFromSelection) return false;
+          return true;
+        }
         if (this.isFloorPlanObject(obj)) return false;
         if (this.isMeasurementObject(obj)) return false;
         if (this.isLockedObject(obj)) return false;
@@ -190,6 +196,7 @@ class CanvasManager {
 
   /**
    * Normalize Fabric selection to only include selectable objects
+   * Enforces mutually exclusive selections for measurements and text objects
    * @private
    */
   _normalizeSelection() {
@@ -198,17 +205,66 @@ class CanvasManager {
     if (!active) return [];
 
     if (active.type === 'activeSelection') {
-      const filtered = this._filterSelectableObjects(active.getObjects());
+      const objects = active.getObjects() || [];
+      const measurementObjs = objects.filter((obj) => SelectionFilters.isMeasurementObject(obj));
+      const textObjs = objects.filter((obj) => obj.type === 'i-text' && !SelectionFilters.isMeasurementObject(obj));
+      const itemObjs = objects.filter((obj) => SelectionFilters.isSelectableObject(obj) && obj.type !== 'i-text');
+
+      const hasMeasurement = measurementObjs.length > 0;
+      const hasText = textObjs.length > 0;
+      const hasItems = itemObjs.length > 0;
+
+      // Prevent mixed selection: measurement + anything (mutually exclusive)
+      if (hasMeasurement && (hasText || hasItems)) {
+        // Try to restore original state before corruption
+        if (typeof active._restoreObjectsState === 'function') {
+          active._restoreObjectsState();
+        }
+        // Disallow mixed selection entirely to prevent movement/corruption
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        return [];
+      }
+
+      // Only one text object can be selected at a time (mutually exclusive)
+      if (hasText && textObjs.length > 1) {
+        const firstText = textObjs[0];
+        this.canvas.setActiveObject(firstText);
+        this.canvas.requestRenderAll();
+        return [firstText];
+      }
+
+      // Prevent mixed selection: text + items (mutually exclusive)
+      if (hasText && hasItems) {
+        // Keep only items (discard text to maintain consistency)
+        if (itemObjs.length === 1) {
+          this.canvas.setActiveObject(itemObjs[0]);
+        } else if (itemObjs.length > 1) {
+          const selection = new fabric.ActiveSelection(itemObjs, { canvas: this.canvas });
+          this.canvas.setActiveObject(selection);
+        } else {
+          this.canvas.discardActiveObject();
+        }
+        this.canvas.requestRenderAll();
+        return itemObjs;
+      }
+
+      // Allow only: multiple items OR single text OR multiple measurements (all mutually exclusive)
+      const filtered = hasItems ? itemObjs : (hasText ? textObjs : measurementObjs);
       if (filtered.length === 0) {
         this.canvas.discardActiveObject();
         this.canvas.requestRenderAll();
         return [];
       }
-      if (filtered.length !== active.getObjects().length) {
-        const selection = new fabric.ActiveSelection(filtered, {
-          canvas: this.canvas,
-        });
-        this.canvas.setActiveObject(selection);
+      if (filtered.length !== objects.length) {
+        if (filtered.length === 1) {
+          this.canvas.setActiveObject(filtered[0]);
+        } else {
+          const selection = new fabric.ActiveSelection(filtered, {
+            canvas: this.canvas,
+          });
+          this.canvas.setActiveObject(selection);
+        }
         this.canvas.requestRenderAll();
       }
       return filtered;
@@ -227,6 +283,16 @@ class CanvasManager {
    */
   _filterSelectableObjects(objects = []) {
     return objects.filter((obj) => SelectionFilters.isSelectableObject(obj));
+  }
+
+  _hasMixedMeasurementSelection() {
+    const active = this.canvas?.getActiveObject?.();
+    if (!active || active.type !== 'activeSelection') return false;
+    const objects = active.getObjects?.() || [];
+    if (!objects.length) return false;
+    const hasMeasurement = objects.some((obj) => SelectionFilters.isMeasurementObject(obj));
+    const hasNonMeasurement = objects.some((obj) => !SelectionFilters.isMeasurementObject(obj));
+    return hasMeasurement && hasNonMeasurement;
   }
 
   /**
@@ -471,27 +537,75 @@ class CanvasManager {
 
     // Selection created
     this.canvas.on('selection:created', (_e) => {
+      if (this._hasMixedMeasurementSelection()) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
         this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
         return;
       }
       this.eventBus.emit('canvas:selection:created', normalized);
+      this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
     });
 
     // Selection updated
     this.canvas.on('selection:updated', (_e) => {
+      if (this._hasMixedMeasurementSelection()) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
         this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
         return;
       }
       this.eventBus.emit('canvas:selection:updated', normalized);
+      this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
     });
 
     // Selection cleared
     this.canvas.on('selection:cleared', () => {
       this.eventBus.emit('canvas:selection:cleared');
+      this.eventBus.emit('canvas:selection:changed', null);
+    });
+
+    // Disallow starting a mixed selection between measurement and non-measurement objects
+    this.canvas.on('mouse:down', (opt) => {
+      const target = opt?.target;
+      if (!target) return;
+      const active = this.canvas.getActiveObject();
+      if (!active) return;
+
+      const targetIsMeasurement = SelectionFilters.isMeasurementObject(target);
+
+      const activeObjects =
+        active.type === 'activeSelection' && typeof active.getObjects === 'function'
+          ? active.getObjects()
+          : [active];
+
+      const activeHasMeasurement = activeObjects.some((obj) => SelectionFilters.isMeasurementObject(obj));
+      const activeHasNonMeasurement = activeObjects.some((obj) => !SelectionFilters.isMeasurementObject(obj));
+
+      const activeIsMeasurementOnly = activeHasMeasurement && !activeHasNonMeasurement;
+      const activeIsNonMeasurementOnly = activeHasNonMeasurement && !activeHasMeasurement;
+
+      if (
+        (activeIsMeasurementOnly && !targetIsMeasurement) ||
+        (activeIsNonMeasurementOnly && targetIsMeasurement)
+      ) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+      }
     });
 
     // Mouse wheel zoom
@@ -1036,6 +1150,8 @@ class CanvasManager {
         color: isMezzanine ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
         blur: isMezzanine ? 0 : 3,
       }),
+      selectable: false,
+      evented: false,
     });
 
     // Group rectangle and label together with CENTER origin
@@ -1093,6 +1209,8 @@ class CanvasManager {
     group.on('rotating', keepLabelUpright);
     group.on('rotated', keepLabelUpright);
 
+    this._enforceFootprintSize(group, itemData);
+
     // Store custom data on group
     group.customData = { ...itemData };
 
@@ -1116,16 +1234,31 @@ class CanvasManager {
         originX: 'left',
         originY: 'top',
       });
-      img.scaleToWidth(width);
-      img.scaleY = height / img.height;
+
+      // Scale to fit within the defined dimensions while maintaining aspect ratio
+      const scaleX = width / img.width;
+      const scaleY = height / img.height;
+      const scale = Math.min(scaleX, scaleY);
+
+      img.scale(scale);
 
       const shapeChild = group.item(0);
       if (shapeChild && ['rect', 'circle', 'triangle'].includes(shapeChild.type)) {
-        group.remove(shapeChild);
+        // Keep the base shape as an invisible size anchor so text does not dictate group bounds
+        shapeChild.set({
+          fill: 'rgba(0,0,0,0)',
+          stroke: null,
+          strokeWidth: 0,
+          selectable: false,
+          evented: false,
+          excludeFromExport: true,
+        });
       }
 
-      group.insertAt(img, 0);
+      // Insert image above the base shape but below the label
+      group.insertAt(img, 1);
       group.addWithUpdate();
+      this._enforceFootprintSize(group, itemData);
       this.canvas.renderAll();
     } catch (error) {
       this._handleCanvasError('_swapGroupImage', error);
@@ -1322,6 +1455,32 @@ class CanvasManager {
       // centerAndFit() will set isAutoFitMode = true
       this.centerAndFit(width, height);
     }
+  }
+
+  /**
+   * Force the group's scaled size to match the declared footprint.
+   * Prevents images or labels from altering the physical dimensions on canvas.
+   * @private
+   */
+  _enforceFootprintSize(group, itemData) {
+    if (!group || !itemData) return;
+
+    const targetWidth = Helpers.feetToPx(itemData.widthFt);
+    const targetHeight = Helpers.feetToPx(itemData.lengthFt);
+    const currentScaledWidth = group.getScaledWidth();
+    const currentScaledHeight = group.getScaledHeight();
+
+    if (!currentScaledWidth || !currentScaledHeight) return;
+
+    const scaleX = group.scaleX || 1;
+    const scaleY = group.scaleY || 1;
+
+    const desiredScaleX = scaleX * (targetWidth / currentScaledWidth);
+    const desiredScaleY = scaleY * (targetHeight / currentScaledHeight);
+
+    group.scaleX = desiredScaleX;
+    group.scaleY = desiredScaleY;
+    group.setCoords();
   }
 
   /**

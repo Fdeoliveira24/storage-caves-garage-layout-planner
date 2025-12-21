@@ -22,17 +22,26 @@ class Modal {
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
 
+      // Preserve scroll position and lock body
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.classList.add('modal-open');
+
       // Mark that a confirm is currently open
       Modal._currentConfirm = true;
 
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.setAttribute('data-variant', 'confirm');
+      modal.setAttribute('role', 'alertdialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'modal-title');
 
       const header = document.createElement('div');
       header.className = 'modal-header';
       const titleEl = document.createElement('h3');
       titleEl.className = 'modal-title';
+      titleEl.id = 'modal-title';
       titleEl.textContent = title;
       header.appendChild(titleEl);
 
@@ -62,6 +71,13 @@ class Modal {
 
       const handleClose = (confirmed) => {
         document.removeEventListener('keydown', keyHandler);
+        document.removeEventListener('keydown', trapFocus);
+
+        // Restore scroll position
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, scrollY);
+
         // Clear the confirm guard flag
         Modal._currentConfirm = false;
         overlay.remove();
@@ -80,6 +96,23 @@ class Modal {
         }
       };
 
+      const trapFocus = (e) => {
+        if (e.key !== 'Tab') return;
+        const focusables = modal.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+
       confirmBtn.addEventListener('click', () => handleClose(true));
       cancelBtn.addEventListener('click', () => handleClose(false));
 
@@ -88,6 +121,7 @@ class Modal {
       });
 
       document.addEventListener('keydown', keyHandler);
+      document.addEventListener('keydown', trapFocus);
     });
   }
 
@@ -131,11 +165,15 @@ class Modal {
 
       const modal = document.createElement('div');
       modal.className = 'modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'modal-title');
 
       const header = document.createElement('div');
       header.className = 'modal-header';
       const titleEl = document.createElement('h3');
       titleEl.className = 'modal-title';
+      titleEl.id = 'modal-title';
       titleEl.textContent = title;
       header.appendChild(titleEl);
 
@@ -189,6 +227,7 @@ class Modal {
       const handleClose = (value) => {
         console.log('[Modal] Closing prompt, value:', value);
         document.removeEventListener('keydown', keyHandler);
+        document.removeEventListener('keydown', trapFocus);
         input.removeEventListener('focus', handleInputFocus);
         input.removeEventListener('blur', handleInputBlur);
 
@@ -226,6 +265,23 @@ class Modal {
         }
       };
 
+      const trapFocus = (e) => {
+        if (e.key !== 'Tab') return;
+        const focusables = modal.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+
       okBtn.addEventListener('click', () => handleClose(input.value || null));
       cancelBtn.addEventListener('click', () => handleClose(null));
 
@@ -234,10 +290,11 @@ class Modal {
       });
 
       document.addEventListener('keydown', keyHandler);
+      document.addEventListener('keydown', trapFocus);
     });
   }
 
-  static show(title, content) {
+  static show(title, content, options = {}) {
     return new Promise((resolve) => {
       // Guard: Close any existing modal before opening new one
       if (Modal._currentModal) {
@@ -249,13 +306,21 @@ class Modal {
       overlay.className = 'modal-overlay';
       overlay.style.display = 'flex';
 
+      // Preserve scroll position and lock body
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.classList.add('modal-open');
+
       const modal = document.createElement('div');
       modal.className = 'modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'modal-title');
 
       // Create modal structure
       const header = document.createElement('div');
       header.className = 'modal-header';
-      header.innerHTML = `<h3 class="modal-title">${title}</h3>`;
+      header.innerHTML = `<h3 class="modal-title" id="modal-title">${title}</h3>`;
 
       const body = document.createElement('div');
       body.className = 'modal-body';
@@ -267,20 +332,31 @@ class Modal {
         body.appendChild(content);
       }
 
-      const footer = document.createElement('div');
-      footer.className = 'modal-footer';
-      footer.innerHTML = `
-        <button class="modal-btn modal-btn-secondary" data-action="close">Close</button>
-      `;
-
       modal.appendChild(header);
       modal.appendChild(body);
-      modal.appendChild(footer);
+
+      // Only add default footer if not skipped
+      if (!options.skipDefaultFooter) {
+        const footer = document.createElement('div');
+        footer.className = 'modal-footer';
+        footer.innerHTML = `
+          <button class="modal-btn modal-btn-secondary" data-action="close">Close</button>
+        `;
+        modal.appendChild(footer);
+      }
+
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
 
       const handleClose = () => {
         document.removeEventListener('keydown', keyHandler);
+        document.removeEventListener('keydown', trapFocus);
+
+        // Restore scroll position
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, scrollY);
+
         overlay.remove();
         Modal._currentModal = null;
         resolve(true);
@@ -294,30 +370,64 @@ class Modal {
         }
       };
 
-      // Store reference for Modal.close() - including keyHandler for proper cleanup
+      const trapFocus = (e) => {
+        if (e.key !== 'Tab') return;
+        const focusables = modal.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+
+      // Store reference for Modal.close() - including all handlers and scroll state for proper cleanup
       Modal._currentModal = {
         overlay,
         resolve,
         keyHandler,
+        trapFocus,
+        scrollY,
       };
 
-      footer.querySelector('[data-action="close"]').addEventListener('click', handleClose);
+      // Add close button listener only if footer exists
+      const closeButton = modal.querySelector('[data-action="close"]');
+      if (closeButton) {
+        closeButton.addEventListener('click', handleClose);
+      }
 
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) handleClose();
       });
 
       document.addEventListener('keydown', keyHandler);
+      document.addEventListener('keydown', trapFocus);
     });
   }
 
   static close() {
     if (Modal._currentModal) {
-      const { overlay, resolve, keyHandler } = Modal._currentModal;
+      const { overlay, resolve, keyHandler, trapFocus, scrollY } = Modal._currentModal;
 
-      // Clean up event listener if keyHandler exists
+      // Clean up all event listeners
       if (keyHandler) {
         document.removeEventListener('keydown', keyHandler);
+      }
+      if (trapFocus) {
+        document.removeEventListener('keydown', trapFocus);
+      }
+
+      // Restore scroll position and unlock body
+      document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+      if (typeof scrollY === 'number') {
+        window.scrollTo(0, scrollY);
       }
 
       overlay.remove();

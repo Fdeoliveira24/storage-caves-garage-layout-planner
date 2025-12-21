@@ -81,6 +81,10 @@ class MeasurementTool {
     this._createMeasurement(this.startPoint, endPoint);
     this.startPoint = null;
     this._removeStartIndicator();
+    
+    // Auto-disable measurement tool after completing one measurement
+    // This prevents mixed selections and makes each measurement mutually exclusive
+    this.disableMeasurementMode();
   }
 
   _createMeasurement(start, end) {
@@ -96,7 +100,6 @@ class MeasurementTool {
       evented: false,
       measurementId: measurementId,
       measurementPart: 'tick',
-      excludeFromSave: true,
     });
 
     const endTick = new fabric.Line([end.x, end.y - tickLen, end.x, end.y + tickLen], {
@@ -106,7 +109,6 @@ class MeasurementTool {
       evented: false,
       measurementId: measurementId,
       measurementPart: 'tick',
-      excludeFromSave: true,
     });
 
     // Main line - this is the movable object
@@ -122,7 +124,6 @@ class MeasurementTool {
       hoverCursor: 'move',
       measurementId: measurementId,
       measurement: true,
-      excludeFromSave: true,
     });
 
     // Handles for adjusting endpoints
@@ -141,7 +142,6 @@ class MeasurementTool {
       hoverCursor: 'pointer',
       measurementId: measurementId,
       measurementHandle: 'start',
-      excludeFromSave: true,
     });
 
     const endHandle = new fabric.Circle({
@@ -159,7 +159,6 @@ class MeasurementTool {
       hoverCursor: 'pointer',
       measurementId: measurementId,
       measurementHandle: 'end',
-      excludeFromSave: true,
     });
 
     const midX = (start.x + end.x) / 2;
@@ -181,7 +180,6 @@ class MeasurementTool {
       opacity: showLabels ? 1 : 0,
       measurementId: measurementId,
       measurementPart: 'text',
-      excludeFromSave: true,
     });
 
     this.canvas.add(startTick);
@@ -196,8 +194,21 @@ class MeasurementTool {
     this.canvas.add(endHandle);
     this.canvas.add(text);
 
+    // Save measurement to state
+    const measurementData = {
+      id: measurementId,
+      start: { x: start.x, y: start.y },
+      end: { x: end.x, y: end.y },
+      distanceFeet: distanceFeet,
+    };
+    
+    const measurements = this.state?.get('measurements') || [];
+    measurements.push(measurementData);
+    this.state?.set('measurements', measurements);
+
     this.canvas.renderAll();
     this.eventBus?.emit('tool:measure:complete', { distanceFeet, lineId: measurementId });
+    this.eventBus?.emit('measurement:added', measurementData);
   }
 
   _handleObjectMoving(e) {
@@ -457,6 +468,33 @@ class MeasurementTool {
 
     const objects = this.canvas.getObjects().filter((obj) => obj.measurementId === measurementId);
     objects.forEach((obj) => this.canvas.remove(obj));
+    
+    // Remove from state
+    const measurements = this.state?.get('measurements') || [];
+    const updatedMeasurements = measurements.filter((m) => m.id !== measurementId);
+    this.state?.set('measurements', updatedMeasurements);
+    
+    this.canvas.renderAll();
+    this.eventBus?.emit('measurement:removed', measurementId);
+  }
+
+  /**
+   * Restore measurements from state (used during undo/redo)
+   */
+  restoreMeasurementsFromState(measurementsData) {
+    if (!Array.isArray(measurementsData) || !this.canvas) return;
+
+    // Remove existing measurements from canvas first
+    const existingMeasurements = this.canvas.getObjects().filter((obj) => obj.measurementId);
+    existingMeasurements.forEach((obj) => this.canvas.remove(obj));
+
+    // Recreate measurements from data
+    measurementsData.forEach((data) => {
+      if (data.start && data.end) {
+        this._createMeasurement(data.start, data.end);
+      }
+    });
+
     this.canvas.renderAll();
   }
 

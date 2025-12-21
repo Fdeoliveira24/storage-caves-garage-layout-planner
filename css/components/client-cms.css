@@ -104,7 +104,9 @@
   border-radius: 6px;
   color: var(--cms-text-secondary);
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .client-cms__close:hover {
@@ -155,7 +157,9 @@
   background: var(--cms-bg);
   font-size: 14px;
   color: var(--cms-text);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .client-cms__search::placeholder {
@@ -163,7 +167,7 @@
 }
 
 .client-cms__search:hover {
-  border-color: #cbd5e1;
+  border-color: var(--color-border-hover);
 }
 
 .client-cms__search:focus {
@@ -196,7 +200,10 @@
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .client-cms .cms-btn svg {
@@ -207,14 +214,14 @@
 
 .client-cms .cms-btn:hover {
   background: var(--cms-bg-secondary);
-  border-color: #cbd5e1;
+  border-color: var(--color-border-hover);
 }
 
 .client-cms .cms-btn--primary {
   flex: 1;
   background: var(--cms-primary);
   border-color: var(--cms-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .client-cms .cms-btn--primary:hover {
@@ -248,7 +255,7 @@
 }
 
 .btn-ghost.danger:hover {
-  background: #fee;
+  background: var(--color-primary-light);
 }
 
 /* Dropdown (inside CMS toolbar) */
@@ -268,7 +275,10 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
-  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    visibility 150ms ease;
   z-index: 10;
   overflow: hidden;
 }
@@ -308,7 +318,7 @@
 /* Visual divider inside combined Import/Export menu */
 .cms-dropdown__divider {
   height: 1px;
-  background: var(--cms-border-light, #e6e9ef);
+  background: var(--cms-border-light);
   margin: 8px 0;
 }
 
@@ -374,12 +384,14 @@
   border: 1px solid var(--cms-border);
   border-radius: 10px;
   margin-bottom: 10px;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
   cursor: pointer;
 }
 
 .client-cms__card:hover {
-  border-color: #d4d4d8;
+  border-color: var(--color-border);
   box-shadow: var(--cms-shadow-sm);
 }
 
@@ -447,7 +459,9 @@
   border-radius: 6px;
   color: var(--cms-text-secondary);
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .client-cms__action-btn svg {
@@ -461,7 +475,7 @@
 }
 
 .client-cms__action-btn--danger:hover {
-  background: #fef2f2;
+  background: var(--color-primary-light);
   color: var(--cms-danger);
 }
 
@@ -478,14 +492,16 @@
   transform: translateX(-50%);
   padding: 6px 10px;
   background: var(--cms-text);
-  color: #fff;
+  color: var(--color-text-inverse);
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
   border-radius: 6px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 150ms ease, visibility 150ms ease;
+  transition:
+    opacity 150ms ease,
+    visibility 150ms ease;
   pointer-events: none;
   margin-bottom: 4px;
 }
@@ -528,7 +544,7 @@
 }
 
 .client-cms-form__label--required::after {
-  content: " *";
+  content: ' *';
   color: var(--cms-danger);
 }
 
@@ -537,18 +553,20 @@
 .client-cms-form__textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--modal-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-bg);
   font-size: 14px;
-  color: #0f172a;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  color: var(--cms-text);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .client-cms-form__input:hover,
 .client-cms-form__select:hover,
 .client-cms-form__textarea:hover {
-  border-color: #cbd5e1;
+  border-color: var(--color-border-hover);
 }
 
 .client-cms-form__input:focus,
@@ -561,7 +579,7 @@
 
 .client-cms-form__input::placeholder,
 .client-cms-form__textarea::placeholder {
-  color: #94a3b8;
+  color: var(--cms-text-tertiary);
 }
 
 .client-cms-form__textarea {
@@ -572,7 +590,7 @@
 
 .client-cms-form__helper {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--cms-text-tertiary);
   margin-top: 4px;
 }
 
@@ -583,13 +601,13 @@
   bottom: 8px;
   right: 12px;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--cms-text-tertiary);
   pointer-events: none;
 }
 
 .client-cms-form__char-count--warning,
 .char-count.near-limit {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .client-cms-form__char-count--limit,
@@ -603,11 +621,9 @@
 .client-form select,
 .client-form #cf-unit {
   appearance: none;
-  appearance: none;
-  appearance: none;
   width: 100%;
   padding: 10px 40px 10px 12px;
-  background-color: #fff;
+  background-color: var(--color-bg);
   background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23E74C3C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
@@ -618,7 +634,9 @@
   font-weight: 500;
   color: var(--cms-text);
   cursor: pointer;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .client-cms-form__select:hover,
@@ -647,16 +665,29 @@
   color: var(--cms-primary);
 }
 
-/* Assigned Layouts Management in Edit Client */
+/* Assigned Layouts Management in Edit Client - Compact Horizontal Layout */
+.client-cms-form__group--layouts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-cms-form__layouts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
 .client-cms-form__layouts-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  min-height: 42px;
-  padding: 8px;
-  border: 1px solid #e2e8f0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--modal-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-bg);
   align-items: center;
 }
 
@@ -681,7 +712,7 @@
   padding: 0;
   border: none;
   background: var(--cms-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   border-radius: 50%;
   font-size: 14px;
   line-height: 1;
@@ -695,14 +726,16 @@
 
 .client-cms-form__layout-empty {
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--cms-text-tertiary);
   font-style: italic;
 }
 
 .client-cms-form__layout-assign-btn {
   width: 100%;
-  margin-top: 8px;
-  padding: 9px 12px;
+  height: 100%;
+  min-height: 46px;
+  margin-top: 0;
+  padding: 10px 16px;
   border: 1px dashed var(--cms-primary);
   border-radius: 8px;
   background: transparent;
@@ -712,9 +745,13 @@
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background 150ms ease, border-style 150ms ease, color 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 150ms ease,
+    border-style 150ms ease,
+    color 150ms ease;
 }
 
 .client-cms-form__layout-assign-btn:hover:not(:disabled) {
@@ -725,14 +762,15 @@
 .client-cms-form__layout-assign-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  color: #94a3b8;
-  border-color: #e2e8f0;
+  color: var(--cms-text-tertiary);
+  border-color: var(--modal-border);
 }
 
 .client-cms-form__layout-hint {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 0;
+  font-size: 11px;
   color: var(--cms-text-tertiary);
+  line-height: 1.4;
 }
 
 /* Modal footer for client form (custom layout) */
@@ -741,9 +779,9 @@
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: none;
 }
 
 .cms-modal-footer .modal-btn,
@@ -753,46 +791,54 @@
   justify-content: center;
   height: 38px;
   padding: 0 18px;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .cms-modal-footer .modal-btn-secondary,
 .client-cms-modal-footer .modal-btn-secondary {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  color: #374151;
+  background: var(--color-bg);
+  color: var(--modal-text);
+  border-color: var(--modal-border);
 }
 
 .cms-modal-footer .modal-btn-secondary:hover,
 .client-cms-modal-footer .modal-btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--color-bg-secondary);
+  border-color: var(--modal-border);
 }
 
 .cms-modal-footer .modal-btn-primary,
 .client-cms-modal-footer .modal-btn-primary {
-  background: var(--cms-primary);
-  border: 1px solid var(--cms-primary);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
 }
 
 .cms-modal-footer .modal-btn-primary:hover,
 .client-cms-modal-footer .modal-btn-primary:hover {
-  background: var(--cms-primary-hover);
-  border-color: var(--cms-primary-hover);
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 /* Primary button color guard */
 .cms-btn-primary,
-.cms-btn--primary,
-.cms-modal-footer .modal-btn-primary {
-  background: #d95747 !important;
-  color: #fff !important;
-  border: 1px solid transparent;
+.cms-btn--primary {
+  background: var(--cms-primary);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--cms-primary);
+}
+
+.cms-btn-primary:hover,
+.cms-btn--primary:hover {
+  background: var(--cms-primary-hover);
+  border-color: var(--cms-primary-hover);
 }
 
 /* ==========================================================================
@@ -821,19 +867,19 @@
 .client-cms-view__value {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--modal-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-bg);
   font-size: 14px;
   color: var(--cms-text);
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   min-height: 42px;
   line-height: 1.5;
   text-align: left;
 }
 
 .client-cms-view__value--empty {
-  color: #94a3b8;
+  color: var(--cms-text-tertiary);
   font-style: italic;
 }
 
@@ -857,9 +903,10 @@
    ========================================================================== */
 
 .flatpickr-calendar {
-  background: #fff !important;
+  background: var(--color-bg) !important;
+  border: 1px solid var(--modal-border) !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%) !important;
+  box-shadow: var(--shadow-lg) !important;
   font-family: inherit !important;
   padding: 10px 12px 14px !important;
   min-width: 340px !important;
@@ -867,7 +914,7 @@
   left: 50% !important;
   top: 50% !important;
   transform: translate(-50%, -50%) !important;
-  z-index: 10000 !important;
+  z-index: var(--z-datepicker) !important;
   margin: 0 !important;
   width: auto !important;
   max-width: calc(100vw - 32px) !important;
@@ -913,8 +960,8 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 180px !important;
-  max-width: none !important;
+  min-height: 44px !important;
+  width: 225px !important;
 }
 
 .flatpickr-current-month {
@@ -927,24 +974,23 @@
   padding-top: 0 !important;
   font-size: 15px !important;
   font-weight: 600 !important;
-  color: #1a1a1a !important;
+  color: var(--cms-text) !important;
 }
 
 /* Month dropdown */
 .flatpickr-current-month .flatpickr-monthDropdown-months {
   min-width: 120px !important;
   width: auto !important;
+  height: 36px !important;
   flex: 0 0 auto !important;
   padding: 8px 32px 8px 12px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--modal-border) !important;
   border-radius: 8px !important;
-  background: #fff !important;
+  background: var(--color-bg) !important;
   font-size: 15px !important;
   font-weight: 600 !important;
-  color: #1a1a1a !important;
+  color: var(--cms-text) !important;
   cursor: pointer !important;
-  appearance: none !important;
-  appearance: none !important;
   appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23858585' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
@@ -966,12 +1012,12 @@
   width: 80px !important;
   height: 36px !important;
   padding: 8px 10px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--modal-border) !important;
   border-radius: 8px !important;
-  background: #fff !important;
+  background: var(--color-bg) !important;
   font-size: 15px !important;
   font-weight: 600 !important;
-  color: #1a1a1a !important;
+  color: var(--cms-text) !important;
   text-align: center !important;
   cursor: pointer !important;
   appearance: none !important;
@@ -981,8 +1027,8 @@
 /* Keep arrow buttons as simple square buttons on left/right */
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  color: #525252 !important;
-  fill: #525252 !important;
+  color: var(--color-text-secondary) !important;
+  fill: var(--color-text-secondary) !important;
   padding: 8px !important;
   border-radius: 8px !important;
   width: 40px !important;
@@ -993,18 +1039,20 @@
   position: static !important;
   flex: 0 0 auto !important;
   cursor: pointer !important;
-  transition: background 150ms ease, color 150ms ease !important;
+  transition:
+    background 150ms ease,
+    color 150ms ease !important;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover,
 .flatpickr-months .flatpickr-next-month:hover {
-  background: #fadbd8 !important;
-  color: #e74c3c !important;
+  background: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
 .flatpickr-months .flatpickr-next-month:hover svg {
-  fill: #e74c3c !important;
+  fill: var(--color-primary) !important;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -1016,14 +1064,14 @@
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months:hover {
-  border-color: #d4d4d4 !important;
-  background: #f5f5f5 !important;
+  border-color: var(--color-border) !important;
+  background: var(--color-bg-tertiary) !important;
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months:focus,
 .flatpickr-current-month input.cur-year:focus {
   outline: none !important;
-  border-color: #e74c3c !important;
+  border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px rgb(231 76 60 / 12%) !important;
 }
 
@@ -1045,7 +1093,7 @@
 
 span.flatpickr-weekday {
   background: transparent !important;
-  color: #858585 !important;
+  color: var(--color-text-tertiary) !important;
   font-size: 12px !important;
   font-weight: 600 !important;
   letter-spacing: 0 !important;
@@ -1072,7 +1120,7 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-day {
-  color: #1a1a1a !important;
+  color: var(--cms-text) !important;
   border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -1080,7 +1128,10 @@ span.flatpickr-weekday {
   height: 40px !important;
   line-height: 40px !important;
   border: 2px solid transparent !important;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease !important;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease !important;
   box-shadow: none !important;
   display: flex !important;
   align-items: center !important;
@@ -1088,22 +1139,22 @@ span.flatpickr-weekday {
 }
 
 .flatpickr-day:hover {
-  background: #fadbd8 !important;
+  background: var(--color-primary-light) !important;
   border-color: transparent !important;
-  color: #e74c3c !important;
+  color: var(--color-primary) !important;
 }
 
 .flatpickr-day.today {
-  border-color: #e74c3c !important;
+  border-color: var(--color-primary) !important;
   background: transparent !important;
-  color: #e74c3c !important;
+  color: var(--color-primary) !important;
   font-weight: 700 !important;
 }
 
 .flatpickr-day.today:hover {
-  background: #fadbd8 !important;
-  border-color: #e74c3c !important;
-  color: #e74c3c !important;
+  background: var(--color-primary-light) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }
 
 .flatpickr-day.selected,
@@ -1124,16 +1175,18 @@ span.flatpickr-weekday {
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #e74c3c !important;
-  border-color: #e74c3c !important;
-  color: #fff !important;
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
   box-shadow: none !important;
 }
 
 .flatpickr-day.inRange {
-  background: #fde5e1 !important;
-  border-color: #fde5e1 !important;
-  box-shadow: -5px 0 0 #fde5e1, 5px 0 0 #fde5e1 !important;
+  background: var(--color-primary-light) !important;
+  border-color: var(--color-primary-light) !important;
+  box-shadow:
+    -5px 0 0 var(--color-primary-light),
+    5px 0 0 var(--color-primary-light) !important;
 }
 
 .flatpickr-day.flatpickr-disabled,
@@ -1143,83 +1196,27 @@ span.flatpickr-weekday {
 .flatpickr-day.notAllowed,
 .flatpickr-day.notAllowed.prevMonthDay,
 .flatpickr-day.notAllowed.nextMonthDay {
-  color: #c4c4c4 !important;
+  color: var(--color-text-disabled) !important;
   background: transparent !important;
   border-color: transparent !important;
 }
 
 .flatpickr-day.flatpickr-disabled:hover {
   cursor: not-allowed !important;
-  background: #f5f5f5 !important;
+  background: var(--color-bg-tertiary) !important;
 }
 
 .flatpickr-input[readonly] {
   cursor: text;
-  background: #fff;
+  background: var(--color-bg);
 }
 
 /* ==========================================================================
    Modal tweaks for CMS
    ========================================================================== */
 
-/* Remove header/footer borders and default footer for forms to avoid double Close button */
-.modal:has(.client-cms-form) .modal-header {
-  border-bottom: none !important;
-}
-
-.modal:has(.client-cms-form) .modal-footer {
-  display: none !important;
-}
-
-/* Hide modal X button for forms (use Cancel / Save in footer) */
-.modal:has(.client-cms-form) .modal-close {
-  display: none !important;
-}
-
-/* For Client Details: keep Close button, just remove extra borders */
-.modal:has(.client-cms-view) .modal-header {
-  border-bottom: none !important;
-}
-
-.modal:has(.client-cms-view) .modal-footer {
-  border-top: none !important;
-}
-
-/* Make Client modals taller to prevent scrolling */
-.modal:has(.client-cms-form),
-.modal:has(.client-cms-view) {
-  max-height: 92vh !important;
-}
-
-.modal:has(.client-cms-form) .modal-body,
-.modal:has(.client-cms-view) .modal-body {
-  max-height: none !important;
-  overflow-y: visible !important;
-}
-
-/* Style Close button in Client Details - RED BUTTON WITH WHITE TEXT like Save Changes */
-.modal:has(.client-cms-view) .modal-footer .modal-btn,
-.modal:has(.client-cms-view) .modal-footer button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 38px;
-  padding: 0 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  background: var(--cms-primary);
-  border: 1px solid var(--cms-primary);
-  color: #fff;
-  transition: background 150ms ease, border-color 150ms ease;
-}
-
-.modal:has(.client-cms-view) .modal-footer .modal-btn:hover,
-.modal:has(.client-cms-view) .modal-footer button:hover {
-  background: var(--cms-primary-hover);
-  border-color: var(--cms-primary-hover);
-}
+/* Style Close button in Client Details - no :has() dependency needed,
+   base modal styles handle this via .modal-btn classes */
 
 /* ==========================================================================
    Responsive
@@ -1283,7 +1280,7 @@ span.flatpickr-weekday {
 }
 
 .sheets-sync-status.syncing {
-  background: #f39c12;
+  background: var(--color-warning);
   color: white;
 }
 
@@ -1308,8 +1305,12 @@ span.flatpickr-weekday {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Fix dropdown positioning and prevent cutoff */
@@ -1374,48 +1375,14 @@ span.flatpickr-weekday {
 
 .connection-indicator.connected {
   background: var(--cms-success);
-  box-shadow: 0 0 4px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 0 4px rgb(39 174 96 / 40%);
 }
 
 .connection-indicator.disconnected {
   background: var(--cms-text-tertiary);
 }
 
-/* Updated Modal Styling to Match Design System */
-.modal .modal-content {
-  background: var(--cms-bg);
-  border-radius: 12px;
-  box-shadow: var(--cms-shadow-lg);
-  max-width: 540px;
-  width: 90vw;
-  max-height: 85vh;
-  overflow: hidden;
-}
-
-.modal .modal-header {
-  padding: 20px 24px 0 24px;
-  border-bottom: none;
-}
-
-.modal .modal-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--cms-text);
-  margin: 0;
-}
-
-.modal .modal-body {
-  padding: 20px 24px;
-  overflow-y: auto;
-  max-height: calc(85vh - 140px);
-}
-
-.modal .modal-footer {
-  padding: 0 24px 20px 24px;
-  border-top: 1px solid var(--cms-border-light);
-  background: var(--cms-bg-secondary);
-  margin: 0;
-}
+/* Sheets Settings Container */
 .sheets-settings-container {
   max-width: 500px;
   padding: 0;
@@ -1443,7 +1410,9 @@ span.flatpickr-weekday {
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
   font-family: var(--font-family);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   box-sizing: border-box;
   background: var(--color-bg);
   color: var(--color-text-primary);
@@ -1452,7 +1421,7 @@ span.flatpickr-weekday {
 .sheets-settings-container .setting-input:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+  box-shadow: 0 0 0 2px rgb(231 76 60 / 10%);
 }
 
 .sheets-settings-container .setting-help {
@@ -1470,7 +1439,7 @@ span.flatpickr-weekday {
   user-select: none;
 }
 
-.sheets-settings-container .checkbox-container input[type="checkbox"] {
+.sheets-settings-container .checkbox-container input[type='checkbox'] {
   margin-right: var(--spacing-sm);
   transform: scale(1.1);
 }
@@ -1589,43 +1558,49 @@ span.flatpickr-weekday {
 
 /* Brand-compliant button styling for Google Sheets modal */
 .sheets-settings-container .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 18px;
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border: 1px solid var(--color-primary);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-family);
+  border-radius: var(--radius-button);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
-  line-height: var(--line-height-normal);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .sheets-settings-container .btn-primary:hover {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
-  box-shadow: var(--shadow-md);
 }
 
 .sheets-settings-container .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 18px;
   background: var(--color-bg);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-family);
+  color: var(--modal-text);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--radius-button);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  line-height: var(--line-height-normal);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
 .sheets-settings-container .btn-secondary:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-bg-secondary);
+  border-color: var(--modal-border);
 }
 
 .sheets-settings-content {
@@ -1675,8 +1650,8 @@ span.flatpickr-weekday {
   color: var(--cms-text);
 }
 
-.sheets-settings-form input[type="url"],
-.sheets-settings-form input[type="text"] {
+.sheets-settings-form input[type='url'],
+.sheets-settings-form input[type='text'] {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--cms-border);
@@ -1714,7 +1689,7 @@ span.flatpickr-weekday {
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   margin: 0;
   width: auto;
 }
@@ -1739,13 +1714,66 @@ span.flatpickr-weekday {
   font-size: 13px;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
+/* Layout picker modal */
+.client-cms-layout-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--cms-border-light);
+  margin-top: 16px;
+  width: 100%;
+}
+
+.client-cms-layout-picker__item {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--cms-border, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--color-bg-panel, #fff);
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.client-cms-layout-picker__item:hover {
+  border-color: var(--cms-primary, #e74c3c);
+  box-shadow: 0 12px 32px rgb(231 76 60 / 16%);
+  transform: translateY(-1px);
+}
+
+.client-cms-layout-picker__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--cms-primary-light);
+  color: var(--cms-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.client-cms-layout-picker__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.client-cms-layout-picker__name {
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  letter-spacing: -0.01em;
+  font-size: 15px;
+}
+
+.client-cms-layout-picker__meta {
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
 }
 
 .sheets-settings-actions {
@@ -1801,15 +1829,15 @@ span.flatpickr-weekday {
 }
 
 .sheets-status-message.error {
-  background: #fdeaea;
+  background: var(--color-primary-light);
   color: var(--cms-danger);
   border: 1px solid var(--cms-danger);
 }
 
 .sheets-status-message.warning {
-  background: #fef7e0;
-  color: #f39c12;
-  border: 1px solid #f39c12;
+  background: var(--color-bg-tertiary);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
 }
 
 /* Fix Google Sheets button and dropdown positioning */

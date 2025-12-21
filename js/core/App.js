@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel */
 
 /**
  * Main Application Controller
@@ -14,6 +14,8 @@ class App {
     this.selectionManager = null;
     this.exportManager = null;
     this.historyManager = null;
+    this.textManager = null;
+    this.textPropertiesPanel = null;
     this.sidebarCollapsed = false;
     this.mobileUIManager = null;
     this.clientCMS = null;
@@ -42,6 +44,7 @@ class App {
     this.canvasManager = new CanvasManager('canvas', this.state, this.eventBus);
     this.canvasManager.init();
     this.measurementTool = this.canvasManager.getMeasurementTool();
+    this.textManager = new TextManager(this.state, this.eventBus, this.canvasManager);
 
     // Ensure viewport starts at default state
     this.canvasManager.resetViewport();
@@ -53,6 +56,8 @@ class App {
     this.selectionManager = new SelectionManager(this.state, this.eventBus, this.canvasManager);
     this.exportManager = new ExportManager(this.state, this.eventBus, this.canvasManager);
     this.historyManager = new HistoryManager(this.state, this.eventBus);
+    this.textPropertiesPanel = new TextPropertiesPanel(this.state, this.eventBus, this.textManager);
+    this.textPropertiesPanel.init();
 
     // Setup event listeners
     this.setupEventListeners();
@@ -78,7 +83,7 @@ class App {
     if (window.ClientCMS && Config.FEATURES?.enableClientManagement) {
       this.clientCMS = new ClientCMS(this);
       this.clientCMS.init();
-      
+
       // Initialize Google Sheets sync for ClientCMS
       if (window.GoogleSheetsSync) {
         this.clientCMS.initGoogleSheets(this.eventBus);
@@ -171,8 +176,16 @@ class App {
    * Setup event listeners
    */
   setupEventListeners() {
+    const saveTextHistory = Helpers.debounce(() => this.saveHistorySnapshot(), 150);
+
     // Canvas events
     this.eventBus.on('canvas:object:modified', (obj) => {
+      // Text objects: skip item position updates but still capture history
+      if (obj && obj.type === 'i-text') {
+        saveTextHistory();
+        return;
+      }
+
       // Update item position in state when moved
       // obj.left and obj.top are already center coords due to originX/Y: 'center'
       if (obj && obj.customData && obj.customData.id) {
@@ -314,6 +327,49 @@ class App {
       this.updateInfoPanel();
     });
 
+    this.eventBus.on('canvas:selection:changed', () => {
+      this.updateInfoPanel();
+    });
+
+    const syncTextToolButton = (isActive) => {
+      const textBtn = document.getElementById('btn-text');
+      if (!textBtn) return;
+      textBtn.classList.toggle('is-active', !!isActive);
+    };
+
+    this.eventBus.on('text:tool:activated', () => {
+      syncTextToolButton(true);
+      // Disable measurement tool if text tool is activated
+      if (this.measurementModeActive && this.measurementTool?.disableMeasurementMode) {
+        this.measurementTool.disableMeasurementMode();
+        this.setMeasurementModeActive(false);
+      }
+    });
+    this.eventBus.on('text:tool:deactivated', () => syncTextToolButton(false));
+
+    // Text events
+    this.eventBus.on('text:added', () => {
+      this.saveHistorySnapshot();
+    });
+
+    this.eventBus.on('text:modified', () => {
+      saveTextHistory();
+    });
+
+    this.eventBus.on('text:deleted', () => {
+      this.saveHistorySnapshot();
+      this.updateInfoPanel();
+    });
+
+    // Measurement events
+    this.eventBus.on('measurement:added', () => {
+      this.saveHistorySnapshot();
+    });
+
+    this.eventBus.on('measurement:removed', () => {
+      this.saveHistorySnapshot();
+    });
+
     // Rotation event (from keyboard 'R' or desktop rotate button)
     this.eventBus.on('items:rotated', () => {
       this.saveHistorySnapshot();
@@ -444,6 +500,30 @@ class App {
         this.selectionManager.deleteSelected();
       }
 
+      if (e.key === 'Escape') {
+        const canvas = this.canvasManager?.getCanvas?.();
+        const active = canvas?.getActiveObject?.();
+        if (active && (active.type === 'i-text' || active.type === 'textbox')) {
+          if (active.isEditing && typeof active.exitEditing === 'function') {
+            active.exitEditing();
+          }
+          this.textManager?.deactivate();
+          canvas.requestRenderAll();
+          e.preventDefault();
+          return;
+        }
+
+        if (this.textManager?.active) {
+          this.textManager.deactivate();
+        }
+      }
+
+      if (!e.defaultPrevented && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        this.textManager.toggle();
+        return;
+      }
+
       // Ctrl/⌘ + Z / Shift+Z - Undo / Redo
       if (ctrl && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -471,6 +551,31 @@ class App {
       if (ctrl && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         this.selectionManager.selectAll();
+      }
+
+      // Text formatting shortcuts (active text only)
+      const activeObj = this.canvasManager?.getCanvas?.()?.getActiveObject?.();
+      const isText = activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox');
+
+      if (isText && ctrl) {
+        const key = e.key.toLowerCase();
+        if (key === 'b') {
+          e.preventDefault();
+          const nextWeight = activeObj.fontWeight === 'bold' ? 'normal' : 'bold';
+          this.textManager.updateTextProperty('fontWeight', nextWeight);
+          return;
+        }
+        if (key === 'i') {
+          e.preventDefault();
+          const nextStyle = activeObj.fontStyle === 'italic' ? 'normal' : 'italic';
+          this.textManager.updateTextProperty('fontStyle', nextStyle);
+          return;
+        }
+        if (key === 'u') {
+          e.preventDefault();
+          this.textManager.updateTextProperty('underline', !activeObj.underline);
+          return;
+        }
       }
 
       // Ctrl/⌘ + C - Copy (selection required)
@@ -630,8 +735,11 @@ class App {
 
     const measureBtn = document.getElementById('btn-measure');
     if (measureBtn) {
-      measureBtn.removeAttribute('aria-pressed');
-      measureBtn.classList.remove('is-active');
+      measureBtn.setAttribute('aria-pressed', String(this.measurementModeActive));
+      measureBtn.classList.toggle('is-active', this.measurementModeActive);
+    }
+    if (this.measurementModeActive && this.textManager?.active) {
+      this.textManager.deactivate();
     }
     const measureToggleText = document.getElementById('measure-toggle-text');
     if (measureToggleText) {
@@ -656,6 +764,7 @@ class App {
   initializeUI() {
     this.renderFloorPlanList();
     this.renderItemPalette();
+    this.renderSavedLayouts();
     this.updateInfoPanel();
     this.setupToolbarHandlers();
     this.setupTabSwitching();
@@ -663,6 +772,116 @@ class App {
     this.setupDropdowns();
     this.syncViewDropdownUI();
     this.setMeasurementModeActive(this.measurementModeActive);
+    this.setupSearchFilter();
+    this.setupDraggableToolbar();
+  }
+
+  /**
+   * Search filter handler for sidebar
+   */
+  setupSearchFilter() {
+    const searchInput = document.getElementById('sidebar-search');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+
+      // Filter floor plans
+      document.querySelectorAll('.floorplan-item').forEach((item) => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? '' : 'none';
+      });
+
+      // Filter palette items
+      document.querySelectorAll('.palette-item').forEach((item) => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? '' : 'none';
+      });
+
+      // Filter saved layouts
+      document.querySelectorAll('.saved-layout-item').forEach((item) => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? '' : 'none';
+      });
+    });
+  }
+
+  /**
+   * Expandable section toggle handler
+   */
+  /**
+   * Draggable toolbar handler
+   */
+  setupDraggableToolbar() {
+    const toolbar = document.getElementById('floatingToolbar');
+    const dragHandle = toolbar?.querySelector('.toolbar-drag-handle');
+    if (!toolbar || !dragHandle) return;
+
+    let isDragging = false;
+    let hasMoved = false;
+    let startX = 0;
+    let startY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    dragHandle.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+
+      isDragging = true;
+      hasMoved = false;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      // Get current position BEFORE modifying styles
+      const rect = toolbar.getBoundingClientRect();
+      const parentRect = toolbar.offsetParent?.getBoundingClientRect() || { left: 0, top: 0 };
+      initialLeft = rect.left - parentRect.left;
+      initialTop = rect.top - parentRect.top;
+
+      toolbar.style.cursor = 'grabbing';
+      dragHandle.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      // Only start actual dragging if moved more than 3px (prevents accidental jumps on click)
+      if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        hasMoved = true;
+        // NOW remove the default positioning styles
+        toolbar.style.bottom = 'auto';
+        toolbar.style.transform = 'none';
+      }
+
+      if (!hasMoved) return;
+
+      const parentRect = toolbar.offsetParent?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const maxLeft = parentRect.width - toolbarRect.width - 8;
+      const maxTop = parentRect.height - toolbarRect.height - 8;
+      const nextLeft = clamp(initialLeft + dx, 8, maxLeft);
+      const nextTop = clamp(initialTop + dy, 8, maxTop);
+      toolbar.style.left = `${nextLeft}px`;
+      toolbar.style.top = `${nextTop}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        toolbar.style.cursor = '';
+        dragHandle.style.cursor = 'grab';
+      }
+    });
   }
 
   /**
@@ -1121,10 +1340,23 @@ class App {
       rotateBtn.addEventListener('click', () => this.selectionManager.rotateSelected(90));
     }
 
+    const textBtn = document.getElementById('btn-text');
+    if (textBtn) {
+      textBtn.addEventListener('click', () => {
+        this.textManager.toggle();
+      });
+    }
+
     // Measurement tool
     const measureBtn = document.getElementById('btn-measure');
     if (measureBtn) {
-      measureBtn.addEventListener('click', () => this.toggleMeasurementMode());
+      measureBtn.addEventListener('click', () => {
+        // Turn off text tool when enabling measurement
+        if (!this.measurementModeActive && this.textManager?.active) {
+          this.textManager.deactivate();
+        }
+        this.toggleMeasurementMode();
+      });
     }
 
     const toggleGridMenuBtn = document.getElementById('btn-toggle-grid');
@@ -1245,7 +1477,7 @@ class App {
     if (entryZoneTopBtn) {
       entryZoneTopBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'top');
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1254,7 +1486,7 @@ class App {
     if (entryZoneBottomBtn) {
       entryZoneBottomBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'bottom');
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1263,7 +1495,7 @@ class App {
     if (entryZoneLeftBtn) {
       entryZoneLeftBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'left');
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1272,7 +1504,7 @@ class App {
     if (entryZoneRightBtn) {
       entryZoneRightBtn.addEventListener('click', () => {
         this.state.set('settings.entryZonePosition', 'right');
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1283,7 +1515,7 @@ class App {
       toggleEntryLabelBtn.addEventListener('click', () => {
         const showLabel = this.state.get('settings.showEntryZoneLabel') !== false;
         this.state.set('settings.showEntryZoneLabel', !showLabel);
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1294,7 +1526,7 @@ class App {
       toggleEntryBorderBtn.addEventListener('click', () => {
         const showBorder = this.state.get('settings.showEntryZoneBorder') !== false;
         this.state.set('settings.showEntryZoneBorder', !showBorder);
-        this.canvasManager.redrawFloorPlan();
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
@@ -1404,31 +1636,40 @@ class App {
 
     if (selectionCount === 1) {
       const selectedItem = selection[0];
-      const itemData = selectedItem?.customData || {};
-
-      segments.push(`
-        <div class="info-bar__segment">
-          <span class="info-bar__label">Selected:</span>
-          <span class="info-bar__value">${itemData.label || 'Unknown'}</span>
-        </div>
-      `);
-
-      if (itemData.lengthFt && itemData.widthFt) {
+      if (selectedItem && selectedItem.type === 'i-text') {
         segments.push(`
           <div class="info-bar__segment">
-            <span class="info-bar__label">Size:</span>
-            <span class="info-bar__value">${itemData.lengthFt}' × ${itemData.widthFt}'</span>
+            <span class="info-bar__label">Selected:</span>
+            <span class="info-bar__value">Text</span>
           </div>
         `);
-      }
+      } else {
+        const itemData = selectedItem?.customData || {};
 
-      if (typeof itemData._insideFloorPlan !== 'undefined') {
         segments.push(`
           <div class="info-bar__segment">
-            <span class="info-bar__label">Inside Floor:</span>
-            <span class="info-bar__value">${itemData._insideFloorPlan ? 'Yes' : 'No'}</span>
+            <span class="info-bar__label">Selected:</span>
+            <span class="info-bar__value">${itemData.label || 'Unknown'}</span>
           </div>
         `);
+
+        if (itemData.lengthFt && itemData.widthFt) {
+          segments.push(`
+            <div class="info-bar__segment">
+              <span class="info-bar__label">Size:</span>
+              <span class="info-bar__value">${itemData.lengthFt}' × ${itemData.widthFt}'</span>
+            </div>
+          `);
+        }
+
+        if (typeof itemData._insideFloorPlan !== 'undefined') {
+          segments.push(`
+            <div class="info-bar__segment">
+              <span class="info-bar__label">Inside Floor:</span>
+              <span class="info-bar__value">${itemData._insideFloorPlan ? 'Yes' : 'No'}</span>
+            </div>
+          `);
+        }
       }
     }
 
@@ -1928,6 +2169,17 @@ class App {
         }
       });
 
+      const texts = this.state.get('texts') || [];
+      if (this.textManager) {
+        this.textManager.restoreTextsFromState(texts);
+      }
+
+      // Restore measurements
+      const measurements = this.state.get('measurements') || [];
+      if (this.measurementTool && measurements.length > 0) {
+        this.measurementTool.restoreMeasurementsFromState(measurements);
+      }
+
       // Final render
       this.canvasManager.getCanvas().renderAll();
 
@@ -1983,6 +2235,7 @@ class App {
         state: {
           floorPlan: state.floorPlan,
           items: state.items,
+          texts: state.texts,
           settings: state.settings,
           metadata: state.metadata,
         },
@@ -2057,6 +2310,9 @@ class App {
           return sanitized;
         });
       }
+      if (!Array.isArray(savedState.texts)) {
+        savedState.texts = [];
+      }
 
       // Must have a floor plan to restore
       if (!savedState.floorPlan) {
@@ -2087,6 +2343,10 @@ class App {
           item.canvasObject = canvasGroup;
         }
       });
+
+      if (this.textManager) {
+        this.textManager.restoreTextsFromState(savedState.texts);
+      }
 
       // Render canvas
       this.canvasManager.getCanvas().renderAll();

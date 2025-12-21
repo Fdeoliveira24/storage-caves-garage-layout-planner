@@ -26,12 +26,12 @@ body {
 
 /* Header - Minimal & Clean */
 .header {
-  background: var(--color-bg-panel);
-  border-bottom: 1px solid var(--color-border);
-  padding: 12px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  padding: 8px 16px;
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+  gap: 16px;
   height: 56px;
   flex-shrink: 0;
 }
@@ -40,6 +40,116 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  border-left: 1px solid var(--color-border);
+  padding-left: 16px;
+}
+
+.header-actions-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border);
+  margin: 0;
+}
+
+.hamburger-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.hamburger-menu:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.hamburger-menu svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Override btn-new-layout margin when in header */
+.header-right .btn-new-layout {
+  margin: 0;
+  width: auto;
+  white-space: nowrap;
+}
+
+.logo {
+  height: 36px;
+  width: auto;
+}
+
+.brand-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.layout-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: 999px;
+  transition: background var(--transition-fast);
+}
+
+.layout-name-wrapper:hover {
+  background: var(--color-gray-200, #e5e7eb);
+}
+
+.layout-name {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.edit-layout-name {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.edit-layout-name:hover {
+  color: var(--color-text);
+}
+
+.edit-layout-name svg {
+  width: 14px;
+  height: 14px;
 }
 
 .app-logo {
@@ -250,6 +360,7 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
+  position: relative;
   overflow: hidden;
 }
 

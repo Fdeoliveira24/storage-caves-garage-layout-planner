@@ -1,10 +1,153 @@
 /* Modern Sidebar - Clean & Minimal */
 
+/* Search Input */
+.sidebar-search-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-panel);
+}
+
+.sidebar-search {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  position: relative;
+}
+
+.sidebar-search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.sidebar-search::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.sidebar-search::-webkit-search-cancel-button {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E")
+    center center no-repeat;
+  background-size: contain;
+  cursor: pointer;
+  opacity: 0.6;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar-search::-webkit-search-cancel-button:hover {
+  opacity: 1;
+}
+
+/* New Layout Button */
+.btn-new-layout {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 12px 16px;
+  padding: 10px 14px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.btn-new-layout:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-new-layout:active {
+  transform: translateY(0);
+}
+
+#sidebar-search {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  position: relative;
+}
+
+#sidebar-search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+#sidebar-search::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* Search input type=search styling */
+#sidebar-search::-webkit-search-cancel-button {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+  background-size: 16px 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#sidebar-search::-webkit-search-cancel-button:hover {
+  opacity: 1;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.empty-state p:first-child {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
 /* Floor Plan List */
 #floorplan-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
+  padding: 16px;
 }
 
 .floorplan-item {
@@ -14,6 +157,8 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .floorplan-item:hover {
@@ -52,6 +197,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  padding: 16px;
 }
 
 .item-category {
@@ -69,8 +216,9 @@
 
 .category-items {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .palette-item {
@@ -288,6 +436,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 16px;
 }
 
 .saved-layout-item {

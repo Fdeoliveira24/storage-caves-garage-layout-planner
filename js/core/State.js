@@ -20,6 +20,8 @@ class State {
     this.state = {
       floorPlan: null,
       items: [],
+      texts: [],
+      measurements: [],
       selection: null,
       history: [],
       settings: { ...this.initialSettings },
@@ -115,6 +117,7 @@ class State {
     this.state = {
       floorPlan: null,
       items: [],
+      texts: [],
       selection: null,
       history: [],
       settings: settings,
@@ -171,6 +174,8 @@ class State {
       ...this.state,
       floorPlan: savedState.floorPlan || null,
       items: Array.isArray(savedState.items) ? savedState.items : [],
+      texts: Array.isArray(savedState.texts) ? savedState.texts : [],
+      measurements: Array.isArray(savedState.measurements) ? savedState.measurements : [],
       settings: {
         ...this.state.settings,
         ...(savedState.settings || {}),

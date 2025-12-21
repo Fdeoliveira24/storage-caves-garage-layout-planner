@@ -215,9 +215,11 @@
      * Call this from App.js after ClientCMS is created
      */
     initGoogleSheets(eventBus) {
+      // eslint-disable-next-line no-undef
       if (typeof GoogleSheetsSync !== 'undefined') {
+        // eslint-disable-next-line no-undef
         this.sheetsSync = new GoogleSheetsSync(this, eventBus);
-        
+
         // Hook into save events for auto-sync
         if (this.sheetsSync.autoSyncEnabled) {
           this.sheetsSync.scheduleAutoSync();
@@ -372,11 +374,17 @@
       this.$backdrop.addEventListener('click', () => this.close());
 
       // New client
-      this.$panel.querySelector('#client-cms-new').addEventListener('click', () => this._openForm());
+      this.$panel
+        .querySelector('#client-cms-new')
+        .addEventListener('click', () => this._openForm());
 
       // Search
       this.$search = this.$panel.querySelector('#client-cms-search');
-      this.$search.addEventListener('input', this._searchHandler);
+      if (this.$search) {
+        this.$search.addEventListener('input', this._searchHandler);
+      } else {
+        console.error('[ClientCMS] Search input not found');
+      }
 
       // List delegation
       this.$list = this.$panel.querySelector('#client-cms-list');
@@ -437,17 +445,17 @@
             this._toast('Google Sheets sync not initialized', 'error');
             return;
           }
-          
+
           const clients = await this.sheetsSync.fetchFromSheets();
           if (clients && clients.length > 0) {
             // Merge fetched clients with existing ones
             const confirmResult = await Modal.showConfirm(
               'Import from Google Sheets',
-              `Found ${clients.length} client(s). Merge with existing clients?`
+              `Found ${clients.length} client(s). Merge with existing clients?`,
             );
-            
+
             if (confirmResult) {
-              clients.forEach(client => {
+              clients.forEach((client) => {
                 // Ensure client has required structure
                 const cleanClient = {
                   id: client.id || this._generateId(),
@@ -459,10 +467,10 @@
                   followUpDate: client.followUpDate || '',
                   layoutIds: Array.isArray(client.layoutIds) ? client.layoutIds : [],
                   createdDate: client.createdDate || new Date().toISOString(),
-                  modifiedDate: new Date().toISOString()
+                  modifiedDate: new Date().toISOString(),
                 };
-                
-                const existing = this.clients.find(c => c.id === cleanClient.id);
+
+                const existing = this.clients.find((c) => c.id === cleanClient.id);
                 if (!existing) {
                   this.clients.push(cleanClient);
                 } else {
@@ -535,7 +543,7 @@
     _onFocusTrap(e) {
       if (e.key !== 'Tab' || !this.$panel.classList.contains('open')) return;
       const focusables = this.$panel.querySelectorAll(
-        'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
+        'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',
       );
       if (!focusables.length) return;
       const first = focusables[0];
@@ -579,7 +587,7 @@
       } else {
         localStorage.setItem(STORAGE_KEY_CLIENTS, safeJSON.stringify(this.clients));
       }
-      
+
       // Trigger auto-sync if enabled
       if (this.sheetsSync && this.sheetsSync.autoSyncEnabled) {
         this.sheetsSync.scheduleAutoSync();
@@ -617,10 +625,9 @@
       }
 
       const rows = items
-        .map(
-          (c) => {
-            const unitLabel = this._getUnitLabelById(c.unitPreference) || '';
-            return `
+        .map((c) => {
+          const unitLabel = this._getUnitLabelById(c.unitPreference) || '';
+          return `
         <div class="client-cms__card" data-id="${c.id}">
           <div class="client-cms__card-avatar">${getInitials(c.name)}</div>
           <div class="client-cms__card-content">
@@ -647,8 +654,7 @@
           </div>
         </div>
       `;
-          },
-        )
+        })
         .join('');
 
       this.$list.innerHTML = rows;
@@ -659,25 +665,29 @@
     }
 
     _onListClick(e) {
-      const btn = e.target.closest('.client-cms__action-btn');
-      if (!btn) return;
-
-      const row = btn.closest('.client-cms__card');
+      const row = e.target.closest('.client-cms__card');
       if (!row) return;
 
       const id = row.getAttribute('data-id');
       const c = this.clients.find((x) => x.id === id);
       if (!c) return;
 
-      if (btn.classList.contains('js-view')) {
-        this._viewClient(c);
-      } else if (btn.classList.contains('js-edit')) {
-        this._openForm(c);
-      } else if (btn.classList.contains('js-delete')) {
-        this._deleteClient(c);
-      } else if (btn.classList.contains('js-assign')) {
-        this._assignClient(c);
+      const btn = e.target.closest('.client-cms__action-btn');
+      if (btn) {
+        if (btn.classList.contains('js-view')) {
+          this._viewClient(c);
+        } else if (btn.classList.contains('js-edit')) {
+          this._openForm(c);
+        } else if (btn.classList.contains('js-delete')) {
+          this._deleteClient(c);
+        } else if (btn.classList.contains('js-assign')) {
+          this._assignClient(c);
+        }
+        return;
       }
+
+      // Click on card (non-action) loads the assigned layout if available
+      this._loadClientLayout(c);
     }
 
     // --- Forms / Modals ---
@@ -711,20 +721,21 @@
       // Get assigned layouts with names
       const assignedLayouts = this._getLayoutNamesByIds(data.layoutIds || []);
       const layoutIdsArray = data.layoutIds || [];
-      
-      const assignedLayoutsHTML = isEdit && assignedLayouts.length > 0
-        ? assignedLayouts
-            .map((name, idx) => {
-              const layoutId = layoutIdsArray[idx];
-              return `
+
+      const assignedLayoutsHTML =
+        isEdit && assignedLayouts.length > 0
+          ? assignedLayouts
+              .map((name, idx) => {
+                const layoutId = layoutIdsArray[idx];
+                return `
                 <div class="client-cms-form__layout-tag" data-layout-id="${escapeAttr(layoutId)}">
                   <span>${escapeHTML(name)}</span>
                   <button type="button" class="client-cms-form__layout-remove" data-layout-id="${escapeAttr(layoutId)}">&times;</button>
                 </div>
               `;
-            })
-            .join('')
-        : '<span class="client-cms-form__layout-empty">No layouts assigned yet</span>';
+              })
+              .join('')
+          : '<span class="client-cms-form__layout-empty">No layouts assigned yet</span>';
 
       const isCurrentLayoutAssigned = currentLayoutId && layoutIdsArray.includes(currentLayoutId);
 
@@ -763,19 +774,27 @@
           ${
             isEdit
               ? `
-          <div class="client-cms-form__group">
+          <div class="client-cms-form__group client-cms-form__group--layouts">
             <label class="client-cms-form__label">Assigned Layouts</label>
-            <div class="client-cms-form__layouts-list" id="cf-layouts-list">
-              ${assignedLayoutsHTML}
+            <div class="client-cms-form__layouts-row">
+              <div class="client-cms-form__layouts-list" id="cf-layouts-list">
+                ${assignedLayoutsHTML}
+              </div>
+              ${
+                currentLayoutId
+                  ? `
+              <button type="button" class="client-cms-form__layout-assign-btn" id="cf-assign-current" ${isCurrentLayoutAssigned ? 'disabled' : ''}>
+                ${isCurrentLayoutAssigned ? 'Current layout already assigned' : '+ Assign current layout'}
+              </button>
+              `
+                  : ''
+              }
             </div>
             ${
               currentLayoutId
                 ? `
-              <button type="button" class="client-cms-form__layout-assign-btn" id="cf-assign-current" ${isCurrentLayoutAssigned ? 'disabled' : ''}>
-                ${isCurrentLayoutAssigned ? 'Current layout already assigned' : '+ Assign current layout'}
-              </button>
-              <div class="client-cms-form__layout-hint">Current layout: ${escapeHTML(currentLayoutName)}</div>
-              `
+            <div class="client-cms-form__layout-hint">Current layout: ${escapeHTML(currentLayoutName)}</div>
+            `
                 : ''
             }
           </div>
@@ -869,6 +888,7 @@
           <button class="modal-btn modal-btn-primary" id="client-form-submit" type="button">${isEdit ? 'Save Changes' : 'Create Client'}</button>
         </div>
       `,
+        { skipDefaultFooter: true },
       );
       this._suppressDefaultModalFooter(true);
 
@@ -907,7 +927,7 @@
             assignBtn.addEventListener('click', () => {
               const currentLayoutId = this._getCurrentLayoutId();
               if (!currentLayoutId) return;
-              
+
               if (!data.layoutIds) data.layoutIds = [];
               if (!data.layoutIds.includes(currentLayoutId)) {
                 data.layoutIds.push(currentLayoutId);
@@ -968,9 +988,8 @@
       // Get assigned layouts info with actual names
       const layoutCount = Array.isArray(c.layoutIds) ? c.layoutIds.length : 0;
       const layoutNames = this._getLayoutNamesByIds(c.layoutIds);
-      const layoutsText = layoutNames.length > 0 
-        ? layoutNames.join(', ') 
-        : 'No layouts assigned yet';
+      const layoutsText =
+        layoutNames.length > 0 ? layoutNames.join(', ') : 'No layouts assigned yet';
 
       const html = `
         <div class="client-cms-view client-cms-form">
@@ -1024,11 +1043,12 @@
       `;
 
       Modal.show(
-        'Client Details', 
+        'Client Details',
         `${html}
         <div class="cms-modal-footer">
           <button class="modal-btn modal-btn-primary" onclick="if(window.Modal && Modal.close) Modal.close()">Close</button>
-        </div>`
+        </div>`,
+        { skipDefaultFooter: true },
       );
     }
 
@@ -1065,7 +1085,7 @@
       }
 
       if (!Array.isArray(c.layoutIds)) c.layoutIds = [];
-      
+
       // Check if already assigned
       if (c.layoutIds.includes(layoutId)) {
         this._toast(`"${c.name}" is already assigned to ${layoutName}`, 'info');
@@ -1081,6 +1101,75 @@
       this.eventBus?.emit?.('client:assigned', { clientId: c.id, layoutId, clientName: c.name });
 
       this._toast(`✓ Assigned "${c.name}" to ${layoutName}`, 'success');
+    }
+
+    /**
+     * Load the first assigned layout for a client onto the canvas
+     */
+    _loadClientLayout(client) {
+      if (!client || !this.app || typeof this.app.loadLayout !== 'function') return;
+
+      const layoutIds = Array.isArray(client.layoutIds) ? client.layoutIds : [];
+      if (!layoutIds.length) {
+        this._toast('No layout assigned to this client yet', 'info');
+        return;
+      }
+
+      const layouts = this._loadStoredLayouts();
+      const assignedLayouts = layouts.filter(
+        (l) => layoutIds.includes(l.id) || layoutIds.includes(l.layoutId),
+      );
+
+      if (!assignedLayouts.length) {
+        this._toast('Assigned layout not found in saved layouts', 'error');
+        return;
+      }
+
+      if (assignedLayouts.length === 1) {
+        const layout = assignedLayouts[0];
+        const layoutId = layout.id || layout.layoutId;
+        this.app.loadLayout(layoutId);
+        return;
+      }
+
+      // Multiple layouts: present a selection modal
+      const listHtml = `
+        <div class="client-cms-layout-picker">
+          ${assignedLayouts
+            .map((l, _idx) => {
+              const name =
+                l.name || l.metadata?.projectName || l.title || l.id || l.layoutId || 'Layout';
+              const date = l.created ? new Date(l.created).toLocaleString() : '';
+              const tag = l.metadata?.projectName
+                ? l.metadata.projectName[0]?.toUpperCase?.() || name[0]
+                : name[0];
+              return `
+                <button class="client-cms-layout-picker__item" data-layout-id="${l.id || l.layoutId}">
+                  <div class="client-cms-layout-picker__avatar">${escapeHTML(tag)}</div>
+                  <div class="client-cms-layout-picker__body">
+                    <div class="client-cms-layout-picker__name">${escapeHTML(name)}</div>
+                    <div class="client-cms-layout-picker__meta">${escapeHTML(date || 'Saved layout')}</div>
+                  </div>
+                </button>
+              `;
+            })
+            .join('')}
+        </div>
+      `;
+
+      const container = document.createElement('div');
+      container.innerHTML = listHtml;
+
+      container.querySelectorAll('.client-cms-layout-picker__item').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const selectedId = btn.getAttribute('data-layout-id');
+          if (!selectedId) return;
+          this.app.loadLayout(selectedId);
+          Modal.close?.();
+        });
+      });
+
+      Modal.show?.('Choose a layout to load', container);
     }
 
     _getCurrentLayoutId() {

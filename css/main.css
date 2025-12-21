@@ -1,3 +1,5 @@
+@import url('components/text-properties.css');
+
 /* Additional global styles */
 .hidden {
   display: none !important;

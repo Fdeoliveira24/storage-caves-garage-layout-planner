@@ -3,7 +3,7 @@
 /**
  * Google Sheets Sync Manager
  * Handles bidirectional sync between ClientCMS and Google Sheets
- * 
+ *
  * Features:
  * - Manual sync (user-triggered)
  * - Auto-sync with 2-minute debounce (user can enable/disable)
@@ -14,9 +14,10 @@ class GoogleSheetsSync {
   constructor(clientCMS, eventBus) {
     this.clientCMS = clientCMS;
     this.eventBus = eventBus;
-    
+
     // Configuration - CORS FIX VERSION
-    this.webAppUrl = 'https://script.google.com/macros/s/AKfycbyAtAAQ1oyHiXaxgve4uCXoHq2uKyKiEJjZGQt-pvSzB4nnfpV-b5O9of_iZp99GfiKGQ/exec';
+    this.webAppUrl =
+      'https://script.google.com/macros/s/AKfycbyAtAAQ1oyHiXaxgve4uCXoHq2uKyKiEJjZGQt-pvSzB4nnfpV-b5O9of_iZp99GfiKGQ/exec';
     this.autoSyncEnabled = false;
     this.autoSyncDelay = 120000; // 2 minutes (120000ms)
     this.autoSyncTimer = null;
@@ -24,16 +25,16 @@ class GoogleSheetsSync {
     this.lastSyncTime = null;
     this.lastSyncStatus = null; // 'success', 'error', or null
     this.isLocalDevelopment = this.detectLocalDevelopment();
-    
+
     // Load settings from storage
     this.loadSettings();
-    
+
     // Initialize connection indicator
     setTimeout(() => this.updateConnectionIndicator(), 100);
-    
+
     // Initialize sync status
     this.updateSyncStatus(this.isLocalDevelopment ? 'disconnected' : 'connected');
-    
+
     // Make sync status clickable to open settings
     this.initSyncStatusClick();
   }
@@ -43,10 +44,12 @@ class GoogleSheetsSync {
    */
   detectLocalDevelopment() {
     const hostname = window.location.hostname;
-    return hostname === 'localhost' || 
-           hostname === '127.0.0.1' || 
-           hostname.startsWith('192.168.') ||
-           window.location.protocol === 'file:';
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      window.location.protocol === 'file:'
+    );
   }
 
   /**
@@ -83,7 +86,7 @@ class GoogleSheetsSync {
       autoSyncEnabled: this.autoSyncEnabled,
       autoSyncDelay: this.autoSyncDelay,
       lastSyncTime: this.lastSyncTime,
-      lastSyncStatus: this.lastSyncStatus
+      lastSyncStatus: this.lastSyncStatus,
     };
     this.setStorageItem('garage-planner-sheets-config', settings);
   }
@@ -94,9 +97,9 @@ class GoogleSheetsSync {
   updateConnectionIndicator() {
     const indicator = document.getElementById('sheets-connection-indicator');
     if (!indicator) return;
-    
+
     indicator.className = 'connection-indicator';
-    
+
     if (this.webAppUrl && this.webAppUrl.includes('script.google.com')) {
       indicator.classList.add('connected');
       indicator.title = 'Google Sheets connected';
@@ -169,7 +172,7 @@ class GoogleSheetsSync {
 
       const response = await fetch(url, {
         method: 'GET',
-        redirect: 'follow'
+        redirect: 'follow',
       });
 
       if (!response.ok) {
@@ -183,26 +186,24 @@ class GoogleSheetsSync {
         this.lastSyncStatus = 'success';
         this.saveSettings();
         this.updateSyncStatus('success');
-        
+
         Modal.showSuccess(`✅ Synced ${clients.length} client(s) to Google Sheets`);
         this.eventBus?.emit?.('sheets:sync:success', result);
-        
+
         return true;
       } else {
         throw new Error(result.message || 'Sync failed');
       }
-
     } catch (error) {
       console.error('[GoogleSheetsSync] Sync error:', error);
       this.lastSyncStatus = 'error';
       this.saveSettings();
       this.updateSyncStatus('error');
-      
+
       Modal.showError(`Sync failed: ${error.message}`);
       this.eventBus?.emit?.('sheets:sync:error', error);
-      
-      return false;
 
+      return false;
     } finally {
       this.isSyncing = false;
     }
@@ -224,7 +225,7 @@ class GoogleSheetsSync {
     try {
       const response = await fetch(`${this.webAppUrl}?action=fetch`, {
         method: 'GET',
-        redirect: 'follow'
+        redirect: 'follow',
       });
 
       if (!response.ok) {
@@ -238,27 +239,25 @@ class GoogleSheetsSync {
         this.lastSyncStatus = 'success';
         this.saveSettings();
         this.updateSyncStatus('success');
-        
+
         const clients = result.data || [];
         Modal.showSuccess(`✅ Fetched ${clients.length} client(s) from Google Sheets`);
         this.eventBus?.emit?.('sheets:fetch:success', clients);
-        
+
         return clients;
       } else {
         throw new Error(result.message || 'Fetch failed');
       }
-
     } catch (error) {
       console.error('[GoogleSheetsSync] Fetch error:', error);
       this.lastSyncStatus = 'error';
       this.saveSettings();
       this.updateSyncStatus('error');
-      
+
       Modal.showError(`Fetch failed: ${error.message}`);
       this.eventBus?.emit?.('sheets:fetch:error', error);
-      
-      return null;
 
+      return null;
     } finally {
       this.isSyncing = false;
     }
@@ -274,7 +273,7 @@ class GoogleSheetsSync {
 
     // Reset classes
     indicator.className = 'sheets-sync-status';
-    
+
     if (status === 'syncing') {
       indicator.classList.add('syncing');
       statusText.textContent = 'Syncing...';
@@ -284,7 +283,7 @@ class GoogleSheetsSync {
     } else if (status === 'success') {
       indicator.classList.add('connected');
       statusText.textContent = 'Synced';
-      
+
       // Clear success indicator after 3 seconds
       setTimeout(() => {
         if (this.isLocalDevelopment) {
@@ -293,11 +292,10 @@ class GoogleSheetsSync {
           this.updateSyncStatus('connected');
         }
       }, 3000);
-      
     } else if (status === 'error') {
       indicator.classList.add('error');
       statusText.textContent = 'Sync Error';
-      
+
       // Clear error indicator after 5 seconds
       setTimeout(() => {
         if (this.isLocalDevelopment) {
@@ -338,20 +336,26 @@ class GoogleSheetsSync {
           </ul>
         </div>
 
-        ${this.lastSyncTime ? `
+        ${
+          this.lastSyncTime
+            ? `
           <div class="sync-status">
             <h4>Last Sync:</h4>
             <p><strong>Time:</strong> ${new Date(this.lastSyncTime).toLocaleString()}</p>
             <p>
               <strong>Status:</strong>
               <span class="status-badge status-${this.lastSyncStatus}">
-                ${this.lastSyncStatus === 'success'
-                  ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><span>Success</span>'
-                  : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>Error</span>'}
+                ${
+                  this.lastSyncStatus === 'success'
+                    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><span>Success</span>'
+                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>Error</span>'
+                }
               </span>
             </p>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div class="modal-actions">
           <button type="button" class="btn-secondary" id="sheets-cancel-btn">Cancel</button>
@@ -360,7 +364,7 @@ class GoogleSheetsSync {
       </div>
     `;
 
-    Modal.show('Google Sheets Sync', modalHtml);
+    Modal.show('Google Sheets Sync', modalHtml, { skipDefaultFooter: true });
 
     return new Promise((resolve) => {
       const saveBtn = document.getElementById('sheets-save-btn');
@@ -370,7 +374,7 @@ class GoogleSheetsSync {
         saveBtn.onclick = () => {
           const autoSyncCheckbox = document.getElementById('auto-sync-checkbox');
           const newAutoSyncEnabled = autoSyncCheckbox?.checked || false;
-          
+
           if (newAutoSyncEnabled !== this.autoSyncEnabled) {
             if (newAutoSyncEnabled) {
               this.enableAutoSync();
@@ -428,7 +432,7 @@ class GoogleSheetsSync {
       const time = new Date(this.lastSyncTime);
       const now = new Date();
       const diffMinutes = Math.floor((now - time) / 60000);
-      
+
       if (diffMinutes < 1) {
         return 'Synced just now';
       } else if (diffMinutes < 60) {

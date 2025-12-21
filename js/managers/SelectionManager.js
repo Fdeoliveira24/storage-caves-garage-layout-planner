@@ -48,19 +48,40 @@ class SelectionManager {
    */
   getSelection() {
     const active = this.canvas.getActiveObject();
+    const isMeasurementObject = (obj) =>
+      obj && (obj.measurement || obj.isMeasurementLabel || obj.measurementId);
 
     if (!active) return [];
 
     if (active.type === 'activeSelection') {
-      return active
-        .getObjects()
-        .filter(
-          (obj) =>
-            selectionFilters.isSelectableObject(obj) ||
-            obj.measurement ||
-            obj.isMeasurementLabel ||
-            obj.measurementId,
-        );
+      const objects = active.getObjects();
+      const filtered = objects.filter(
+        (obj) =>
+          selectionFilters.isSelectableObject(obj) ||
+          obj.measurement ||
+          obj.isMeasurementLabel ||
+          obj.measurementId,
+      );
+
+      const hasMeasurement = filtered.some((obj) => isMeasurementObject(obj));
+      const hasNonMeasurement = filtered.some((obj) => !isMeasurementObject(obj));
+
+      // Prevent mixed selection of measurement objects with other items/text
+      if (hasMeasurement && hasNonMeasurement) {
+        const nonMeasurement = filtered.filter((obj) => !isMeasurementObject(obj));
+        if (nonMeasurement.length === 1) {
+          this.canvas.setActiveObject(nonMeasurement[0]);
+        } else if (nonMeasurement.length > 1) {
+          const selection = new fabric.ActiveSelection(nonMeasurement, { canvas: this.canvas });
+          this.canvas.setActiveObject(selection);
+        } else {
+          this.canvas.discardActiveObject();
+        }
+        this.canvas.requestRenderAll();
+        return nonMeasurement;
+      }
+
+      return filtered;
     }
 
     return selectionFilters.isSelectableObject(active) ||
@@ -121,6 +142,12 @@ class SelectionManager {
     const measurementTool = this.canvasManager?.getMeasurementTool?.();
 
     selected.forEach((item) => {
+      if (item.type === 'i-text') {
+        this.canvas.remove(item);
+        this.eventBus.emit('text:deleted', item);
+        return;
+      }
+
       if (item.measurement || item.isMeasurementLabel || item.measurementId) {
         if (measurementTool && typeof measurementTool.removeMeasurement === 'function') {
           measurementTool.removeMeasurement(item);
@@ -139,6 +166,7 @@ class SelectionManager {
     });
 
     this.deselectAll();
+    this.canvas.requestRenderAll();
   }
 
   /**
@@ -223,6 +251,7 @@ class SelectionManager {
     selected.forEach((item) => {
       const currentAngle = item.angle || 0;
       item.rotate(currentAngle + angle);
+      item.setCoords();
 
       // Update state if item has customData
       if (item.customData && item.customData.id) {
@@ -231,6 +260,10 @@ class SelectionManager {
         if (stateItem) {
           stateItem.angle = item.angle;
         }
+      }
+
+      if (item.type === 'i-text') {
+        this.eventBus.emit('canvas:object:modified', item);
       }
     });
 
@@ -344,6 +377,12 @@ class SelectionManager {
         break;
       }
     }
+
+    selected.forEach((item) => {
+      if (item.type === 'i-text') {
+        this.eventBus.emit('canvas:object:modified', item);
+      }
+    });
 
     this.canvas.renderAll();
     this.eventBus.emit('items:aligned', selected);

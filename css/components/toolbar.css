@@ -33,6 +33,16 @@
   user-select: none;
 }
 
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--color-gray-100, #f3f4f6);
+  border-color: var(--color-gray-200, #e5e7eb);
+}
+
 .btn-toolbar:hover {
   background: var(--color-gray-100, #f3f4f6);
   color: var(--color-text-primary, #111827);
@@ -118,6 +128,39 @@
 .btn-toolbar.is-active .btn-icon,
 .btn-toolbar[aria-pressed='true'] .btn-icon {
   color: var(--color-primary-700, #4338ca);
+}
+
+#btn-text.is-active {
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-700, #b91c1c);
+  border-color: var(--color-danger-200, #fecaca);
+}
+
+#btn-text.is-active .btn-icon,
+#btn-text.is-active .btn-icon svg {
+  color: var(--color-danger-700, #b91c1c);
+  fill: var(--color-danger-700, #b91c1c);
+  stroke: none;
+  stroke-width: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#btn-text.is-active .btn-icon svg path {
+  fill: var(--color-danger-700, #b91c1c);
+  stroke: none;
+}
+
+#btn-measure.is-active {
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-700, #b91c1c);
+  border-color: var(--color-danger-200, #fecaca);
+}
+
+#btn-measure.is-active .btn-icon,
+#btn-measure.is-active .btn-icon svg {
+  color: var(--color-danger-700, #b91c1c);
+  stroke: currentcolor;
 }
 
 /* Dropdown triggers should NOT have active state styling */
@@ -410,7 +453,7 @@
 .toolbar {
   background: white;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
-  padding: 6px 16px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -482,11 +525,108 @@
   transition-delay: 800ms;
 }
 
+/* === FLOATING TOOLBAR === */
+
+.floating-toolbar {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--color-bg-panel, white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+  padding: 3px 8px;
+  width: max-content;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  display: flex;
+  gap: 2px;
+  max-width: 80vw;
+  min-height: 5px;
+  height: 50px;
+}
+
+.floating-toolbar .btn-toolbar {
+  padding: 6px 10px;
+  min-height: 4px;
+  height: 44px;
+}
+
+.floating-toolbar .toolbar-divider {
+  margin: 0 6px;
+}
+
+.toolbar-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  cursor: grab;
+}
+
+.toolbar-drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-grip {
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-border) 0%,
+    var(--color-border) 20%,
+    transparent 20%,
+    transparent 40%,
+    var(--color-border) 40%,
+    var(--color-border) 60%,
+    transparent 60%,
+    transparent 80%,
+    var(--color-border) 80%,
+    var(--color-border) 100%
+  );
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.floating-toolbar:hover .drag-grip {
+  opacity: 0.8;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 4px;
+}
+
+/* === RESPONSIVE BEHAVIOR === */
+
+/* Medium screens: Hide button labels to prevent toolbar cutoff */
+@media (width <= 1024px) and (width > 768px) {
+  .floating-toolbar .btn-label {
+    display: none;
+  }
+
+  .floating-toolbar .btn-toolbar {
+    padding: 9px;
+    gap: 0;
+  }
+
+  .floating-toolbar .btn-chevron {
+    margin-left: 4px;
+  }
+
+  .floating-toolbar {
+    max-width: 90vw;
+  }
+}
+
 /* === MOBILE COMPATIBILITY === */
 
 @media (width <= 768px) {
   /* Keep toolbar visible but let mobile-redesign.css handle specific mobile UI */
-  .toolbar {
+  .toolbar,
+  .floating-toolbar {
     overflow-x: auto;
   }
 

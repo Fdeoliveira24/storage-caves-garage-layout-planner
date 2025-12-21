@@ -43,6 +43,8 @@
   --color-text-tertiary: var(--color-graphite-400);
   --color-text-disabled: var(--color-graphite-300);
   --color-text-inverse: #fff;
+  --color-text: var(--color-graphite-900); /* Alias for consistency */
+  --color-white: #fff; /* Explicit white token */
 
   /* ===== BORDERS ===== */
   --color-border: var(--color-graphite-200);
@@ -106,6 +108,12 @@
   --radius-2xl: 16px;
   --radius-full: 9999px;
 
+  /* Component-specific radius aliases (for clarity) */
+  --radius-modal: var(--radius-xl);
+  --radius-input: var(--radius-lg);
+  --radius-button: var(--radius-lg);
+  --radius-card: var(--radius-md);
+
   /* ===== Z-INDEX LAYERS ===== */
   --z-base: 1;
   --z-sidebar: 10;
@@ -115,6 +123,20 @@
   --z-overlay: 900;
   --z-modal: 1000;
   --z-tooltip: 2000;
+
+  /* Component-specific z-index aliases */
+  --z-backdrop: var(--z-overlay);
+  --z-modal-backdrop: var(--z-overlay);
+  --z-datepicker: 1200;
+  --z-toast: 2500;
+
+  /* ===== MODAL TOKENS (aligned with CMS) ===== */
+  --modal-bg: var(--color-bg);
+  --modal-border: var(--color-border);
+  --modal-border-light: var(--color-border-light);
+  --modal-text: var(--color-text-primary);
+  --modal-text-secondary: var(--color-text-secondary);
+  --modal-input-bg: var(--color-bg-tertiary); /* Light gray for hover states */
 
   /* ===== TRANSITIONS ===== */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);

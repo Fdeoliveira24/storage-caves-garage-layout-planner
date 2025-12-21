@@ -7,6 +7,11 @@
 /* ===== MOBILE LAYOUT ACTIVATION ===== */
 
 @media (width <= 767px) {
+  /* Hide floating toolbar on mobile */
+  .floating-toolbar {
+    display: none !important;
+  }
+
   /* Hide desktop UI elements on mobile */
   .mobile-layout .mobile-hide-desktop {
     display: none !important;
