@@ -1,0 +1,11 @@
+@import url('components/text-properties.css');
+
+/* Additional global styles */
+.hidden {
+  display: none !important;
+}
+
+.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}

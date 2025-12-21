@@ -1,0 +1,144 @@
+/**
+ * Card Component System
+ * Modern card variants for content organization
+ */
+
+/* === BASE CARD === */
+
+.card-v3 {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+/* === CARD HOVER STATES === */
+
+.card-v3-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-v3-interactive:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-v3-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* === CARD VARIANTS === */
+
+.card-v3-elevated {
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.card-v3-outlined {
+  background-color: transparent;
+  border: 2px solid var(--color-border);
+}
+
+.card-v3-filled {
+  background-color: var(--color-gray-50);
+  border: none;
+}
+
+/* === CARD STATES === */
+
+.card-v3-selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+  background-color: var(--color-primary-50);
+}
+
+.card-v3-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* === CARD HEADER === */
+
+.card-v3-header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-v3-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.card-v3-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-1) 0 0 0;
+}
+
+/* === CARD BODY === */
+
+.card-v3-body {
+  padding: var(--spacing-4);
+}
+
+/* === CARD FOOTER === */
+
+.card-v3-footer {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+/* === CARD MEDIA === */
+
+.card-v3-media {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card-v3-media-container {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-gray-100);
+}
+
+/* === COMPACT CARD (for mobile lists) === */
+
+.card-v3-compact {
+  padding: var(--spacing-3);
+}
+
+.card-v3-compact .card-v3-title {
+  font-size: var(--font-size-base);
+}
+
+.card-v3-compact .card-v3-subtitle {
+  font-size: var(--font-size-xs);
+}
+
+/* === CARD WITH ICON === */
+
+.card-v3-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-600);
+  margin-bottom: var(--spacing-3);
+}
+
+.card-v3-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
+}

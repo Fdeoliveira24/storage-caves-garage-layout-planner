@@ -1,0 +1,104 @@
+/* Canvas Styles */
+.canvas-wrapper {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg, #fff);
+}
+
+.canvas-wrapper canvas {
+  position: relative;
+  z-index: 1;
+}
+
+.canvas-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.12s ease,
+    visibility 0.12s ease;
+  z-index: 2;
+}
+
+.canvas-empty-state--hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.canvas-empty-card {
+  background: rgb(255 255 255 / 95%);
+  border-radius: 18px;
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.canvas-empty-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 4px;
+  stroke: #111827;
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.canvas-empty-card h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.canvas-empty-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+#canvas {
+  display: block;
+}
+
+.canvas-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.canvas-controls {
+  position: absolute;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.canvas-controls .btn {
+  pointer-events: all;
+  background-color: white;
+  box-shadow: var(--shadow-md);
+}
+
+/* ================================
+   FABRIC.JS CONTROL CUSTOMIZATION
+   Professional Selection Handles
+   ================================ */
+
+/* Selection border styling */
+.canvas-container .upper-canvas {
+  outline: none;
+}
+
+/* Override Fabric.js default control styles with modern, professional look */
+.canvas-container canvas[class*='canvas'] {
+  outline: none;
+}

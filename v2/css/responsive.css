@@ -1,0 +1,415 @@
+/* ================================
+   RESPONSIVE DESIGN
+   Mobile-First Approach
+   Breakpoints: 480px, 767px, 1024px
+   ================================ */
+
+/* ================================
+   DESKTOP (default > 1024px)
+   ================================ */
+
+/* No changes needed - existing layout is optimized for desktop */
+
+/* ================================
+   TABLET LANDSCAPE (1024px - 768px)
+   ================================ */
+@media (width <= 1024px) {
+  .header-left h1 {
+    font-size: 14px;
+  }
+
+  .app-logo {
+    height: 32px;
+  }
+
+  /* Sidebar becomes collapsible */
+  .sidebar {
+    transition:
+      transform 0.3s ease,
+      width 0.3s ease;
+  }
+
+  .sidebar.collapsed {
+    width: 0;
+    transform: translateX(-100%);
+    overflow: hidden;
+  }
+
+  /* Hamburger menu button */
+  .mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .mobile-menu-toggle:hover {
+    background: var(--color-bg-hover);
+  }
+
+  .mobile-menu-toggle svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text);
+  }
+
+  /* Canvas expands when sidebar collapsed */
+  .main-content {
+    transition: padding-left 0.3s ease;
+  }
+
+  /* Compact toolbar */
+  .toolbar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .toolbar-group {
+    gap: 6px;
+  }
+
+  /* Touch-friendly button sizes */
+  .btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Dropdown menus touch-optimized */
+  .dropdown-item {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+}
+
+/* ================================
+   TABLET PORTRAIT (767px - 481px)
+   ================================ */
+@media (width <= 767px) {
+  /* Header compact */
+  .header {
+    height: 56px;
+    padding: 8px 12px;
+    gap: 12px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-left h1 {
+    font-size: 13px;
+  }
+
+  .app-logo {
+    height: 28px;
+  }
+
+  .project-name-container {
+    flex: 1;
+    max-width: none;
+  }
+
+  #project-name {
+    font-size: 15px;
+  }
+
+  #btn-rename-project {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Sidebar becomes full-screen drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    height: 100vh;
+    z-index: 999;
+    background: var(--color-bg-panel);
+    border-right: 1px solid var(--color-border);
+    box-shadow: var(--shadow-floating);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* Sidebar backdrop */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 50%);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-backdrop.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Sidebar close button */
+  .sidebar-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    z-index: 10;
+    transition: background var(--transition-fast);
+  }
+
+  .sidebar-close:hover {
+    background: var(--color-bg-hover);
+  }
+
+  .sidebar-close svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text);
+  }
+
+  /* Toolbar simplified */
+  .toolbar {
+    padding: 6px 8px;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide non-essential toolbar items */
+  .toolbar-group:not(:first-child, :last-child) {
+    display: none;
+  }
+
+  /* Canvas full height */
+  .canvas-container {
+    flex: 1;
+  }
+
+  /* Info bar bottom fixed, compact */
+  .info-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    padding: 8px 12px;
+    background: var(--color-bg-panel);
+    border-top: 1px solid var(--color-border);
+    z-index: 10;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .info-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .info-bar__divider {
+    margin: 0 8px;
+  }
+
+  /* Item palette 2-column grid */
+  .category-items {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .item-card {
+    padding: 12px;
+    min-height: 80px;
+  }
+
+  /* Floor plan cards touch-friendly */
+  .floor-plan-card {
+    padding: 14px;
+    min-height: 100px;
+  }
+}
+
+/* Tablet: Canvas padding for fixed info bar */
+@media (width <= 767px) and (width >= 481px) {
+  .canvas-container {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ================================
+   MOBILE (< 480px)
+   ================================ */
+@media (width <= 480px) {
+  /* Ultra-compact header */
+  .header {
+    height: 48px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  #project-name {
+    font-size: 14px;
+    max-width: 140px;
+  }
+
+  /* Hide desktop toolbar when MobileUIManager activates mobile layout */
+
+  /* Sidebar full width on mobile */
+  .sidebar {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Item palette single column for smallest screens */
+  .category-items {
+    grid-template-columns: 1fr;
+  }
+
+  /* Info bar hidden when MobileUIManager activates mobile layout */
+
+  /* Compact sidebar tabs */
+  .sidebar-tabs {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .sidebar-tab {
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  /* Dropdown menus full-width on mobile */
+  .dropdown-menu {
+    left: 0;
+    right: 0;
+    min-width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+  }
+}
+
+/* ================================
+   LANDSCAPE ORIENTATION
+   ================================ */
+@media (height <= 500px) and (orientation: landscape) {
+  .header {
+    height: 44px;
+    padding: 6px 10px;
+  }
+
+  /* Legacy mobile-toolbar rules removed */
+
+  .sidebar {
+    max-width: 280px;
+  }
+
+  .canvas-container {
+    padding-bottom: 48px;
+  }
+}
+
+/* ================================
+   TOUCH OPTIMIZATIONS
+   ================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* All touch targets minimum 44x44px */
+  button,
+  .btn,
+  .dropdown-item,
+  .sidebar-tab,
+  .floor-plan-card,
+  .item-card {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Remove hover states on touch devices */
+  .btn:hover,
+  .dropdown-item:hover,
+  .sidebar-tab:hover {
+    background: transparent;
+  }
+
+  /* Active states for touch feedback */
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Smooth scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent text selection during touch interactions */
+  .canvas-container,
+  .toolbar {
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* ================================
+   PERFORMANCE OPTIMIZATIONS
+   ================================ */
+
+/* Use GPU acceleration for smooth animations */
+.sidebar,
+.sidebar-backdrop,
+.dropdown-menu {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ================================
+   MOBILE DRAWER SCROLL LOCK
+   ================================ */
+
+/* Prevent body scroll when mobile sidebar is open */
+body.drawer-open {
+  overflow: hidden;
+}

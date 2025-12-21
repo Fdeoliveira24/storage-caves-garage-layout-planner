@@ -1,0 +1,423 @@
+/* global Bounds */
+
+const selectionFilters = (typeof window !== 'undefined' && window.SelectionFilters) || {
+  isSelectableObject: () => true,
+};
+
+/**
+ * Selection Manager
+ * Handles item selection, multi-select, and grouping
+ */
+class SelectionManager {
+  constructor(state, eventBus, canvasManager) {
+    this.state = state;
+    this.eventBus = eventBus;
+    this.canvasManager = canvasManager;
+    this.canvas = canvasManager.getCanvas();
+    this.clipboard = null; // For copy/paste
+  }
+
+  /**
+   * Select item
+   */
+  selectItem(item) {
+    if (!selectionFilters.isSelectableObject(item)) {
+      return;
+    }
+
+    this.canvas.setActiveObject(item);
+    this.canvas.renderAll();
+
+    this.state.setState({ selection: [item] });
+    this.eventBus.emit('item:selected', item);
+  }
+
+  /**
+   * Deselect all
+   */
+  deselectAll() {
+    this.canvas.discardActiveObject();
+    this.canvas.renderAll();
+
+    this.state.setState({ selection: null });
+    this.eventBus.emit('selection:cleared');
+  }
+
+  /**
+   * Get selected items
+   */
+  getSelection() {
+    const active = this.canvas.getActiveObject();
+    const isMeasurementObject = (obj) =>
+      obj && (obj.measurement || obj.isMeasurementLabel || obj.measurementId);
+
+    if (!active) return [];
+
+    if (active.type === 'activeSelection') {
+      const objects = active.getObjects();
+      const filtered = objects.filter(
+        (obj) =>
+          selectionFilters.isSelectableObject(obj) ||
+          obj.measurement ||
+          obj.isMeasurementLabel ||
+          obj.measurementId,
+      );
+
+      const hasMeasurement = filtered.some((obj) => isMeasurementObject(obj));
+      const hasNonMeasurement = filtered.some((obj) => !isMeasurementObject(obj));
+
+      // Prevent mixed selection of measurement objects with other items/text
+      if (hasMeasurement && hasNonMeasurement) {
+        const nonMeasurement = filtered.filter((obj) => !isMeasurementObject(obj));
+        if (nonMeasurement.length === 1) {
+          this.canvas.setActiveObject(nonMeasurement[0]);
+        } else if (nonMeasurement.length > 1) {
+          const selection = new fabric.ActiveSelection(nonMeasurement, { canvas: this.canvas });
+          this.canvas.setActiveObject(selection);
+        } else {
+          this.canvas.discardActiveObject();
+        }
+        this.canvas.requestRenderAll();
+        return nonMeasurement;
+      }
+
+      return filtered;
+    }
+
+    return selectionFilters.isSelectableObject(active) ||
+      active.measurement ||
+      active.isMeasurementLabel ||
+      active.measurementId
+      ? [active]
+      : [];
+  }
+
+  /**
+   * Select multiple items
+   */
+  selectMultiple(items) {
+    const selectableItems = items.filter((item) => selectionFilters.isSelectableObject(item));
+    if (selectableItems.length === 0) {
+      this.deselectAll();
+      return;
+    }
+
+    if (selectableItems.length === 1) {
+      this.selectItem(selectableItems[0]);
+      return;
+    }
+
+    const selection = new fabric.ActiveSelection(selectableItems, {
+      canvas: this.canvas,
+    });
+
+    this.canvas.setActiveObject(selection);
+    this.canvas.renderAll();
+
+    this.state.setState({ selection: selectableItems });
+    this.eventBus.emit('items:selected', selectableItems);
+  }
+
+  /**
+   * Select all items
+   */
+  selectAll() {
+    const objects = this.canvas
+      .getObjects()
+      .filter((obj) => selectionFilters.isSelectableObject(obj));
+
+    this.selectMultiple(objects);
+  }
+
+  /**
+   * Delete selected items
+   */
+  deleteSelected() {
+    // Include measurement objects even if SelectionFilters excludes them
+    const activeObjects =
+      typeof this.canvas.getActiveObjects === 'function'
+        ? this.canvas.getActiveObjects()
+        : [this.canvas.getActiveObject()].filter(Boolean);
+    const selected = activeObjects.length ? activeObjects : this.getSelection();
+    const measurementTool = this.canvasManager?.getMeasurementTool?.();
+
+    selected.forEach((item) => {
+      if (item.type === 'i-text') {
+        this.canvas.remove(item);
+        this.eventBus.emit('text:deleted', item);
+        return;
+      }
+
+      if (item.measurement || item.isMeasurementLabel || item.measurementId) {
+        if (measurementTool && typeof measurementTool.removeMeasurement === 'function') {
+          measurementTool.removeMeasurement(item);
+        } else {
+          this.canvas.remove(item);
+        }
+        return;
+      }
+
+      if (item.customData && item.customData.id) {
+        if (measurementTool && typeof measurementTool.handleItemRemoved === 'function') {
+          measurementTool.handleItemRemoved(item.customData.id);
+        }
+        this.eventBus.emit('item:delete:requested', item.customData.id);
+      }
+    });
+
+    this.deselectAll();
+    this.canvas.requestRenderAll();
+  }
+
+  /**
+   * Duplicate selected items
+   */
+  duplicateSelected() {
+    const selected = this.getSelection();
+    if (selected.length === 0) return;
+
+    const ids = selected
+      .filter((item) => item.customData && item.customData.id)
+      .map((item) => item.customData.id);
+
+    // Release active selection so Fabric restores absolute coordinates
+    this.canvas.discardActiveObject();
+    this.canvas.renderAll();
+
+    if (ids.length === 0) return;
+
+    this.eventBus.emit('items:duplicate:batch:start', { ids });
+
+    ids.forEach((id) => {
+      const canvasObject = this.canvas
+        .getObjects()
+        .find((obj) => obj.customData && obj.customData.id === id);
+      this.eventBus.emit('item:duplicate:requested', {
+        itemId: id,
+        canvasObject,
+      });
+    });
+
+    this.eventBus.emit('items:duplicate:batch:end', { ids });
+  }
+
+  /**
+   * Copy selected items to clipboard
+   */
+  copySelected() {
+    const selected = this.getSelection();
+    if (selected.length === 0) return;
+
+    this.clipboard = selected
+      .map((item) => {
+        if (item.customData) {
+          // Use Fabric's getCenterPoint() for accurate center even when rotated
+          const center = item.getCenterPoint();
+
+          return {
+            itemId: item.customData.itemId,
+            id: item.customData.id,
+            label: item.customData.label,
+            widthFt: item.customData.widthFt,
+            lengthFt: item.customData.lengthFt,
+            category: item.customData.category,
+            x: center.x,
+            y: center.y,
+            angle: item.angle || 0,
+          };
+        }
+        return null;
+      })
+      .filter((item) => item !== null);
+  }
+
+  /**
+   * Paste items from clipboard
+   */
+  pasteSelected() {
+    if (!this.clipboard || this.clipboard.length === 0) return;
+
+    this.clipboard.forEach((item) => {
+      this.eventBus.emit('item:paste:requested', item);
+    });
+  }
+
+  /**
+   * Rotate selected items
+   */
+  rotateSelected(angle) {
+    const selected = this.getSelection();
+
+    selected.forEach((item) => {
+      const currentAngle = item.angle || 0;
+      item.rotate(currentAngle + angle);
+      item.setCoords();
+
+      // Update state if item has customData
+      if (item.customData && item.customData.id) {
+        const items = this.state.get('items') || [];
+        const stateItem = items.find((i) => i.id === item.customData.id);
+        if (stateItem) {
+          stateItem.angle = item.angle;
+        }
+      }
+
+      if (item.type === 'i-text') {
+        this.eventBus.emit('canvas:object:modified', item);
+      }
+    });
+
+    // Update state with modified items
+    if (selected.length > 0 && selected[0].customData) {
+      const items = this.state.get('items') || [];
+      this.state.setState({ items });
+    }
+
+    this.canvas.renderAll();
+    this.eventBus.emit('items:rotated', selected);
+  }
+
+  /**
+   * Move selected items
+   */
+  moveSelected(dx, dy) {
+    const selected = this.getSelection();
+    if (selected.length === 0) return;
+
+    this.eventBus.emit('items:move:batch:start', { items: selected });
+
+    selected.forEach((item) => {
+      item.set({
+        left: item.left + dx,
+        top: item.top + dy,
+      });
+      item.setCoords();
+    });
+
+    this.canvas.renderAll();
+
+    // Emit canvas:object:modified for each moved item so history, validation, and state updates occur
+    selected.forEach((item) => {
+      this.eventBus.emit('canvas:object:modified', item);
+    });
+
+    this.eventBus.emit('items:move:batch:end', { items: selected });
+    this.eventBus.emit('items:moved', selected);
+  }
+
+  /**
+   * Align selected items
+   */
+  alignSelected(alignment) {
+    const selected = this.getSelection();
+    if (selected.length < 2) return;
+
+    const bounds = selected.map((item) => Bounds.getItemBounds(item));
+    if (bounds.some((b) => !b)) {
+      console.warn('[SelectionManager] Unable to compute bounds for all selections');
+      return;
+    }
+
+    switch (alignment) {
+      case 'left': {
+        const minLeft = Math.min(...bounds.map((b) => b.left));
+        selected.forEach((item, i) => {
+          item.set({ left: item.left + (minLeft - bounds[i].left) });
+          item.setCoords();
+        });
+        break;
+      }
+
+      case 'right': {
+        const maxRight = Math.max(...bounds.map((b) => b.right));
+        selected.forEach((item, i) => {
+          item.set({ left: item.left + (maxRight - bounds[i].right) });
+          item.setCoords();
+        });
+        break;
+      }
+
+      case 'top': {
+        const minTop = Math.min(...bounds.map((b) => b.top));
+        selected.forEach((item, i) => {
+          item.set({ top: item.top + (minTop - bounds[i].top) });
+          item.setCoords();
+        });
+        break;
+      }
+
+      case 'bottom': {
+        const maxBottom = Math.max(...bounds.map((b) => b.bottom));
+        selected.forEach((item, i) => {
+          item.set({ top: item.top + (maxBottom - bounds[i].bottom) });
+          item.setCoords();
+        });
+        break;
+      }
+
+      case 'center': {
+        const avgCenterX =
+          bounds.reduce((sum, b) => sum + (b.left + b.right) / 2, 0) / bounds.length;
+        selected.forEach((item, i) => {
+          const itemCenterX = (bounds[i].left + bounds[i].right) / 2;
+          item.set({ left: item.left + (avgCenterX - itemCenterX) });
+          item.setCoords();
+        });
+        break;
+      }
+
+      case 'middle': {
+        const avgCenterY =
+          bounds.reduce((sum, b) => sum + (b.top + b.bottom) / 2, 0) / bounds.length;
+        selected.forEach((item, i) => {
+          const itemCenterY = (bounds[i].top + bounds[i].bottom) / 2;
+          item.set({ top: item.top + (avgCenterY - itemCenterY) });
+          item.setCoords();
+        });
+        break;
+      }
+    }
+
+    selected.forEach((item) => {
+      if (item.type === 'i-text') {
+        this.eventBus.emit('canvas:object:modified', item);
+      }
+    });
+
+    this.canvas.renderAll();
+    this.eventBus.emit('items:aligned', selected);
+  }
+
+  /**
+   * Bring selected to front
+   */
+  bringToFront() {
+    const selected = this.getSelection();
+    selected.forEach((item) => item.bringToFront());
+    this.canvasManager.ensureStaticLayersBehind();
+    this.canvas.renderAll();
+    this.eventBus.emit('items:zorder:changed', { action: 'front', items: selected });
+  }
+
+  /**
+   * Send selected to back
+   */
+  sendToBack() {
+    const selected = this.getSelection();
+
+    // Send items to layer 4 (above grid at 3, but below other items)
+    // Layers: 0=floor, 1=entry zone, 2=entry label, 3=grid, 4+=items
+    selected.forEach((item) => {
+      item.moveTo(4);
+    });
+
+    this.canvasManager.ensureStaticLayersBehind();
+    this.canvas.renderAll();
+    this.eventBus.emit('items:zorder:changed', { action: 'back', items: selected });
+  }
+}
+
+// Make available globally
+if (typeof window !== 'undefined') {
+  window.SelectionManager = SelectionManager;
+}

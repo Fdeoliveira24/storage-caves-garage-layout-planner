@@ -1,0 +1,64 @@
+/* Info Bar Styles - Inline Horizontal Layout */
+.info-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--color-bg-panel);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  min-height: 40px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.info-bar__segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.info-bar__label {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.info-bar__value {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.info-bar__segment--warning {
+  color: #d32f2f;
+}
+
+.info-bar__segment--warning .info-bar__value {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.info-bar__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  display: inline-block;
+}
+
+.info-bar__placeholder {
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  font-style: italic;
+}
+
+@media (width <= 768px) {
+  .info-bar {
+    gap: 12px;
+    padding: 8px 12px;
+  }
+
+  .info-bar__segment {
+    font-size: 12px;
+  }
+}

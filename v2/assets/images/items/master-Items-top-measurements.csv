@@ -1,0 +1,109 @@
+category,id,label,widthFt,lengthFt,canvasWidthPx,canvasHeightPx,canvasImage
+Vehicles,sports-car,Sports Car,6,15,60,150,assets/images/items/canvas/sports-car-top.png
+Vehicles,sedan,Sedan,6,16,60,160,assets/images/items/canvas/sedan-top.png
+Vehicles,classic-convertible-car,Classic Convertible,6,16,60,160,assets/images/items/canvas/classic-convertible-car-top.png
+Vehicles,classic-muscle-car,Classic Muscle Car,6.5,17,65,170,assets/images/items/canvas/classic-muscle-car-top.png
+Vehicles,vintage-sports-car,Vintage Sports Car,5.5,15,55,150,assets/images/items/canvas/vintage-sports-car-top.png
+Vehicles,race-car,Race Car,6.5,16,65,160,assets/images/items/canvas/race-car-top.png
+Vehicles,supercar,Supercar,6,15,60,150,assets/images/items/canvas/supercar-top.png
+Vehicles,pickup,Pickup Truck,6.5,19,65,190,assets/images/items/canvas/pickup-top.png
+Vehicles,suv,SUV,6.5,17,65,170,assets/images/items/canvas/suv-top.png
+Vehicles,van,Van,6.5,18,65,180,assets/images/items/canvas/van-top.png
+Vehicles,off-road-4x4-truck,Off-Road 4x4,6.5,18,65,180,assets/images/items/canvas/off-road-4x4-truck-top.png
+Vehicles,semi-truck-cabin,Semi Truck,8,20,80,200,assets/images/items/canvas/semi-truck-cabin-top.png
+Vehicles,food-truck,Food Truck,8,20,80,200,assets/images/items/canvas/food-truck-top.png
+Vehicles,motorcycle,Motorcycle,3,7,30,70,assets/images/items/canvas/motorcycle-top.png
+Vehicles,vintage-cruiser-motorcycle,Vintage Cruiser,3,8,30,80,assets/images/items/canvas/vintage-cruiser-motorcycle-top.png
+Vehicles,dirt-bike,Dirt Bike,2.5,7,25,70,assets/images/items/canvas/dirt-bike-top.png
+Vehicles,motorhome,Motorhome,8.5,28,85,280,assets/images/items/canvas/motorhome-top.png
+Vehicles,airspresso-coffee-food-trailer,Coffee Trailer,6,12,60,120,assets/images/items/canvas/airspresso-coffee-food-trailer-top.png
+Vehicles,teardrop-camper,Teardrop Camper,5,12,50,120,assets/images/items/canvas/teardrop-camper-top.png
+Vehicles,tractor,Tractor,6,12,60,120,assets/images/items/canvas/tractor-top.png
+Recreational,boat-trailer,Boat with Trailer,7,20,70,200,assets/images/items/canvas/boat-trailer-top.png
+Recreational,speed-boat-trailer,Speed Boat w/ Trailer,7,20,70,200,assets/images/items/canvas/speed-boat-trailer-top.png
+Recreational,speedboat,Speedboat,6,18,60,180,assets/images/items/canvas/Speedboat-top.png
+Recreational,pontoonboat,Pontoon Boat,8.5,22,85,220,assets/images/items/canvas/pontoon-boat-top.png
+Recreational,inflatable-boat,Inflatable Boat,5,12,50,120,assets/images/items/canvas/inflatable-boat-top.png
+Recreational,small-sailboat,Small Sailboat,6,16,60,160,assets/images/items/canvas/small-sailboat-top.png
+Recreational,jet-ski-trailer,Jet Ski with Trailer,5,12,50,120,assets/images/items/canvas/jet-ski-trailer-top.png
+Recreational,rv-26,RV (26 ft),8,26,80,260,assets/images/items/canvas/rv-26-top.png
+Recreational,rv-34,RV (34 ft),8.5,34,85,340,assets/images/items/canvas/rv-34-top.png
+Recreational,atv,ATV,4,7,40,70,assets/images/items/canvas/atv-top.png
+Recreational,golf-cart,Golf Cart,4,8,40,80,assets/images/items/canvas/golf-cart-top.png
+Recreational,polaris-slingshot-strike,Polaris Slingshot,6,11,60,110,assets/images/items/canvas/polaris-slingshot-strike-top.png
+Recreational,snowmobile,Snowmobile,4,10,40,100,assets/images/items/canvas/snowmobile-top.png
+Workshop & Tools,air-compressor,Air Compressor,4.5,2,45,20,assets/images/items/canvas/air-compressor-top.png
+Workshop & Tools,cement-mixer,Cement Mixer,3,4,30,40,assets/images/items/canvas/cement-mixer-top.png
+Workshop & Tools,portable-welding-machine,Welding Machine,2,2.5,20,25,assets/images/items/canvas/portable-welding-machine-top.png
+Workshop & Tools,cnc-machine,CNC Machine,4,8,40,80,assets/images/items/canvas/cnc-machine-top.png
+Workshop & Tools,scissor-lift,Scissor Lift,5,8,50,80,assets/images/items/canvas/scissor-lift-top.png
+Workshop & Tools,metal-staircase,Metal Staircase,3,10,30,100,assets/images/items/canvas/metal-staircase-top.png
+Workshop & Tools,rolling-tool-chest,Rolling Tool Chest,2,4,20,40,assets/images/items/canvas/rolling-tool-chest-top.png
+Garage Equipment,car-lift,Car Lift,9,15,90,150,assets/images/items/canvas/car-lift-top.png
+Garage Equipment,car-jack,Car Jack,1.5,2,15,20,assets/images/items/canvas/car-jack-top.png
+Garage Equipment,floor-jack,Floor Jack,2,3,20,30,assets/images/items/canvas/floor-jack-top.png
+Garage Equipment,mechanic-creeper-slider,Mechanic Creeper,2,4,20,40,assets/images/items/canvas/mechanic-creeper-slider-top.png
+Garage Equipment,pressure-washer-machine,Pressure Washer,2,3,20,30,assets/images/items/canvas/pressure-washer-machine-top.png
+Garage Equipment,garage-pegboard,Garage Pegboard,2,8,20,80,assets/images/items/canvas/garage-pegboard-top.png
+Garage Equipment,garage-cabinets-with-shelves,Garage Cabinets,2,8,20,80,assets/images/items/canvas/garage-cabinets-with-shel...-top.png
+Garage Equipment,metal-garage-cabinet,Metal Cabinet,2,6,20,60,assets/images/items/canvas/metal-garage-cabinet-top.png
+Garage Equipment,storage-ladder,Storage Ladder,2,8,20,80,assets/images/items/canvas/storage-ladder-top.png
+Garage Equipment,car-tires,Car Tires (Stack),2.5,2.5,25,25,assets/images/items/canvas/car-tires-top.png
+Garage Equipment,garage-refrigerator,Garage Refrigerator,3,6,30,60,assets/images/items/canvas/garage-refrigerator-top.png
+Garage Equipment,garage-door,Garage Door,7,16,70,160,assets/images/items/canvas/garage-door-top.png
+Furniture & Living,sofa,Couch,3,8,30,80,assets/images/items/canvas/sofa-top.png
+Furniture & Living,l-shaped-sofa,L-Shaped Sofa,6,9,60,90,assets/images/items/canvas/l-shaped-sofa-top.png
+Furniture & Living,dining-table,Dining Table,4,6,40,60,assets/images/items/canvas/dinning-table-top.png
+Furniture & Living,coffee-table,Coffee Table,4,2.5,40,25,assets/images/items/canvas/coffee-table-top.png
+Furniture & Living,coffee-table-circular,Coffee Table (Round),3,3,30,30,assets/images/items/canvas/coffee-table-circular-top.png
+Furniture & Living,massage-chair,Massage Chair,3,5,30,50,assets/images/items/canvas/massage-chair-top.png
+Furniture & Living,aeron-chair,Office Chair,2.5,3,25,30,assets/images/items/canvas/aeron-chair-top.png
+Furniture & Living,gaming-chair,Gaming Chair,2.5,3.5,25,35,assets/images/items/canvas/gaming-chair-top.png
+Furniture & Living,tv-stand,TV Stand,1.5,5,15,50,assets/images/items/canvas/tv-stand-top.png
+Furniture & Living,tv,TV (Flat Screen),3,5,30,50,assets/images/items/canvas/tv-top.png
+Furniture & Living,double-door-fridge,Refrigerator,3,6,30,60,assets/images/items/canvas/double-door-fridge-top.png
+Furniture & Living,mini-refrigerator,Mini Fridge,2.5,3,25,30,assets/images/items/canvas/mini-refrigerator-top.png
+Furniture & Living,water-cooler,Water Cooler,1.5,4,15,40,assets/images/items/canvas/water-cooler-top.png
+Furniture & Living,washing-machine,Washing Machine,2.5,3,25,30,assets/images/items/canvas/washing-machine-top.png
+Furniture & Living,carpet-circular,Carpet (Round),6,6,60,60,assets/images/items/canvas/carpet-circular-top.png
+Furniture & Living,rug-rectangular,Rug,5,8,50,80,assets/images/items/canvas/rug-rectangular-top.png
+Fitness & Sports,treadmill,Treadmill,3,6,30,60,assets/images/items/canvas/treadmill-top.png
+Fitness & Sports,exercise-bike,Exercise Bike,2,4,20,40,assets/images/items/canvas/exercise-bike-top.png
+Fitness & Sports,bicycle-gym-equipment,Stationary Bike,2,5,20,50,assets/images/items/canvas/bicycle-gym-equipment-top.png
+Fitness & Sports,bench-press,Bench Press,4,5,40,50,assets/images/items/canvas/bench-press-top.png
+Fitness & Sports,dumbbell-rack,Dumbbell Rack,2,5,20,50,assets/images/items/canvas/dumbbell-rack-top.png
+Fitness & Sports,climb-gym,Climbing Gym,3,7,30,70,assets/images/items/canvas/climb-gym-top.png
+Fitness & Sports,punching-bag-hanging,Punching Bag,1.5,4,15,40,assets/images/items/canvas/punching-bag-hanging-top.png
+Fitness & Sports,table-tennis,Table Tennis,5,9,50,90,assets/images/items/canvas/table-tennis-top.png
+Fitness & Sports,fosball,Foosball Table,3,5,30,50,assets/images/items/canvas/foosball-top.png
+Fitness & Sports,inflatable-swimming-ring,Pool Float,4,4,40,40,assets/images/items/canvas/inflatable-swimmin...g-top.png
+Storage & Organization,shelf,Storage Shelf,2,4,20,40,assets/images/items/canvas/shelf-top.png
+Storage & Organization,shelf-boxes,Shelf with Boxes,3,4,30,40,assets/images/items/canvas/shelf-boxes-top.png
+Storage & Organization,scaffold-rack,Scaffold Rack,1.5,8,15,80,assets/images/items/canvas/scaffold-top.png
+Storage & Organization,workbench,Workbench,2.5,6,25,60,assets/images/items/canvas/workbench-top.png
+Storage & Organization,storage-box,Storage Box,3,3,30,30,assets/images/items/canvas/storage-box-top.png
+Storage & Organization,box,Cardboard Box,2.5,2.5,25,25,assets/images/items/canvas/box-top.png
+Storage & Organization,small-tool-box,Tool Box,1.5,3,15,30,assets/images/items/canvas/small-tool-box-top.png
+Storage & Organization,tool-cabinet,Tool Cabinet,2,5,20,50,assets/images/items/canvas/tool-cabinet-top.png
+Storage & Organization,bike-rack,Bike Rack,2,6,20,60,assets/images/items/canvas/bike-rack-top.png
+Storage & Organization,kayak,Kayak,2.8,12,28,120,assets/images/items/canvas/kayak-top.png
+Storage & Organization,freezer,Chest Freezer,2.5,5,25,50,assets/images/items/canvas/freezer-top.png
+Storage & Organization,floor-lamp,Floor Lamp,1,6,10,60,assets/images/items/canvas/floor-lamp-top.png
+Storage & Organization,electric-car-charging,EV Charger,1.5,5,15,50,assets/images/items/canvas/electric-car-charging-top.png
+Storage & Organization,hot-dog-cart,Hot Dog Cart,3,6,30,60,assets/images/items/canvas/hot-dog-cart-top.png
+Storage & Organization,garage-bar-counter,Bar Counter,2.5,6,25,60,assets/images/items/canvas/garage-bar-counter-top.png
+Storage & Organization,wheel-barrow,Wheelbarrow,2.5,5,25,50,assets/images/items/canvas/wheel-barrow-top.png
+Entertainment,pool-table,Pool Table,5,9,50,90,assets/images/items/canvas/pool-table-top.png
+Entertainment,fliperama,Arcade Game,3,6,30,60,assets/images/items/canvas/fliperama-top.png
+Entertainment,racing-simulator,Racing Simulator,4,5,40,50,assets/images/items/canvas/racing-simulator-top.png
+Entertainment,bbq-grill,BBQ Grill,2.5,4,25,40,assets/images/items/canvas/bbq-grill-top.png
+Entertainment,gas-grill,Gas Grill,2.5,5,25,50,assets/images/items/canvas/gas-grill-top.png
+Mezzanine Options,mezzanine-option-1,Mezzanine Option 1,11,14,110,140,
+Mezzanine Options,mezzanine-option-2,Mezzanine Option 2,15,16,150,160,
+Mezzanine Options,mezzanine-option-3,Mezzanine Option 3,14,17,140,170,
+Mezzanine Options,mezzanine-option-4,Mezzanine Option 4,16,18,160,180,
+Mezzanine Options,mezzanine-option-5,Mezzanine Option 5,18,22,180,220,
+2D Shapes,shape-square,Square,10,10,100,100,
+2D Shapes,shape-circle,Circle,10,10,100,100,
+2D Shapes,shape-rectangle,Rectangle,6,12,60,120,
+2D Shapes,shape-triangle,Triangle,8,9,80,90,

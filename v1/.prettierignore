@@ -1,0 +1,7 @@
+.cache
+.local
+node_modules
+.git
+.husky
+.replit
+replit.nix

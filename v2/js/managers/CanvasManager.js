@@ -1,0 +1,1598 @@
+/* global Helpers, Config, Bounds, Modal, MeasurementTool */
+
+const SelectionFilters =
+  (typeof window !== 'undefined' && window.SelectionFilters) ||
+  (() => {
+    const filters = {
+      isMeasurementObject(obj) {
+        if (!obj) return false;
+        return (
+          !!obj.measurement ||
+          !!obj.measurementHandle ||
+          !!obj.isMeasurementLabel ||
+          obj.measurementPart === 'text' ||
+          !!obj.measurementId
+        );
+      },
+      isFloorPlanObject(obj) {
+        if (!obj) return false;
+        return !!(obj.customData && obj.customData.isFloorPlan);
+      },
+      isLockedObject(obj) {
+        if (!obj) return false;
+        if (obj.customData && obj.customData.locked) return true;
+        return (
+          obj.lockMovementX === true && obj.lockMovementY === true && obj.lockRotation === true
+        );
+      },
+      isSelectableObject(obj) {
+        if (!obj) return false;
+        if (obj.type === 'i-text') {
+          if (this.isMeasurementObject(obj)) return false;
+          if (this.isLockedObject(obj)) return false;
+          if (obj.excludeFromSelection) return false;
+          return true;
+        }
+        if (this.isFloorPlanObject(obj)) return false;
+        if (this.isMeasurementObject(obj)) return false;
+        if (this.isLockedObject(obj)) return false;
+        if (obj.excludeFromSelection) return false;
+        return !!(obj.customData && obj.customData.id);
+      },
+    };
+    filters.isSelectableObject = filters.isSelectableObject.bind(filters);
+    return filters;
+  })();
+
+if (typeof window !== 'undefined') {
+  window.SelectionFilters = SelectionFilters;
+}
+
+/**
+ * Canvas Manager - Fabric.js Canvas Management
+ * Handles canvas initialization, zoom, pan, rendering
+ */
+class CanvasManager {
+  constructor(canvasId, state, eventBus) {
+    this.state = state;
+    this.eventBus = eventBus;
+    this.canvas = null;
+    this.canvasId = canvasId;
+    this.floorPlanRect = null;
+    this.entryZoneRect = null;
+    this.entryZoneLabel = null;
+    this.floorPlanGroup = null;
+    this.floorPlanLocked = false;
+    this.floorPlanPosition = this.state.get('layout.floorPlanPosition') || null;
+    this.floorPlanBounds = this.state.get('layout.floorPlanBounds') || null;
+    this.gridLines = [];
+    this.rulerMarks = [];
+    this.alignmentGuides = [];
+    this.emptyStateEl = null;
+    this.canvasWrapper = null;
+    this.floorPlanWidth = null; // Store floor plan dimensions for re-centering
+    this.floorPlanHeight = null;
+    this.isAutoFitMode = true; // Track if zoom is auto-fit vs manual
+    const storedLockState = this.state.get('layout.floorPlanLocked');
+    if (typeof storedLockState === 'boolean') {
+      this.floorPlanLocked = storedLockState;
+    }
+
+    this._floorPlanMoveHandler = this._handleFloorPlanMove.bind(this);
+    // When true, object moves are clamped to the floor plan bounds.
+    // Disabled by default so power users can stage items outside the plan.
+    this.enforceFloorBounds = false;
+    this.measurementTool = null;
+    this._marqueeSuppressed = false;
+    this._previousSelectionEnabled = true;
+  }
+
+  /**
+   * Initialize Fabric.js canvas
+   */
+  init() {
+    const canvasEl = document.getElementById(this.canvasId);
+    if (!canvasEl) {
+      console.error('Canvas element not found');
+      return;
+    }
+
+    // Hint to browsers that we'll read pixel data often (improves getImageData perf)
+    try {
+      const existingContext = canvasEl.getContext('2d', { willReadFrequently: true });
+      if (existingContext && typeof existingContext.willReadFrequently === 'boolean') {
+        existingContext.willReadFrequently = true;
+      }
+    } catch (err) {
+      // Older browsers may not support the option; ignore silently
+    }
+
+    this.canvas = new fabric.Canvas(this.canvasId, {
+      backgroundColor: '#ffffff',
+      selection: true,
+      preserveObjectStacking: true,
+      // Professional control styling
+      selectionColor: 'rgba(211, 47, 47, 0.08)',
+      selectionBorderColor: '#D32F2F',
+      selectionLineWidth: 1.5,
+      // Corner/control styling for better visibility
+      borderColor: '#D32F2F',
+      cornerColor: '#D32F2F',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
+      transparentCorners: false,
+      borderDashArray: [4, 4],
+      borderScaleFactor: 2,
+      // Rotation control styling
+      rotatingPointOffset: 40,
+      // Padding for better hit area
+      padding: 0,
+    });
+    this.canvas.perPixelTargetFind = true;
+    this.canvas.targetFindTolerance = 12;
+
+    // Customize multi-selection (ActiveSelection) appearance
+    fabric.ActiveSelection.prototype.set({
+      borderColor: '#D32F2F',
+      cornerColor: '#D32F2F',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
+      transparentCorners: false,
+      borderDashArray: [4, 4],
+      borderScaleFactor: 2,
+      padding: 0,
+    });
+
+    // Setup event listeners
+    this.setupEventListeners();
+
+    // Listen to window resize
+    window.addEventListener('resize', () => this.resizeCanvas());
+
+    this.canvasWrapper = canvasEl.parentElement;
+
+    // CRITICAL: Resize canvas synchronously BEFORE any viewport operations
+    // This ensures centerAndFit() uses the correct canvas dimensions, not the default 300x150
+    this.resizeCanvas();
+
+    // Initialize measurement tool once canvas is ready
+    if (typeof MeasurementTool !== 'undefined') {
+      this.measurementTool = new MeasurementTool(this.canvas, this.state, this.eventBus);
+    }
+
+    return this.canvas;
+  }
+
+  /**
+   * Resize canvas to fit container
+   * Re-centers floor plan ONLY if in auto-fit mode (preserves manual zoom)
+   */
+  resizeCanvas() {
+    if (!this.canvas) return;
+
+    const container = this.canvas.wrapperEl.parentElement;
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 600;
+
+    this.canvas.setDimensions({ width, height });
+
+    // Re-center floor plan ONLY if in auto-fit mode
+    // This preserves user's manual zoom level when resizing window
+    if (this.isAutoFitMode && this.floorPlanWidth && this.floorPlanHeight) {
+      this.centerAndFit(this.floorPlanWidth, this.floorPlanHeight);
+    }
+
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Get measurement tool instance
+   */
+  getMeasurementTool() {
+    return this.measurementTool;
+  }
+
+  /**
+   * Normalize Fabric selection to only include selectable objects
+   * Enforces mutually exclusive selections for measurements and text objects
+   * @private
+   */
+  _normalizeSelection() {
+    if (!this.canvas) return [];
+    const active = this.canvas.getActiveObject();
+    if (!active) return [];
+
+    if (active.type === 'activeSelection') {
+      const objects = active.getObjects() || [];
+      const measurementObjs = objects.filter((obj) => SelectionFilters.isMeasurementObject(obj));
+      const textObjs = objects.filter((obj) => obj.type === 'i-text' && !SelectionFilters.isMeasurementObject(obj));
+      const itemObjs = objects.filter((obj) => SelectionFilters.isSelectableObject(obj) && obj.type !== 'i-text');
+
+      const hasMeasurement = measurementObjs.length > 0;
+      const hasText = textObjs.length > 0;
+      const hasItems = itemObjs.length > 0;
+
+      // Prevent mixed selection: measurement + anything (mutually exclusive)
+      if (hasMeasurement && (hasText || hasItems)) {
+        // Try to restore original state before corruption
+        if (typeof active._restoreObjectsState === 'function') {
+          active._restoreObjectsState();
+        }
+        // Disallow mixed selection entirely to prevent movement/corruption
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        return [];
+      }
+
+      // Only one text object can be selected at a time (mutually exclusive)
+      if (hasText && textObjs.length > 1) {
+        const firstText = textObjs[0];
+        this.canvas.setActiveObject(firstText);
+        this.canvas.requestRenderAll();
+        return [firstText];
+      }
+
+      // Prevent mixed selection: text + items (mutually exclusive)
+      if (hasText && hasItems) {
+        // Keep only items (discard text to maintain consistency)
+        if (itemObjs.length === 1) {
+          this.canvas.setActiveObject(itemObjs[0]);
+        } else if (itemObjs.length > 1) {
+          const selection = new fabric.ActiveSelection(itemObjs, { canvas: this.canvas });
+          this.canvas.setActiveObject(selection);
+        } else {
+          this.canvas.discardActiveObject();
+        }
+        this.canvas.requestRenderAll();
+        return itemObjs;
+      }
+
+      // Allow only: multiple items OR single text OR multiple measurements (all mutually exclusive)
+      const filtered = hasItems ? itemObjs : (hasText ? textObjs : measurementObjs);
+      if (filtered.length === 0) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        return [];
+      }
+      if (filtered.length !== objects.length) {
+        if (filtered.length === 1) {
+          this.canvas.setActiveObject(filtered[0]);
+        } else {
+          const selection = new fabric.ActiveSelection(filtered, {
+            canvas: this.canvas,
+          });
+          this.canvas.setActiveObject(selection);
+        }
+        this.canvas.requestRenderAll();
+      }
+      return filtered;
+    }
+
+    if (SelectionFilters.isSelectableObject(active)) {
+      return [active];
+    }
+
+    return [];
+  }
+
+  /**
+   * Filter helper for selection arrays
+   * @private
+   */
+  _filterSelectableObjects(objects = []) {
+    return objects.filter((obj) => SelectionFilters.isSelectableObject(obj));
+  }
+
+  _hasMixedMeasurementSelection() {
+    const active = this.canvas?.getActiveObject?.();
+    if (!active || active.type !== 'activeSelection') return false;
+    const objects = active.getObjects?.() || [];
+    if (!objects.length) return false;
+    const hasMeasurement = objects.some((obj) => SelectionFilters.isMeasurementObject(obj));
+    const hasNonMeasurement = objects.some((obj) => !SelectionFilters.isMeasurementObject(obj));
+    return hasMeasurement && hasNonMeasurement;
+  }
+
+  /**
+   * Position floor plan group, optionally forcing canvas center
+   * @param {boolean} forceCenter
+   * @private
+   */
+  _positionFloorPlanGroup(forceCenter = false) {
+    if (!this.floorPlanGroup || !this.canvas) return;
+
+    const canvasCenter = this.canvas.getCenter();
+    const persistedPosition = this.state.get('layout.floorPlanPosition');
+    let targetPosition = this.floorPlanPosition || persistedPosition;
+
+    if (!targetPosition || forceCenter) {
+      targetPosition = { left: canvasCenter.left, top: canvasCenter.top };
+    }
+
+    this.floorPlanGroup.set({
+      left: targetPosition.left,
+      top: targetPosition.top,
+    });
+    this.floorPlanGroup.setCoords();
+    this.floorPlanPosition = { ...targetPosition };
+    this._updateFloorPlanBounds();
+    this.ensureStaticLayersBehind();
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Handle floor plan drag events
+   * @private
+   */
+  _handleFloorPlanMove() {
+    if (!this.floorPlanGroup) return;
+    this.floorPlanPosition = {
+      left: this.floorPlanGroup.left,
+      top: this.floorPlanGroup.top,
+    };
+    this.floorPlanGroup.setCoords();
+    this.ensureStaticLayersBehind();
+    this._emitFloorPlanStateChanged();
+  }
+
+  /**
+   * Lock/unlock floor plan movement
+   */
+  setFloorPlanLocked(isLocked = true) {
+    this.floorPlanLocked = isLocked;
+    if (!this.floorPlanGroup) return;
+    this.floorPlanGroup.set({
+      lockMovementX: isLocked,
+      lockMovementY: isLocked,
+      selectable: !isLocked,
+      evented: !isLocked,
+    });
+    this.floorPlanGroup.setCoords();
+    this.canvas.requestRenderAll();
+    this.eventBus.emit('floorplan:lock:toggled', isLocked);
+  }
+
+  /**
+   * Reset floor plan position to canvas center
+   */
+  resetFloorPlanPosition() {
+    this.floorPlanPosition = null;
+    this._positionFloorPlanGroup(true);
+    // Ensure viewport recenters on the floor plan so it becomes visible
+    this.centerAndFit();
+    this._emitFloorPlanStateChanged();
+  }
+
+  /**
+   * Get current floor plan position
+   */
+  getFloorPlanPosition() {
+    return this.floorPlanPosition;
+  }
+
+  /**
+   * Get current floor plan bounds
+   */
+  getFloorPlanBounds() {
+    return this.floorPlanBounds ? { ...this.floorPlanBounds } : null;
+  }
+
+  /**
+   * Check if a canvas coordinate lies within the current floor plan bounds
+   */
+  isPointInsideFloorPlan(x, y) {
+    const bounds = this.floorPlanBounds || this._updateFloorPlanBounds();
+    if (!bounds) return false;
+    return (
+      x >= bounds.left &&
+      x <= bounds.left + bounds.width &&
+      y >= bounds.top &&
+      y <= bounds.top + bounds.height
+    );
+  }
+
+  /**
+   * Update item styling based on whether it's inside the floor plan
+   * @private
+   */
+  _updateItemFloorPlanState(obj, suppressRender = false) {
+    if (!obj || obj === this.floorPlanGroup || obj.type === 'activeSelection') return;
+    if (!obj.customData) return;
+
+    const inside = this.isPointInsideFloorPlan(obj.left, obj.top);
+    if (obj.customData._insideFloorPlan === inside) return;
+
+    obj.customData._insideFloorPlan = inside;
+
+    if (!obj._originalBorderColor) {
+      obj._originalBorderColor = obj.borderColor || '#6366F1';
+    }
+    if (!obj._originalShadow) {
+      obj._originalShadow = obj.shadow;
+    }
+
+    if (inside) {
+      obj.set({
+        borderColor: '#22C55E',
+        shadow: new fabric.Shadow({
+          color: 'rgba(34,197,94,0.4)',
+          blur: 18,
+          offsetX: 0,
+          offsetY: 0,
+        }),
+      });
+    } else {
+      obj.set({
+        borderColor: obj._originalBorderColor,
+        shadow: obj._originalShadow || null,
+      });
+    }
+
+    obj.setCoords();
+    if (!suppressRender) {
+      this.canvas.requestRenderAll();
+    }
+  }
+
+  _refreshItemFloorPlanStates() {
+    if (!this.canvas) return;
+    const objects = this.canvas.getObjects() || [];
+    objects.forEach((obj) => {
+      if (obj.customData && obj !== this.floorPlanGroup) {
+        this._updateItemFloorPlanState(obj, true);
+      }
+    });
+    this.canvas.requestRenderAll();
+  }
+
+  /**
+   * Update cached floor plan bounds
+   * @private
+   */
+  _updateFloorPlanBounds() {
+    if (!this.floorPlanGroup) {
+      this.floorPlanBounds = null;
+      return null;
+    }
+    this.floorPlanBounds = this.floorPlanGroup.getBoundingRect(true);
+    return this.floorPlanBounds;
+  }
+
+  /**
+   * Emit floor plan state (position + bounds)
+   * @private
+   */
+  _emitFloorPlanStateChanged() {
+    if (!this.floorPlanGroup) return;
+    const bounds = this._updateFloorPlanBounds();
+    this._refreshItemFloorPlanStates();
+    this.eventBus.emit('floorplan:moved', {
+      position: this.floorPlanPosition ? { ...this.floorPlanPosition } : null,
+      bounds: bounds ? { ...bounds } : null,
+    });
+  }
+
+  /**
+   * Setup canvas event listeners
+   */
+  setupEventListeners() {
+    // Suppress marquee when starting on restricted layers
+    this.canvas.on('mouse:down', (opt) => {
+      const target = opt ? opt.target : null;
+      const suppress =
+        !!target &&
+        (target === this.floorPlanGroup || SelectionFilters.isMeasurementObject(target));
+      if (suppress) {
+        this._marqueeSuppressed = true;
+        this._previousSelectionEnabled = this.canvas.selection;
+        this.canvas.selection = false;
+      }
+    });
+
+    this.canvas.on('mouse:up', () => {
+      if (this._marqueeSuppressed) {
+        this.canvas.selection = this._previousSelectionEnabled !== false;
+        this._marqueeSuppressed = false;
+      }
+    });
+
+    // Object moving
+    this.canvas.on('object:moving', (e) => {
+      // If snap-to-grid is enabled, snap the moving object to the grid.
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          if (e && e.target) {
+            Bounds.snapItemToGrid(e.target);
+          }
+        }
+      } catch (err) {
+        // Defensive: don't let snapping break dragging
+        console.warn('[CanvasManager] Snap-to-grid failed during move:', err);
+      }
+
+      this._enforceItemBounds(e.target);
+      this._updateItemFloorPlanState(e.target);
+      this.eventBus.emit('canvas:object:moving', e.target);
+    });
+
+    // Object moved
+    this.canvas.on('object:modified', (e) => {
+      // Snap item to grid on modification (drop) if setting enabled
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          if (e && e.target) {
+            Bounds.snapItemToGrid(e.target);
+          }
+        }
+      } catch (err) {
+        console.warn('[CanvasManager] Snap-to-grid failed on modify:', err);
+      }
+
+      this._enforceItemBounds(e.target);
+      this._updateItemFloorPlanState(e.target);
+      this.eventBus.emit('canvas:object:modified', e.target);
+    });
+
+    // Selection created
+    this.canvas.on('selection:created', (_e) => {
+      if (this._hasMixedMeasurementSelection()) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
+      const normalized = this._normalizeSelection();
+      if (!normalized.length) {
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
+      this.eventBus.emit('canvas:selection:created', normalized);
+      this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
+    });
+
+    // Selection updated
+    this.canvas.on('selection:updated', (_e) => {
+      if (this._hasMixedMeasurementSelection()) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
+      const normalized = this._normalizeSelection();
+      if (!normalized.length) {
+        this.eventBus.emit('canvas:selection:cleared');
+        this.eventBus.emit('canvas:selection:changed', null);
+        return;
+      }
+      this.eventBus.emit('canvas:selection:updated', normalized);
+      this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
+    });
+
+    // Selection cleared
+    this.canvas.on('selection:cleared', () => {
+      this.eventBus.emit('canvas:selection:cleared');
+      this.eventBus.emit('canvas:selection:changed', null);
+    });
+
+    // Disallow starting a mixed selection between measurement and non-measurement objects
+    this.canvas.on('mouse:down', (opt) => {
+      const target = opt?.target;
+      if (!target) return;
+      const active = this.canvas.getActiveObject();
+      if (!active) return;
+
+      const targetIsMeasurement = SelectionFilters.isMeasurementObject(target);
+
+      const activeObjects =
+        active.type === 'activeSelection' && typeof active.getObjects === 'function'
+          ? active.getObjects()
+          : [active];
+
+      const activeHasMeasurement = activeObjects.some((obj) => SelectionFilters.isMeasurementObject(obj));
+      const activeHasNonMeasurement = activeObjects.some((obj) => !SelectionFilters.isMeasurementObject(obj));
+
+      const activeIsMeasurementOnly = activeHasMeasurement && !activeHasNonMeasurement;
+      const activeIsNonMeasurementOnly = activeHasNonMeasurement && !activeHasMeasurement;
+
+      if (
+        (activeIsMeasurementOnly && !targetIsMeasurement) ||
+        (activeIsNonMeasurementOnly && targetIsMeasurement)
+      ) {
+        this.canvas.discardActiveObject();
+        this.canvas.requestRenderAll();
+      }
+    });
+
+    // Mouse wheel zoom
+    this.canvas.on('mouse:wheel', (opt) => {
+      this.handleMouseWheel(opt);
+    });
+  }
+
+  /**
+   * Handle mouse wheel for zoom
+   */
+  handleMouseWheel(opt) {
+    const delta = opt.e.deltaY;
+    let zoom = this.canvas.getZoom();
+    zoom *= 0.999 ** delta;
+
+    // Limit zoom to match slider range (10% - 200%)
+    if (zoom > 2) zoom = 2;
+    if (zoom < 0.1) zoom = 0.1;
+
+    const canvasPoint = new fabric.Point(opt.e.offsetX, opt.e.offsetY);
+    this.canvas.zoomToPoint(canvasPoint, zoom);
+
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+
+    this.eventBus.emit('canvas:zoomed', zoom);
+  }
+
+  /**
+   * Show empty state message
+   */
+  showEmptyState() {
+    if (!this.canvasWrapper) return;
+
+    if (!this.emptyStateEl) {
+      const el = document.createElement('div');
+      el.className = 'canvas-empty-state';
+      el.innerHTML = `
+        <div class="canvas-empty-card">
+          <svg class="canvas-empty-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <rect x="8" y="12" width="48" height="40" rx="8" ry="8" />
+            <rect x="14" y="18" width="12" height="28" rx="4" ry="4" />
+            <rect x="30" y="24" width="20" height="16" rx="4" ry="4" />
+            <path d="M30 45h20" stroke-linecap="round" stroke-width="3" />
+          </svg>
+          <h3>Start Planning Your Space</h3>
+          <p>Select a floor plan from the sidebar to begin</p>
+        </div>
+      `;
+
+      this.canvasWrapper.appendChild(el);
+      this.emptyStateEl = el;
+    } else {
+      this.emptyStateEl.classList.remove('canvas-empty-state--hidden');
+    }
+  }
+
+  /**
+   * Hide empty state message
+   */
+  hideEmptyState() {
+    if (this.emptyStateEl) {
+      this.emptyStateEl.classList.add('canvas-empty-state--hidden');
+    }
+  }
+
+  /**
+   * Draw floor plan
+   */
+  drawFloorPlan(floorPlan, options = {}) {
+    try {
+      // Hide empty state when a floor plan is drawn
+      this.hideEmptyState();
+
+      const preserveViewport = options?.preserveViewport;
+      const currentViewport =
+        preserveViewport && this.canvas ? [...this.canvas.viewportTransform] : null;
+      const currentZoom = preserveViewport && this.canvas ? this.canvas.getZoom() : null;
+
+      // Don't hide empty state here - keep it visible until first item is added
+
+      // Clear existing floor plan group
+      this._teardownFloorPlanGroup();
+      this.floorPlanRect = null;
+      this.entryZoneRect = null;
+      this.entryZoneLabel = null;
+
+      const width = Helpers.feetToPx(floorPlan.widthFt);
+      const height = Helpers.feetToPx(floorPlan.heightFt);
+
+      // Store dimensions for re-centering on resize
+      this.floorPlanWidth = width;
+      this.floorPlanHeight = height;
+
+      // Create floor plan rectangle
+      this.floorPlanRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: width,
+        height: height,
+        fill: Config.COLORS.floorPlan,
+        stroke: Config.COLORS.floorPlanStroke,
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+      });
+
+      // Create entry zone
+      const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+      const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
+      const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
+
+      let entryLeft, entryTop, entryWidth, entryHeight, labelLeft, labelTop;
+
+      if (entryZonePosition === 'left' || entryZonePosition === 'right') {
+        // Vertical entry zone (left or right side)
+        entryWidth = width * Config.ENTRY_ZONE_PERCENTAGE;
+        entryHeight = height;
+        entryLeft = entryZonePosition === 'left' ? 0 : width - entryWidth;
+        entryTop = 0;
+        labelLeft = entryLeft + entryWidth / 2;
+        labelTop = height / 2;
+      } else {
+        // Horizontal entry zone (top or bottom)
+        entryWidth = width;
+        entryHeight = height * Config.ENTRY_ZONE_PERCENTAGE;
+        entryLeft = 0;
+        entryTop = entryZonePosition === 'top' ? 0 : height - entryHeight;
+        labelLeft = width / 2;
+        labelTop = entryTop + entryHeight / 2;
+      }
+
+      this.entryZoneRect = new fabric.Rect({
+        left: entryLeft,
+        top: entryTop,
+        width: entryWidth,
+        height: entryHeight,
+        fill: Config.COLORS.entryZone,
+        stroke: '#D32F2F',
+        strokeWidth: 2,
+        selectable: false,
+        evented: false,
+        opacity: showEntryBorder ? 1 : 0,
+      });
+
+      // Add entry zone label with rotation for vertical positions
+      const labelAngle = entryZonePosition === 'left' || entryZonePosition === 'right' ? 90 : 0;
+
+      this.entryZoneLabel = new fabric.Text('ENTRY ZONE', {
+        left: labelLeft,
+        top: labelTop,
+        fontSize: 12,
+        fill: '#D32F2F',
+        fontWeight: 'bold',
+        originX: 'center',
+        originY: 'center',
+        angle: labelAngle,
+        selectable: false,
+        evented: false,
+        opacity: showEntryLabel ? 0.8 : 0,
+      });
+
+      const floorPlanElements = [this.floorPlanRect, this.entryZoneRect];
+      if (this.entryZoneLabel) {
+        floorPlanElements.push(this.entryZoneLabel);
+      }
+
+      const showGrid = this.state.get('settings.showGrid');
+      const showRuler = this.state.get('settings.showRuler');
+
+      if (showGrid) {
+        this.gridLines = this._createGridLines(width, height);
+        floorPlanElements.push(...this.gridLines);
+      } else {
+        this.gridLines = [];
+      }
+
+      if (showRuler) {
+        this.rulerMarks = this._createRulerMarks(width, height);
+        floorPlanElements.push(...this.rulerMarks);
+      } else {
+        this.rulerMarks = [];
+      }
+
+      this.floorPlanGroup = new fabric.Group(floorPlanElements, {
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
+        selectable: !this.floorPlanLocked,
+        evented: !this.floorPlanLocked,
+        hasBorders: false,
+        hasControls: false,
+      });
+
+      this.floorPlanGroup.lockScalingX = true;
+      this.floorPlanGroup.lockScalingY = true;
+      this.floorPlanGroup.lockRotation = true;
+      this.floorPlanGroup.lockSkewingX = true;
+      this.floorPlanGroup.lockSkewingY = true;
+      this.floorPlanGroup.customData = { isFloorPlan: true };
+
+      this.floorPlanGroup.on('moving', this._floorPlanMoveHandler);
+
+      this.canvas.add(this.floorPlanGroup);
+      this.setFloorPlanLocked(this.floorPlanLocked);
+      this._positionFloorPlanGroup();
+      this._emitFloorPlanStateChanged();
+
+      // Ensure core layers remain in the correct order
+      this.setLayerOrder();
+
+      // Center and fit unless preserving current viewport
+      if (!preserveViewport) {
+        this.centerAndFit(width, height);
+      } else if (currentViewport && currentZoom && this.canvas) {
+        this.canvas.setViewportTransform(currentViewport);
+        this.canvas.setZoom(currentZoom);
+        this.canvas.requestRenderAll();
+      }
+
+      this.canvas.renderAll();
+    } catch (error) {
+      this._handleCanvasError('drawFloorPlan', error);
+    }
+  }
+
+  /**
+   * Build grid lines for the floor plan group
+   * @private
+   */
+  _createGridLines(width, height) {
+    const lines = [];
+    const gridSize = Config.GRID_SIZE;
+    const majorLineEvery = gridSize * 5;
+
+    for (let i = 0; i <= width; i += gridSize) {
+      const isMajor = i % majorLineEvery === 0;
+      lines.push(
+        new fabric.Line([i, 0, i, height], {
+          stroke: Config.COLORS.grid,
+          strokeWidth: isMajor ? 1.25 : 0.5,
+          opacity: isMajor ? 0.35 : 0.18,
+          selectable: false,
+          evented: false,
+          isGridLine: true,
+          excludeFromSave: true,
+        }),
+      );
+    }
+
+    for (let i = 0; i <= height; i += gridSize) {
+      const isMajor = i % majorLineEvery === 0;
+      lines.push(
+        new fabric.Line([0, i, width, i], {
+          stroke: Config.COLORS.grid,
+          strokeWidth: isMajor ? 1.25 : 0.5,
+          opacity: isMajor ? 0.35 : 0.18,
+          selectable: false,
+          evented: false,
+          isGridLine: true,
+          excludeFromSave: true,
+        }),
+      );
+    }
+
+    return lines;
+  }
+
+  /**
+   * Create ruler ticks and labels
+   * @private
+   */
+  _createRulerMarks(width, height) {
+    const marks = [];
+    const intervalFeet = 5;
+    const pxPerFoot = Config.PX_PER_FOOT || Config.GRID_SIZE || 10;
+    const spacing = intervalFeet * pxPerFoot;
+
+    const createTick = (coords) =>
+      new fabric.Line(coords, {
+        stroke: Config.COLORS.dimension,
+        strokeWidth: 1,
+        opacity: 0.55,
+        selectable: false,
+        evented: false,
+        isRulerMark: true,
+        excludeFromSave: true,
+      });
+
+    const createLabel = (text, left, top, angle = 0) =>
+      new fabric.Text(text, {
+        left,
+        top,
+        fontSize: 11,
+        fill: Config.COLORS.dimension,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        padding: 3,
+        originX: 'center',
+        originY: 'center',
+        angle,
+        selectable: false,
+        evented: false,
+        isRulerMark: true,
+        excludeFromSave: true,
+      });
+
+    for (let x = spacing; x <= width; x += spacing) {
+      const ftValue = Helpers.formatNumber(x / pxPerFoot, 0);
+      marks.push(createTick([x, 0, x, 10]));
+      marks.push(createLabel(`${ftValue} ft`, x, 20));
+    }
+
+    for (let y = spacing; y <= height; y += spacing) {
+      const ftValue = Helpers.formatNumber(y / pxPerFoot, 0);
+      marks.push(createTick([0, y, 10, y]));
+      marks.push(createLabel(`${ftValue} ft`, 32, y));
+    }
+
+    return marks;
+  }
+
+  /**
+   * Center and fit floor plan in viewport
+   * Sets auto-fit mode flag
+   * If no dimensions provided, uses stored floor plan dimensions
+   */
+  centerAndFit(width, height) {
+    // If no dimensions provided, use stored floor plan dimensions
+    if (width === undefined || height === undefined) {
+      width = this.floorPlanWidth;
+      height = this.floorPlanHeight;
+    }
+
+    if (!width || !height) return; // No floor plan to center
+
+    const canvasWidth = this.canvas.getWidth();
+    const canvasHeight = this.canvas.getHeight();
+
+    const scaleX = (canvasWidth - Config.CANVAS_PADDING * 2) / width;
+    const scaleY = (canvasHeight - Config.CANVAS_PADDING * 2) / height;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 1:1
+
+    this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); // Reset transform
+    this.canvas.setZoom(scale);
+
+    let planCenter;
+    if (this.floorPlanGroup) {
+      planCenter = this.floorPlanGroup.getCenterPoint();
+    } else {
+      planCenter = new fabric.Point(width / 2, height / 2);
+    }
+
+    const panPoint = new fabric.Point(
+      planCenter.x - canvasWidth / (2 * scale),
+      planCenter.y - canvasHeight / (2 * scale),
+    );
+
+    this.canvas.absolutePan(panPoint);
+
+    // Mark as auto-fit mode (will be preserved during window resize)
+    this.isAutoFitMode = true;
+
+    // Emit zoom event to update UI
+    this.eventBus.emit('canvas:zoomed', scale);
+  }
+
+  /**
+   * Add item to canvas.
+   * Coordinates (x, y) represent the desired center point in canvas space.
+   * Returns the group immediately and exposes a `group.imageLoadPromise`
+   * that resolves once the canvas image (if any) has finished loading.
+   */
+  addItem(itemData, x, y) {
+    try {
+      // Hide empty state when first item is added
+      this.hideEmptyState();
+
+      const group = this._createBaseGroup(itemData, x, y);
+      let resolveImageLoad;
+      const imageLoadPromise = new Promise((resolve) => {
+        resolveImageLoad = resolve;
+      });
+      group.imageLoadPromise = imageLoadPromise;
+
+      this.canvas.add(group);
+
+      // If snap-to-grid is enabled, snap newly added items to the grid immediately.
+      try {
+        if (this.state && this.state.get && this.state.get('settings.snapToGrid')) {
+          Bounds.snapItemToGrid(group);
+        }
+      } catch (err) {
+        console.warn('[CanvasManager] Snap-to-grid failed while adding item:', err);
+      }
+
+      this._updateItemFloorPlanState(group);
+      this.canvas.renderAll();
+
+      if (Config.USE_IMAGES && itemData.canvasImage) {
+        fabric.Image.fromURL(
+          itemData.canvasImage,
+          (img) => {
+            if (!img) {
+              console.warn('[CanvasManager] Failed to load image for item:', itemData.id);
+              resolveImageLoad?.({ image: null, canvasObject: group, success: false });
+              this.eventBus.emit('canvas:itemImageLoaded', {
+                itemId: itemData.id,
+                success: false,
+                canvasObject: group,
+              });
+              this._handleCanvasError('loadItemImage', new Error('Image failed to load'));
+              return;
+            }
+            this._swapGroupImage(group, img, itemData);
+            resolveImageLoad?.({ image: img, canvasObject: group, success: true });
+            this.eventBus.emit('canvas:itemImageLoaded', {
+              itemId: itemData.id,
+              success: true,
+              canvasObject: group,
+            });
+          },
+          { crossOrigin: 'anonymous' },
+        );
+      } else {
+        resolveImageLoad?.({ image: null, canvasObject: group, success: true });
+        this.eventBus.emit('canvas:itemImageLoaded', {
+          itemId: itemData.id,
+          success: true,
+          canvasObject: group,
+        });
+      }
+
+      return group;
+    } catch (error) {
+      this._handleCanvasError('addItem', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create base group with rectangle and label.
+   * All shapes are positioned relative to the group's origin (0,0)
+   * so that the group's left/top can safely be treated as center coordinates.
+   * @private
+   */
+  _createBaseGroup(itemData, x, y) {
+    const width = Helpers.feetToPx(itemData.widthFt);
+    const height = Helpers.feetToPx(itemData.lengthFt);
+
+    const isMezzanine = itemData.category === 'mezzanine';
+    const isShape = itemData.category === 'shapes';
+    const shapeType = itemData.shapeType || (isShape ? 'rectangle' : 'rectangle');
+    const baseFillColor = itemData.color || '#2196F3';
+    const mezzanineFill = new fabric.Pattern({
+      source: (() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(236, 239, 244, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height);
+        ctx.lineTo(canvas.width, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+        return canvas;
+      })(),
+      repeat: 'repeat',
+    });
+
+    const fillStyle = isMezzanine ? mezzanineFill : baseFillColor;
+    const strokeColor = isMezzanine ? '#9CA3AF' : itemData.strokeColor || '#111827';
+    const strokeWidth = isMezzanine ? 1.5 : 2;
+
+    let baseShape;
+    if (shapeType === 'circle') {
+      const diameter = Math.min(width, height);
+      baseShape = new fabric.Circle({
+        left: -diameter / 2,
+        top: -diameter / 2,
+        radius: diameter / 2,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+      });
+    } else if (shapeType === 'triangle') {
+      baseShape = new fabric.Triangle({
+        left: -width / 2,
+        top: -height / 2,
+        width: width,
+        height: height,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+      });
+    } else {
+      baseShape = new fabric.Rect({
+        left: -width / 2,
+        top: -height / 2,
+        width: width,
+        height: height,
+        fill: fillStyle,
+        stroke: strokeColor,
+        strokeWidth: strokeWidth,
+        strokeDashArray: null,
+        rx: isMezzanine ? 6 : 4,
+        ry: isMezzanine ? 6 : 4,
+      });
+    }
+
+    // Create label at center, shrink font to fit item width
+    const maxLabelWidth = width * 0.9;
+    let fontSize = 11;
+    const label = new fabric.Text(itemData.label, {
+      fontSize,
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontWeight: isMezzanine ? '600' : 'bold',
+    });
+
+    while (label.width > maxLabelWidth && fontSize > 7) {
+      fontSize -= 0.5;
+      label.set({ fontSize });
+    }
+
+    label.set({
+      left: 0,
+      top: 0,
+      fill: isMezzanine ? '#374151' : '#ffffff',
+      originX: 'center',
+      originY: 'center',
+      shadow: new fabric.Shadow({
+        color: isMezzanine ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
+        blur: isMezzanine ? 0 : 3,
+      }),
+      selectable: false,
+      evented: false,
+    });
+
+    // Group rectangle and label together with CENTER origin
+    const group = new fabric.Group([baseShape, label], {
+      left: x,
+      top: y,
+      originX: 'center',
+      originY: 'center',
+      selectable: true,
+      evented: true,
+      hasControls: true,
+      hasBorders: true,
+      lockScalingX: false,
+      lockScalingY: false,
+      lockSkewingX: true,
+      lockSkewingY: true,
+      borderColor: '#6366F1',
+      borderScaleFactor: 2,
+      borderDashArray: [5, 5],
+      cornerColor: '#6366F1',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 14,
+      transparentCorners: false,
+      rotatingPointOffset: 40,
+      padding: 0,
+      shadow: new fabric.Shadow({
+        color: 'rgba(0,0,0,0.3)',
+        blur: 10,
+        offsetX: 2,
+        offsetY: 2,
+      }),
+    });
+
+    group.setControlsVisibility({
+      mt: false,
+      mb: false,
+      ml: false,
+      mr: false,
+      bl: true,
+      br: true,
+      tl: true,
+      tr: true,
+      mtr: true,
+    });
+
+    group.label = label;
+
+    const keepLabelUpright = () => {
+      if (!group.label) return;
+      group.label.set('angle', -group.angle);
+      group.label.setCoords();
+    };
+
+    group.on('rotating', keepLabelUpright);
+    group.on('rotated', keepLabelUpright);
+
+    this._enforceFootprintSize(group, itemData);
+
+    // Store custom data on group
+    group.customData = { ...itemData };
+
+    return group;
+  }
+
+  /**
+   * Swap rectangle in group with loaded image
+   * @private
+   */
+  _swapGroupImage(group, img, itemData) {
+    try {
+      if (!group || !img) return;
+
+      const width = Helpers.feetToPx(itemData.widthFt);
+      const height = Helpers.feetToPx(itemData.lengthFt);
+
+      img.set({
+        left: -width / 2,
+        top: -height / 2,
+        originX: 'left',
+        originY: 'top',
+      });
+
+      // Scale to fit within the defined dimensions while maintaining aspect ratio
+      const scaleX = width / img.width;
+      const scaleY = height / img.height;
+      const scale = Math.min(scaleX, scaleY);
+
+      img.scale(scale);
+
+      const shapeChild = group.item(0);
+      if (shapeChild && ['rect', 'circle', 'triangle'].includes(shapeChild.type)) {
+        // Keep the base shape as an invisible size anchor so text does not dictate group bounds
+        shapeChild.set({
+          fill: 'rgba(0,0,0,0)',
+          stroke: null,
+          strokeWidth: 0,
+          selectable: false,
+          evented: false,
+          excludeFromExport: true,
+        });
+      }
+
+      // Insert image above the base shape but below the label
+      group.insertAt(img, 1);
+      group.addWithUpdate();
+      this._enforceFootprintSize(group, itemData);
+      this.canvas.renderAll();
+    } catch (error) {
+      this._handleCanvasError('_swapGroupImage', error);
+    }
+  }
+
+  /**
+   * Remove item from canvas
+   */
+  removeItem(item) {
+    this.canvas.remove(item);
+  }
+
+  /**
+   * Clear all items (keep floor plan)
+   */
+  clearItems() {
+    const objects = this.canvas.getObjects();
+    objects.forEach((obj) => {
+      const isItemObject = obj.customData && !obj.customData.isLabel && obj !== this.floorPlanGroup;
+      const isHelperObject =
+        obj.measurement ||
+        obj.isMeasurementLabel ||
+        obj.isDimensionOverlay ||
+        obj.isGridLine ||
+        obj.isRulerMark ||
+        obj.isMeasurementHelper;
+      if (isItemObject || isHelperObject) {
+        this.canvas.remove(obj);
+      }
+    });
+  }
+
+  /**
+   * Get canvas as data URL
+   */
+  toDataURL(options = {}) {
+    return this.canvas.toDataURL({
+      format: 'png',
+      quality: 1,
+      multiplier: options.multiplier || 1,
+      ...options,
+    });
+  }
+
+  /**
+   * Clear canvas
+   */
+  clear() {
+    this.canvas.clear();
+
+    // RESET VIEWPORT TRANSFORM (zoom and pan)
+    this.resetViewport();
+
+    this._teardownFloorPlanGroup();
+    this.floorPlanRect = null;
+    this.entryZoneRect = null;
+    this.entryZoneLabel = null;
+    this.floorPlanPosition = null;
+    this.floorPlanBounds = null;
+    this.gridLines = [];
+    this.rulerMarks = [];
+    if (this.emptyStateEl) {
+      this.emptyStateEl.remove();
+      this.emptyStateEl = null;
+    }
+    this.floorPlanWidth = null;
+    this.floorPlanHeight = null;
+  }
+
+  /**
+   * Reset viewport to default (1:1 zoom, no pan)
+   * Ensures canvas is at 100% zoom and centered
+   */
+  resetViewport() {
+    // [CanvasManager] Resetting viewport to default state
+
+    // Reset viewport transform to identity matrix
+    this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    this.canvas.setZoom(1);
+    this.canvas.requestRenderAll();
+
+    // Update zoom UI elements
+    this.eventBus.emit('canvas:zoomed', 1);
+
+    const zoomPercentage = document.getElementById('zoom-percentage');
+    if (zoomPercentage) {
+      zoomPercentage.textContent = '100%';
+    }
+
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomSliderValue = document.getElementById('zoom-slider-value');
+    if (zoomSlider) {
+      zoomSlider.value = 100;
+    }
+    if (zoomSliderValue) {
+      zoomSliderValue.textContent = '100%';
+    }
+  }
+
+  /**
+   * Get canvas instance
+   */
+  getCanvas() {
+    return this.canvas;
+  }
+
+  /**
+   * Get viewport center in canvas coordinates
+   * Accounts for zoom and pan transformations
+   */
+  getViewportCenter() {
+    const canvas = this.canvas;
+    const vpt = canvas.viewportTransform;
+    const zoom = canvas.getZoom();
+
+    // Convert viewport center to canvas coordinates
+    const centerX = (canvas.width / 2 - vpt[4]) / zoom;
+    const centerY = (canvas.height / 2 - vpt[5]) / zoom;
+
+    return { x: centerX, y: centerY };
+  }
+
+  /**
+   * Zoom in
+   */
+  zoomIn() {
+    const canvas = this.canvas;
+    let zoom = canvas.getZoom();
+    zoom = Math.min(zoom * 1.1, 2); // Max 200%
+
+    canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+    canvas.requestRenderAll();
+
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+
+    this.eventBus.emit('canvas:zoomed', zoom);
+  }
+
+  /**
+   * Zoom out
+   */
+  zoomOut() {
+    const canvas = this.canvas;
+    let zoom = canvas.getZoom();
+    zoom = Math.max(zoom / 1.1, 0.1); // Min 10%
+
+    canvas.zoomToPoint(new fabric.Point(canvas.width / 2, canvas.height / 2), zoom);
+    canvas.requestRenderAll();
+
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+
+    this.eventBus.emit('canvas:zoomed', zoom);
+  }
+
+  /**
+   * Set zoom to specific percentage (10-200%)
+   */
+  setZoomPercent(percent) {
+    const canvas = this.canvas;
+    // Clamp to slider range
+    const clampedPercent = Math.max(10, Math.min(200, percent));
+    const zoom = clampedPercent / 100;
+
+    // Get current viewport center
+    const vpt = canvas.viewportTransform;
+    const centerX = (canvas.width / 2 - vpt[4]) / vpt[0];
+    const centerY = (canvas.height / 2 - vpt[5]) / vpt[3];
+
+    // Calculate new viewport transform to keep the same center point
+    const newVpt = [zoom, 0, 0, zoom, 0, 0];
+    newVpt[4] = canvas.width / 2 - centerX * zoom;
+    newVpt[5] = canvas.height / 2 - centerY * zoom;
+
+    canvas.setViewportTransform(newVpt);
+    canvas.requestRenderAll();
+
+    // User manually zoomed - exit auto-fit mode
+    this.isAutoFitMode = false;
+
+    this.eventBus.emit('canvas:zoomed', zoom);
+  }
+
+  /**
+   * Reset zoom to auto-fit
+   */
+  resetZoom() {
+    const floorPlan = this.state.get('floorPlan');
+    if (floorPlan) {
+      const width = Helpers.feetToPx(floorPlan.widthFt);
+      const height = Helpers.feetToPx(floorPlan.heightFt);
+      // centerAndFit() will set isAutoFitMode = true
+      this.centerAndFit(width, height);
+    }
+  }
+
+  /**
+   * Force the group's scaled size to match the declared footprint.
+   * Prevents images or labels from altering the physical dimensions on canvas.
+   * @private
+   */
+  _enforceFootprintSize(group, itemData) {
+    if (!group || !itemData) return;
+
+    const targetWidth = Helpers.feetToPx(itemData.widthFt);
+    const targetHeight = Helpers.feetToPx(itemData.lengthFt);
+    const currentScaledWidth = group.getScaledWidth();
+    const currentScaledHeight = group.getScaledHeight();
+
+    if (!currentScaledWidth || !currentScaledHeight) return;
+
+    const scaleX = group.scaleX || 1;
+    const scaleY = group.scaleY || 1;
+
+    const desiredScaleX = scaleX * (targetWidth / currentScaledWidth);
+    const desiredScaleY = scaleY * (targetHeight / currentScaledHeight);
+
+    group.scaleX = desiredScaleX;
+    group.scaleY = desiredScaleY;
+    group.setCoords();
+  }
+
+  /**
+   * Toggle grid visibility
+   */
+  toggleGrid() {
+    const currentState = this.state.get('settings.showGrid');
+    const nextState = !currentState;
+    this.state.set('settings.showGrid', nextState);
+    this.state.set('settings.showRuler', nextState);
+    this.redrawFloorPlan({ preserveViewport: true });
+  }
+
+  /**
+   * Toggle item labels visibility
+   */
+  toggleItemLabels(show) {
+    const objects = this.canvas.getObjects();
+    objects.forEach((obj) => {
+      // Hide/show item labels (for storage items)
+      if (obj.type === 'group' && obj.label) {
+        obj.label.set({ visible: show, opacity: show ? 1 : 0 });
+        obj.label.setCoords();
+      }
+      // Hide/show measurement labels (distance text)
+      if (obj.measurementPart === 'text') {
+        obj.set({ visible: show, opacity: show ? 1 : 0 });
+        obj.setCoords();
+      }
+    });
+    this.canvas.requestRenderAll();
+  }
+
+  /**
+   * Redraw floor plan with current settings
+   */
+  redrawFloorPlan(options = {}) {
+    const floorPlan = this.state.get('floorPlan');
+    if (floorPlan) {
+      this.drawFloorPlan(floorPlan, options);
+    }
+  }
+
+  /**
+   * Keep core canvas layers (floor plan, grid, entry zone) in correct order
+   * Floor plan base (0) -> grid (1) -> entry zone fill (2) -> label (3)
+   */
+  setLayerOrder() {
+    if (!this.canvas) return;
+
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.moveTo(0);
+    }
+  }
+
+  /**
+   * Ensure static layers (floor plan, grid, entry zone) stay behind items
+   * Called after bring-front/send-back operations to prevent items from going behind floor plan
+   */
+  ensureStaticLayersBehind() {
+    if (!this.canvas) return;
+
+    if (this.floorPlanGroup) {
+      this.floorPlanGroup.sendToBack();
+    }
+
+    this.canvas.renderAll();
+  }
+
+  /**
+   * Keep items inside the current floor plan bounds
+   * @private
+   */
+  _enforceItemBounds(target) {
+    if (!this.enforceFloorBounds || !target || target === this.floorPlanGroup) return;
+    if (target.customData && target.customData.isFloorPlan) return;
+    if (target.type === 'activeSelection') return;
+
+    const floorPlan = this.state.get('floorPlan');
+    if (!floorPlan) return;
+    const bounds = this.getFloorPlanBounds();
+    Bounds.constrainToBounds(target, floorPlan, bounds);
+  }
+
+  /**
+   * Handle canvas-related errors gracefully
+   * @private
+   */
+  _handleCanvasError(context, error) {
+    console.error(`[CanvasManager] ${context} failed:`, error);
+    if (typeof Modal !== 'undefined' && typeof Modal.showError === 'function') {
+      Modal.showError('Something went wrong on the canvas. Please try again.');
+    }
+  }
+
+  /**
+   * Remove floor plan group and detach listeners safely
+   * @private
+   */
+  _teardownFloorPlanGroup() {
+    if (!this.floorPlanGroup) return;
+    this.floorPlanGroup.off('moving', this._floorPlanMoveHandler);
+    if (this.canvas && typeof this.canvas.remove === 'function') {
+      this.canvas.remove(this.floorPlanGroup);
+    }
+    this.floorPlanGroup = null;
+    this.gridLines = [];
+    this.rulerMarks = [];
+  }
+}
+
+// Make available globally
+if (typeof window !== 'undefined') {
+  window.CanvasManager = CanvasManager;
+}
