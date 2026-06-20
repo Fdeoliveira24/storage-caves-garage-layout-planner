@@ -1,7 +1,7 @@
 /**
  * Storage Caves Design System
  * Enterprise-grade color palette and design tokens
- * Brand: Industrial red (#E74C3C) + Dark charcoal/graphite
+ * Brand: Industrial red (#B42518) + Dark charcoal/graphite
  */
 
 :root {
@@ -11,11 +11,11 @@
   /* ===== STORAGE CAVES BRAND COLORS ===== */
 
   /* Primary Brand Red - From logo */
-  --color-primary: #e74c3c;
-  --color-primary-hover: #c0392b;
-  --color-primary-light: #fadbd8;
-  --color-primary-dark: #a93226;
-  --color-primary-rgb: 231, 76, 60;
+  --color-primary: #b42518;
+  --color-primary-hover: #962014;
+  --color-primary-light: #f4dad6;
+  --color-primary-dark: #7a1a11;
+  --color-primary-rgb: 180, 37, 24;
 
   /* Graphite/Charcoal - Industrial feel */
   --color-graphite-900: #1a1a1a;

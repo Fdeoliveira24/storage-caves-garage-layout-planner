@@ -52,6 +52,18 @@ The Garage Layout Planner is built with a modular, scalable architecture using p
                 └─────────────┘
 ```
 
+**Not pictured above (added after this diagram was first drawn, see
+`docs/FEATURES.md` for what each does):**
+
+- `TextManager` + `TextPropertiesPanel` — text/annotation tool, sits
+  alongside SelectionMgr/HistoryMgr at the same level
+- `GoogleSheetsSync` — syncs `ClientCMS` data to/from Google Sheets
+- `ClientCMS` (`js/features/`) — the lead/client CRM slide-in panel; reads
+  and writes saved layouts independently of the State/EventBus flow above
+- `MobileUIManager` (`js/ui/mobile/`) — an entirely separate UI Layer that
+  takes over below 768px, with its own rendering for Floor Plans/Items/Saved
+  rather than reusing the desktop Sidebar
+
 ## Core Modules
 
 ### 1. State Management (State.js)
@@ -422,9 +434,13 @@ Info panel updates
 
 ### Static Hosting
 
-- Can be hosted on any static server
-- No backend required
+- The planner itself can be hosted on any static server - no backend
+  required for core functionality
 - CDN-friendly
+- Two optional pieces do involve a backend, but neither is required to run
+  the planner: the CRM's Google Sheets sync (calls an external Apps Script
+  web app) and the internal `tools/item-builder` + `tools/pixelsquid-backend`
+  (a small Express server, dev-only, never loaded by `index.html`)
 
 ### Recommended Hosts
 
@@ -436,5 +452,6 @@ Info panel updates
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** November 2025
+**Version:** see `docs/FEATURES.md` → Known Issues (page title and
+`package.json` currently disagree)
+**Last Updated:** June 2026

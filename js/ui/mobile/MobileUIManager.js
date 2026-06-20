@@ -730,7 +730,7 @@ class MobileUIManager {
       if (hasImage) {
         visualMarkup = `
           <div class="mobile-card-image" style="--fallback-color: ${accentColor};">
-            <img src="${item.paletteImage}" alt="${item.label}" loading="lazy">
+            <img src="${window.Helpers ? window.Helpers.withCacheBust(item.paletteImage) : item.paletteImage}" alt="${item.label}" loading="lazy">
             <div class="mobile-image-fallback" aria-hidden="true"></div>
           </div>
         `;

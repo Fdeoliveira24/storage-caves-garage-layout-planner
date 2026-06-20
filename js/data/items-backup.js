@@ -522,7 +522,7 @@ const Items = {
           color: '#1976D2',
           category: 'garage_equipment',
           paletteImage: 'assets/images/items/palette/garage-cabinets-with-shelves-side.png',
-          canvasImage: 'assets/images/items/canvas/garage-cabinets-with-shel...-top.png',
+          canvasImage: 'assets/images/items/canvas/garage-cabinets-with-shelves-top.png',
         },
         {
           id: 'metal-garage-cabinet',
@@ -868,7 +868,7 @@ const Items = {
           color: '#FF9800',
           category: 'fitness',
           paletteImage: 'assets/images/items/palette/inflatable-swimming-ring-side.png',
-          canvasImage: 'assets/images/items/canvas/inflatable-swimmin...g-top.png',
+          canvasImage: 'assets/images/items/canvas/inflatable-swimming-ring-top.png',
         },
       ],
     },

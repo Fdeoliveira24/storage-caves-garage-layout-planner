@@ -7,6 +7,12 @@ const Config = {
   // Scaling
   PX_PER_FOOT: 10,
 
+  // Bump this whenever item images are replaced/re-cropped so browsers
+  // (and local dev servers like Live Server, which don't cache-bust by
+  // default) don't keep showing the old cached PNG after the file on disk
+  // has changed at the same path.
+  ASSET_VERSION: '2026-06-19-4',
+
   // Floor Plans (in feet)
   FLOOR_PLANS: [
     {
@@ -127,6 +133,7 @@ const Config = {
   // Feature Flags
   FEATURES: {
     enableClientManagement: true,
+    enableGoogleSheetsSync: false,
   },
 
   // Storage Keys

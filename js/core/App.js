@@ -85,7 +85,7 @@ class App {
       this.clientCMS.init();
 
       // Initialize Google Sheets sync for ClientCMS
-      if (window.GoogleSheetsSync) {
+      if (window.GoogleSheetsSync && Config.FEATURES?.enableGoogleSheetsSync) {
         this.clientCMS.initGoogleSheets(this.eventBus);
       }
     }
@@ -280,6 +280,7 @@ class App {
       this.canvasManager.drawFloorPlan(floorPlan);
       this.canvasManager.redrawFloorPlan();
       this.updateInfoPanel();
+      this.updateFloatingToolbarVisibility();
     });
 
     // Import completed - save to history after all items loaded
@@ -294,6 +295,13 @@ class App {
       this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
+      this.updateFloatingToolbarVisibility();
+    });
+
+    this.eventBus.on('floorplan:cleared', () => {
+      this.updateInfoPanel();
+      this.checkEntryZoneViolations();
+      this.updateFloatingToolbarVisibility();
     });
 
     this.eventBus.on('floorplan:moved', (payload) => {
@@ -772,38 +780,159 @@ class App {
     this.setupDropdowns();
     this.syncViewDropdownUI();
     this.setMeasurementModeActive(this.measurementModeActive);
-    this.setupSearchFilter();
+    this.setupItemsSearchAndFilter();
+    this.setupCanvasItemHighlight();
     this.setupDraggableToolbar();
+    this.updateFloatingToolbarVisibility();
   }
 
   /**
-   * Search filter handler for sidebar
+   * Mirror canvas selection onto the Items palette: when a placed item is
+   * selected on canvas, highlight its matching card in the sidebar so it's
+   * obvious which catalog item is currently selected.
    */
-  setupSearchFilter() {
-    const searchInput = document.getElementById('sidebar-search');
-    if (!searchInput) return;
+  setupCanvasItemHighlight() {
+    // Temporary diagnostic logging -- if the highlight still doesn't show
+    // after a true cache clear, open devtools console and look for these
+    // "[ItemHighlight]" lines to see exactly where it's breaking (no event
+    // received at all vs. event received but no matching card found).
+    const DEBUG = true;
+    const log = (...args) => DEBUG && console.log('[ItemHighlight]', ...args);
+
+    const highlightForSelection = (selected) => {
+      log('selection event fired with', selected);
+
+      document.querySelectorAll('.palette-item.is-selected-on-canvas').forEach((el) => {
+        el.classList.remove('is-selected-on-canvas');
+      });
+
+      if (!selected || !selected.length) {
+        log('no selection -- cleared all highlights');
+        return;
+      }
+
+      // NOTE: customData.id is a unique PER-INSTANCE id (see
+      // ItemManager.addItem -> Helpers.generateId('item')), not the catalog
+      // item type. The catalog type (matching .palette-item[data-id]) is
+      // preserved separately as customData.itemId. Using .id here was the
+      // bug that made this never match anything.
+      const ids = new Set(selected.map((obj) => obj?.customData?.itemId).filter(Boolean));
+      log('extracted item type ids from selection:', [...ids]);
+
+      let firstMatch = null;
+      ids.forEach((id) => {
+        const matches = document.querySelectorAll(`.palette-item[data-id="${id}"]`);
+        log(`looking for .palette-item[data-id="${id}"] -- found ${matches.length}`);
+        matches.forEach((el) => {
+          el.classList.add('is-selected-on-canvas');
+          if (!firstMatch) firstMatch = el;
+        });
+      });
+
+      // Bring the matching card into view if it's scrolled out of sight.
+      firstMatch?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    };
+
+    log('setupCanvasItemHighlight() registered -- if you never see this line, the new code did not load (cache).');
+
+    this.eventBus.on('canvas:selection:created', (selected) => highlightForSelection(selected));
+    this.eventBus.on('canvas:selection:updated', (selected) => highlightForSelection(selected));
+    this.eventBus.on('canvas:selection:cleared', () => highlightForSelection(null));
+  }
+
+  /**
+   * Search + category filter for the Items panel.
+   * Scoped entirely to #items-tab -- it no longer touches floor plans or
+   * saved layouts, since search only ever made sense for items.
+   */
+  setupItemsSearchAndFilter() {
+    const searchInput = document.getElementById('items-search');
+    const filterBtn = document.getElementById('btn-items-filter');
+    const filterMenu = document.getElementById('items-filter-menu');
+    const filterOptions = document.getElementById('items-filter-options');
+    const filterBadge = document.getElementById('items-filter-badge');
+    const clearBtn = document.getElementById('btn-items-filter-clear');
+    if (!searchInput || !filterOptions) return;
+
+    this.itemsFilter = { query: '', categories: new Set() };
+
+    // Build the category checkbox list once -- the catalog is static for the session.
+    filterOptions.innerHTML = Items.getCategoryNames()
+      .map((catName) => {
+        const category = Items.categories[catName];
+        return `
+          <label class="items-filter-option">
+            <input type="checkbox" value="${catName}" class="items-filter-checkbox" />
+            <span>${category.name}</span>
+          </label>
+        `;
+      })
+      .join('');
+
+    const updateFilterButtonState = () => {
+      const count = this.itemsFilter.categories.size;
+      filterBtn.classList.toggle('is-active', count > 0);
+      filterBtn.setAttribute('aria-pressed', count > 0 ? 'true' : 'false');
+      if (filterBadge) {
+        filterBadge.textContent = String(count);
+        filterBadge.classList.toggle('hidden', count === 0);
+      }
+    };
+
+    const applyItemsFilter = () => {
+      const { query, categories } = this.itemsFilter;
+      document.querySelectorAll('#item-palette .item-category').forEach((categoryEl) => {
+        const catName = categoryEl.dataset.category;
+        const categorySelected = categories.size === 0 || categories.has(catName);
+
+        let visibleCount = 0;
+        categoryEl.querySelectorAll('.palette-item').forEach((item) => {
+          const matchesQuery = !query || item.textContent.toLowerCase().includes(query);
+          const visible = categorySelected && matchesQuery;
+          item.classList.toggle('hidden', !visible);
+          if (visible) visibleCount += 1;
+        });
+
+        // Hide the (unclickable) category header entirely when nothing in
+        // it matches, instead of leaving a dangling empty title.
+        categoryEl.classList.toggle('hidden', visibleCount === 0);
+      });
+    };
 
     searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-
-      // Filter floor plans
-      document.querySelectorAll('.floorplan-item').forEach((item) => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(query) ? '' : 'none';
-      });
-
-      // Filter palette items
-      document.querySelectorAll('.palette-item').forEach((item) => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(query) ? '' : 'none';
-      });
-
-      // Filter saved layouts
-      document.querySelectorAll('.saved-layout-item').forEach((item) => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(query) ? '' : 'none';
-      });
+      this.itemsFilter.query = e.target.value.toLowerCase();
+      applyItemsFilter();
     });
+
+    if (filterBtn && filterMenu) {
+      // Reuse the app-wide dropdown open/close behavior (registered in
+      // setupDropdowns), but stop clicks *inside* the menu from bubbling to
+      // the document-level "close all dropdowns" listener -- otherwise the
+      // panel would close every time a checkbox is ticked.
+      filterMenu.addEventListener('click', (e) => e.stopPropagation());
+
+      filterOptions.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('items-filter-checkbox')) return;
+        if (e.target.checked) {
+          this.itemsFilter.categories.add(e.target.value);
+        } else {
+          this.itemsFilter.categories.delete(e.target.value);
+        }
+        updateFilterButtonState();
+        applyItemsFilter();
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        this.itemsFilter.categories.clear();
+        filterOptions
+          .querySelectorAll('.items-filter-checkbox')
+          .forEach((cb) => (cb.checked = false));
+        updateFilterButtonState();
+        applyItemsFilter();
+      });
+    }
   }
 
   /**
@@ -1033,7 +1162,14 @@ class App {
   }
 
   setupDropdowns() {
-    const dropdownTriggers = ['btn-view', 'btn-export', 'btn-zoom', 'btn-ruler-grid', 'btn-edit']
+    const dropdownTriggers = [
+      'btn-view',
+      'btn-export',
+      'btn-zoom',
+      'btn-ruler-grid',
+      'btn-edit',
+      'btn-items-filter',
+    ]
       .map((id) => document.getElementById(id))
       .filter(Boolean);
 
@@ -1124,8 +1260,8 @@ class App {
       .map((catName) => {
         const category = Items.categories[catName];
         return `
-          <div class="item-category">
-            <div class="category-name">${category.name}</div>
+          <div class="item-category" data-category="${catName}">
+            <div class="category-title">${category.name}</div>
             <div class="category-items">
               ${category.items
                 .map((item) => {
@@ -1138,7 +1274,7 @@ class App {
                   if (hasImage) {
                     visualMarkup = `
                       <div class="palette-item-image" style="--fallback-color: ${accentColor};">
-                        <img src="${item.paletteImage}" loading="lazy" decoding="async" alt="${item.label}">
+                        <img src="${Helpers.withCacheBust(item.paletteImage)}" loading="lazy" decoding="async" alt="${item.label}">
                         <div class="palette-image-fallback" aria-hidden="true"></div>
                       </div>
                     `;
@@ -1294,6 +1430,7 @@ class App {
 
           this.renderFloorPlanList();
           this.updateInfoPanel();
+          this.updateFloatingToolbarVisibility();
           this.syncViewDropdownUI();
           Modal.showSuccess('New layout started');
         }
@@ -1697,6 +1834,16 @@ class App {
 
     const divider = '<span class="info-bar__divider"></span>';
     panel.innerHTML = segments.join(divider);
+  }
+
+  /**
+   * Toggle floating toolbar visibility based on floor plan presence.
+   */
+  updateFloatingToolbarVisibility() {
+    const toolbar = document.getElementById('floatingToolbar');
+    if (!toolbar) return;
+    const hasFloorPlan = !!this.state?.get?.('floorPlan');
+    toolbar.classList.toggle('hidden', !hasFloorPlan);
   }
 
   toggleSidebar(forceState) {

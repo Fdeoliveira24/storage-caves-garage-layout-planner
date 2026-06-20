@@ -19,6 +19,19 @@ const Helpers = {
   },
 
   /**
+   * Append a cache-busting query param (Config.ASSET_VERSION) to an asset
+   * URL. Needed because overwriting an image file in place at the same
+   * path won't be picked up by the browser (or local dev servers like
+   * Live Server) until the URL itself changes.
+   */
+  withCacheBust(url) {
+    if (!url) return url;
+    const version = (typeof Config !== 'undefined' && Config.ASSET_VERSION) || '1';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${version}`;
+  },
+
+  /**
    * Convert feet to meters
    */
   feetToMeters(feet) {

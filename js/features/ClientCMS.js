@@ -215,6 +215,9 @@
      * Call this from App.js after ClientCMS is created
      */
     initGoogleSheets(eventBus) {
+      if (!(Config?.FEATURES?.enableGoogleSheetsSync)) {
+        return;
+      }
       // eslint-disable-next-line no-undef
       if (typeof GoogleSheetsSync !== 'undefined') {
         // eslint-disable-next-line no-undef
@@ -285,6 +288,33 @@
 
     // --- Base UI ---
     _renderBase() {
+      const sheetsEnabled = !!(Config?.FEATURES?.enableGoogleSheetsSync);
+      const sheetsDropdown = sheetsEnabled
+        ? `
+              <div class="cms-dropdown">
+                <button class="cms-btn" id="client-cms-sheets-btn" aria-haspopup="true" aria-expanded="false">
+                  ${ICONS.cloudSync}
+                  <span>Sync</span>
+                  <span class="connection-indicator" id="sheets-connection-indicator"></span>
+                </button>
+                <div class="cms-dropdown__menu" id="client-cms-sheets-menu">
+                  <button class="cms-dropdown__item" id="client-cms-sheets-sync">
+                    ${ICONS.cloudSync}
+                    <span>Sync to Google Sheets</span>
+                  </button>
+                  <button class="cms-dropdown__item" id="client-cms-sheets-fetch">
+                    ${ICONS.download}
+                    <span>Fetch from Google Sheets</span>
+                  </button>
+                  <div class="cms-dropdown__divider"></div>
+                  <button class="cms-dropdown__item" id="client-cms-sheets-settings">
+                    ${ICONS.wrench}
+                    <span>Sync Settings</span>
+                  </button>
+                </div>
+              </div>
+            `
+        : '';
       this.$panel.innerHTML = `
         <div class="client-cms">
           <div class="client-cms__header">
@@ -337,29 +367,7 @@
                   </button>
                 </div>
               </div>
-
-              <div class="cms-dropdown">
-                <button class="cms-btn" id="client-cms-sheets-btn" aria-haspopup="true" aria-expanded="false">
-                  ${ICONS.cloudSync}
-                  <span>Sync</span>
-                  <span class="connection-indicator" id="sheets-connection-indicator"></span>
-                </button>
-                <div class="cms-dropdown__menu" id="client-cms-sheets-menu">
-                  <button class="cms-dropdown__item" id="client-cms-sheets-sync">
-                    ${ICONS.cloudSync}
-                    <span>Sync to Google Sheets</span>
-                  </button>
-                  <button class="cms-dropdown__item" id="client-cms-sheets-fetch">
-                    ${ICONS.download}
-                    <span>Fetch from Google Sheets</span>
-                  </button>
-                  <div class="cms-dropdown__divider"></div>
-                  <button class="cms-dropdown__item" id="client-cms-sheets-settings">
-                    ${ICONS.wrench}
-                    <span>Sync Settings</span>
-                  </button>
-                </div>
-              </div>
+              ${sheetsDropdown}
             </div>
           </div>
 

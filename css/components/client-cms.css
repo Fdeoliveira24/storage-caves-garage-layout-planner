@@ -4,9 +4,9 @@
 
 /* Brand variables (scoped to CMS but can reuse globally if needed) */
 :root {
-  --cms-primary: #e74c3c;
-  --cms-primary-hover: #c0392b;
-  --cms-primary-light: #fadbd8;
+  --cms-primary: #b42518;
+  --cms-primary-hover: #962014;
+  --cms-primary-light: #f4dad6;
   --cms-danger: #c0392b;
   --cms-danger-hover: #a93226;
   --cms-success: #27ae60;
@@ -1739,7 +1739,7 @@ span.flatpickr-weekday {
 }
 
 .client-cms-layout-picker__item:hover {
-  border-color: var(--cms-primary, #e74c3c);
+  border-color: var(--cms-primary, #b42518);
   box-shadow: 0 12px 32px rgb(231 76 60 / 16%);
   transform: translateY(-1px);
 }

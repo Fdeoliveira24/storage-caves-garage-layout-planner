@@ -67,9 +67,9 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: var(--color-primary-light, #fadbd8);
+  background: var(--color-primary-light, #f4dad6);
   border-radius: 6px;
-  color: var(--color-primary, #e74c3c);
+  color: var(--color-primary, #b42518);
 }
 
 .text-props__title-icon svg {
@@ -193,8 +193,8 @@
 
 .text-props__input:focus,
 .text-props__select:focus {
-  border-color: var(--color-primary, #e74c3c);
-  box-shadow: 0 0 0 3px var(--color-primary-light, #fadbd8);
+  border-color: var(--color-primary, #b42518);
+  box-shadow: 0 0 0 3px var(--color-primary-light, #f4dad6);
 }
 
 /* === COLOR PICKER === */
@@ -217,8 +217,8 @@
 }
 
 .text-props__color-wrapper:focus-within {
-  border-color: var(--color-primary, #e74c3c);
-  box-shadow: 0 0 0 3px var(--color-primary-light, #fadbd8);
+  border-color: var(--color-primary, #b42518);
+  box-shadow: 0 0 0 3px var(--color-primary-light, #f4dad6);
 }
 
 .text-props__color {
@@ -267,8 +267,8 @@
 }
 
 .text-props__number-wrapper:focus-within {
-  border-color: var(--color-primary, #e74c3c);
-  box-shadow: 0 0 0 3px var(--color-primary-light, #fadbd8);
+  border-color: var(--color-primary, #b42518);
+  box-shadow: 0 0 0 3px var(--color-primary-light, #f4dad6);
 }
 
 .text-props__number {
@@ -396,9 +396,9 @@
 }
 
 .text-props__toggle.is-active {
-  border-color: var(--color-primary, #e74c3c);
-  background: var(--color-primary-light, #fadbd8);
-  color: var(--color-primary, #e74c3c);
+  border-color: var(--color-primary, #b42518);
+  background: var(--color-primary-light, #f4dad6);
+  color: var(--color-primary, #b42518);
 }
 
 .text-props__toggle svg {
@@ -437,8 +437,8 @@
 }
 
 .text-props__align-btn.is-active {
-  background: var(--color-primary-light, #fadbd8);
-  color: var(--color-primary, #e74c3c);
+  background: var(--color-primary-light, #f4dad6);
+  color: var(--color-primary, #b42518);
 }
 
 .text-props__align-btn svg {

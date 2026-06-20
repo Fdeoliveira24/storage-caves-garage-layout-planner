@@ -1,26 +1,42 @@
 # Garage Layout Planner
 
-**Professional, Enterprise-Grade Garage & Storage Layout Planning Tool**
+**Storage Caves storage-unit layout planner and lead-capture tool**
 
-A browser-based garage layout planner built with pure HTML5, CSS3, and JavaScript ES6. No frameworks, no build tools - just open and use.
+A browser-based storage-unit layout planner built with pure HTML5, CSS3,
+and JavaScript ES6. No frameworks, no build tools - just open and use. See
+`docs/FEATURES.md` for the full, current feature list (this section is a
+short summary) and `docs/ARCHITECTURE.md` for the manager/module breakdown.
 
 ## Features
 
 ### Core Functionality
 
-- **7 Pre-Defined Floor Plans** - From 20×25' to 24×50' (500-1200 sq ft)
-- **20+ Realistic Items** - Vehicles, RVs, boats, storage with accurate dimensions
+- **7 Pre-Defined Floor Plans** - modeled on real storage-unit sizes (Units A–H, 490–1,210 sq ft)
+- **108 Realistic Items across 10 Categories** - Vehicles, Recreational, Workshop & Tools, Garage Equipment, Furniture & Living, Fitness & Sports, Storage & Organization, Entertainment, Mezzanine Options, 2D Shapes
+- **Search & Category Filter** - scoped to the Items panel, with a category-filter dropdown
 - **Drag & Drop Interface** - Intuitive item placement
 - **Boundary Detection** - Items stay inside floor plan automatically
-- **Entry Zone Warnings** - Bottom 20% marked for garage door clearance
+- **Entry Zone Warnings** - configurable position/border/label, with real-time blocking detection
 
 ### Item Manipulation
 
 - **Selection Tools** - Single-click, multi-select (Shift+click), selection box
+- **Canvas-to-Sidebar Highlight** - selecting an item on canvas highlights its matching card in the Items panel
 - **Transform Operations** - Move, rotate (90° or free), duplicate, delete
 - **Alignment Tools** - Left, right, center, top, bottom, middle
 - **Z-Order Control** - Bring to front, send to back
 - **Lock/Unlock** - Prevent accidental movement
+
+### Text & Annotation
+
+- Full typography panel - font family, size, weight, style, underline/strikethrough, line height, letter spacing, color
+- Labels stay upright regardless of item rotation
+
+### Client & Lead Management (CRM)
+
+- Add/edit/delete leads with contact info, unit preference, notes, follow-up date
+- Assign a lead to a saved layout; CSV/JSON import-export; search
+- Optional bidirectional Google Sheets sync (manual or auto every 2 minutes)
 
 ### Professional Tools
 
@@ -132,6 +148,11 @@ Then open `http://localhost:5000` in your browser.
   - SelectionManager - Selection and manipulation
   - ExportManager - JSON/PNG/PDF exports
   - HistoryManager - Undo/redo stack
+  - TextManager + TextPropertiesPanel - text/annotation tool
+  - GoogleSheetsSync - CRM ↔ Google Sheets sync
+- **Feature/UI Classes**
+  - ClientCMS (`js/features/ClientCMS.js`) - lead/client CRM panel
+  - MobileUIManager (`js/ui/mobile/`) - dedicated mobile experience (not just responsive CSS)
 
 ### File Structure
 
@@ -145,12 +166,16 @@ Then open `http://localhost:5000` in your browser.
 │   └── main.css
 ├── js/
 │   ├── core/          # State, EventBus, Config, App
-│   ├── managers/      # 6 manager classes
-│   ├── features/      # Magnifier, Measurement, etc.
-│   ├── ui/            # UI components
+│   ├── managers/      # CanvasManager, FloorPlanManager, ItemManager,
+│   │                  # SelectionManager, ExportManager, HistoryManager,
+│   │                  # TextManager, GoogleSheetsSync
+│   ├── features/      # Magnifier, Measurement, ClientCMS (CRM panel)
+│   ├── ui/            # UI components, mobile/ (dedicated mobile UI)
 │   ├── utils/         # Helper functions
-│   └── data/          # Floor plans, items, icons
+│   └── data/          # Floor plans, items (108 across 10 categories), icons
 ├── assets/
+├── tools/             # item-builder + pixelsquid-backend (internal only,
+│                      # not loaded by index.html) + asset-pipeline script
 └── docs/
 ```
 
@@ -192,7 +217,9 @@ MIT License - See LICENSE.txt for details
 
 ## Credits
 
-Built as an enterprise-grade product for sale on Envato marketplace.
+Originally built as an Envato-marketplace template, since customized into
+a dedicated planning + lead-capture tool for Storage Caves (branding,
+storage-unit floor plans, client CRM, Google Sheets sync).
 
 ## Support
 
@@ -200,39 +227,30 @@ For issues or questions, please create an issue on GitHub or contact support.
 
 ## Roadmap
 
-### Phase 1 (Current - MVP) ✓
+### Shipped (beyond the original Phase 1 MVP)
 
-- 7 rectangular floor plans
-- 20+ items
-- Complete manipulation tools
-- Export (JSON, PNG, PDF)
-- Undo/redo system
-- Keyboard shortcuts
+- 7 storage-unit floor plans, 108 items across 10 categories
+- Full manipulation tools, search/filter, canvas↔sidebar selection sync
+- Text/annotation tool with full typography controls
+- Export (JSON, PNG 1x–8x, PDF), undo/redo, keyboard shortcuts
+- Client/lead CRM with Google Sheets sync
+- Dedicated mobile UI
 
-### Phase 2 (Advanced Features)
+### Not yet built
 
-- Custom floor plan drawing
-- L-shaped & T-shaped floor plans
-- Doors, windows, obstacles
-- Multiple rooms/zones
+- Custom/non-rectangular floor plan drawing (L-shaped, T-shaped)
+- Doors, windows, obstacles; multiple rooms/zones
 - Import floor plan images
-- 30+ pre-made templates
-- Collaboration features
-
-### Phase 3 (Pro Features)
-
-- 3D preview mode
-- AI layout assistant
-- Cost estimation
-- Client management
-- Proposal generation
-- White-label branding
+- 3D preview mode, AI layout assistant, cost estimation
+- Proposal generation, white-label branding
+- Automated tests (vitest is configured but no test files exist yet)
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** November 2025  
-**Status:** Production Ready
+**Version:** see `docs/FEATURES.md` → Known Issues for the current
+version-number inconsistency between the page title and `package.json`.
+**Last Updated:** June 2026
+**Status:** Actively developed, in production use
 
 ## PixelSquid Asset Pipeline (Internal Tools)
 

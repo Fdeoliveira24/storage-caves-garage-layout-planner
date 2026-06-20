@@ -1011,7 +1011,7 @@ class CanvasManager {
 
       if (Config.USE_IMAGES && itemData.canvasImage) {
         fabric.Image.fromURL(
-          itemData.canvasImage,
+          Helpers.withCacheBust(itemData.canvasImage),
           (img) => {
             if (!img) {
               console.warn('[CanvasManager] Failed to load image for item:', itemData.id);
@@ -1228,14 +1228,23 @@ class CanvasManager {
       const width = Helpers.feetToPx(itemData.widthFt);
       const height = Helpers.feetToPx(itemData.lengthFt);
 
+      // Anchor at the group's center (matches the base shape/label) so that
+      // any residual size mismatch between the source image and the item's
+      // real-world footprint is split evenly on all sides instead of being
+      // pinned into one corner, which used to make items look off-center
+      // and undersized relative to their declared dimensions.
       img.set({
-        left: -width / 2,
-        top: -height / 2,
-        originX: 'left',
-        originY: 'top',
+        left: 0,
+        top: 0,
+        originX: 'center',
+        originY: 'center',
       });
 
-      // Scale to fit within the defined dimensions while maintaining aspect ratio
+      // Scale to fit within the defined dimensions while maintaining aspect ratio.
+      // Source PNGs are expected to be pre-trimmed/sized to their real-world
+      // footprint (see tools/item-builder + docs/IMAGE-PIPELINE.md), so scaleX
+      // and scaleY should normally be ~equal; "contain" (min) is kept as a
+      // safety net for any image that isn't perfectly sized yet.
       const scaleX = width / img.width;
       const scaleY = height / img.height;
       const scale = Math.min(scaleX, scaleY);

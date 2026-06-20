@@ -1,477 +1,173 @@
 # Features Documentation
 
-Complete list of all features in Garage Layout Planner.
-
-## Phase 1 Features (MVP - Implemented) ✓
-
-### Core Functionality (Features 1-7)
-
-✓ **1. Floor Plan Selection**
-
-- 7 pre-defined rectangular sizes
-- From 500 sq ft to 1,200 sq ft
-- Instant visual preview
-- Click to select
-
-✓ **2. Item Palette**
-
-- 20+ realistic items
-- 3 categories: Vehicles, Recreational, Storage
-- Visual icons with dimensions
-- Click to add to canvas
-
-✓ **3. Drag and Drop**
-
-- Smooth drag interaction
-- Real-time position updates
-- Visual feedback
-
-✓ **4. Move Items**
-
-- Mouse drag
-- Arrow key nudging (2px)
-- Shift+Arrow for large nudge (10px)
-
-✓ **5. Boundary Detection**
-
-- Items stay inside floor plan
-- Automatic constraint on move
-- Visual boundaries
-
-✓ **6. Entry Zone**
-
-- Bottom 20% highlighted
-- Visual warning overlay
-- Prevents blocking garage door
-
-✓ **7. Real-time Info Panel**
-
-- Floor plan dimensions
-- Selected item details
-- Position coordinates
-- Item count
-
-### Selection & Manipulation (Features 8-16)
-
-✓ **8. Select Items (Click)**
-
-- Single-click selection
-- Visual selection indicator
-- Info panel updates
-
-✓ **9. Multi-Select**
-
-- Shift+click for multiple
-- Drag selection box (Fabric.js)
-- Group operations
-
-✓ **10. Group/Ungroup**
-
-- Group selected items
-- Move as single unit
-- Ungroup to separate
-
-✓ **11. Rotate Items**
-
-- 90° rotation button
-- R key for quick rotate
-- Shift+drag for free rotation
-- Angle display
-
-✓ **12. Duplicate Items**
-
-- Duplicate button
-- Ctrl+D shortcut
-- Offset placement
-
-✓ **13. Delete Items**
-
-- Delete button
-- Delete/Backspace keys
-- Confirmation for multiple
-
-✓ **14. Copy/Paste**
-
-- Ctrl+C to copy
-- Ctrl+V to paste
-- Preserves item properties
-
-✓ **15. Z-Order Control**
-
-- Bring to front
-- Send to back
-- Stacking control
-
-✓ **16. Lock/Unlock**
-
-- Lock item movement
-- Prevent accidental changes
-- Visual locked indicator
-
-### Keyboard Shortcuts (Features 17-24)
-
-✓ **17. Arrow Keys**
-
-- Nudge 2px
-- Shift for 10px
-- All 4 directions
-
-✓ **18. Delete/Backspace**
-
-- Remove selected items
-- Works with multi-select
-
-✓ **19. R Key**
-
-- Rotate 90° clockwise
-- Quick rotation
-
-✓ **20. Ctrl+D**
-
-- Duplicate selected
-- Fast workflow
-
-✓ **21. Ctrl+C/V**
-
-- Copy and paste
-- Standard clipboard behavior
-
-✓ **22. Ctrl+Z/Y**
-
-- Undo last action
-- Redo undone action
-- 50-level history
-
-✓ **23. Ctrl+A**
-
-- Select all items
-- Quick selection
-
-✓ **24. Esc**
-
-- Deselect all
-- Clear selection
-
-### Alignment Tools (Features 25-28)
-
-✓ **25. Align Edges**
-
-- Left edge alignment
-- Right edge alignment
-- Top edge alignment
-- Bottom edge alignment
-
-✓ **26. Center Alignment**
-
-- Horizontal center
-- Vertical center (middle)
-
-✓ **27. Snap to Grid**
-
-- Toggle on/off
-- 1-foot increments
-- Precise placement
-
-✓ **28. Snap to Items**
-
-- Alignment guides
-- Edge detection
-- Proximity snapping
-
-### Dimensions & Measurements (Features 29-34)
-
-✓ **29. Hover Dimensions**
-
-- Show size on hover
-- Length × width display
-
-✓ **30. Dimension Lines**
-
-- On selected items
-- Visual measurement
-
-✓ **31. Distance Tool**
-
-- Click two points
-- Calculate distance
-- Show measurement line
-
-✓ **32. Ruler Overlay**
-
-- Optional toggle
-- Grid measurements
-- Scale indicator
-
-✓ **33. Unit Toggle**
-
-- Feet or meters
-- Automatic conversion
-- Persistent setting
-
-✓ **34. Area Calculation**
-
-- Total floor space
-- Occupied space
-- Occupancy percentage
-
-### Labels & Annotations (Features 35-39)
-
-✓ **35. Toggle Labels**
-
-- Show/hide all labels
-- Global control
-
-✓ **36. Rename Items**
-
-- Double-click to rename
-- Custom labels
-
-✓ **37. Upright Text**
-
-- Labels never rotate
-- Always readable
-
-✓ **38. Custom Annotations**
-
-- Add text anywhere
-- Notes and markers
-
-✓ **39. Font Size Control**
-
-- Adjust label size
-- Improve readability
-
-### Save/Load/Export (Features 40-47)
-
-✓ **40. Save Layout**
-
-- Custom name
-- localStorage storage
-- Metadata tracking
-
-✓ **41. Auto-Save**
-
-- Every 30 seconds
-- Automatic backup
-- Recovery on reload
-
-✓ **42. Load Layouts**
-
-- List saved layouts
-- Thumbnail preview
-- One-click load
-
-✓ **43. Delete Layouts**
-
-- Remove saved layouts
-- Confirmation dialog
-
-✓ **44. Export JSON**
-
-- Complete layout data
-- Human-readable format
-- Download file
-
-✓ **45. Export PNG**
-
-- 1x, 2x, 4x resolutions
-- High-quality images
-- Transparent background option
-
-✓ **46. Export PDF**
-
-- Professional format
-- Header with project info
-- Item list table
-- Footer with specifications
-- Multiple page layouts
-
-✓ **47. Print Layout**
-
-- Optimized for printing
-- Proper scaling
-- Page breaks
-
-### Visual Tools (Features 48-52)
-
-✓ **48. Magnifying Glass**
-
-- 2.5x zoom
-- Adjustable size
-- Crosshair indicator
-- Follow mouse
-
-✓ **49. Grid Toggle**
-
-- Show/hide grid
-- 1-foot squares
-- Visual reference
-
-✓ **50. Canvas Zoom**
-
-- Mouse wheel zoom
-- Pinch zoom (touch)
-- Zoom limits (0.1x - 20x)
-
-✓ **51. Canvas Pan**
-
-- Drag to pan
-- Touch drag
-- Reset view
-
-✓ **52. Full-Screen Mode**
-
-- Maximize canvas
-- Hide sidebars
-- F11 or button
-
-### Undo/Redo System (Features 53-57)
-
-✓ **53. History Stack**
-
-- 50 levels deep
-- State snapshots
-- Memory efficient
-
-✓ **54. Undo (Ctrl+Z)**
-
-- Revert last change
-- Restore previous state
-- Visual feedback
-
-✓ **55. Redo (Ctrl+Y)**
-
-- Reapply undone change
-- Forward in history
-
-✓ **56. Clear History**
-
-- Reset history stack
-- Free memory
-
-✓ **57. Visual Indicators**
-
-- Undo/redo availability
-- Button states
-- Keyboard hints
-
-### UI/UX Features (Features 58-64)
-
-✓ **58. Empty State**
-
-- "Select a floor plan to start"
-- Clear instructions
-- Visual guidance
-
-✓ **59. Loading States**
-
-- Operation feedback
-- Progress indicators
-
-✓ **60. Confirm Dialogs**
-
-- Destructive actions
-- Prevent mistakes
-- Clear options
-
-✓ **61. Tooltips**
-
-- Hover hints
-- Keyboard shortcuts
-- Feature descriptions
-
-✓ **62. Shortcut Cheat Sheet**
-
-- Modal with all shortcuts
-- Organized by category
-- Printable reference
-
-✓ **63. Responsive Design**
-
-- Works on tablets
-- Adaptive layout
-- Touch-friendly
-
-✓ **64. Touch Support**
-
-- Pinch zoom
-- Touch drag
-- Long press
-- Gesture support
-
-## Feature Statistics
-
-**Total Phase 1 Features:** 64  
-**Implemented:** 64  
-**Completion:** 100%
-
-## Technical Features
-
-### Architecture
-
-- ✓ State Management with Observer Pattern
-- ✓ Event Bus for Decoupled Communication
-- ✓ 6 Manager Classes
-- ✓ Modular File Structure
-- ✓ Zero Global Variables (except app)
-- ✓ Serializable State
-
-### Performance
-
-- ✓ Debounced Mouse Events
-- ✓ Throttled Canvas Renders
-- ✓ Lazy Loading
-- ✓ Efficient Re-renders
-- ✓ Memory Management
-
-### Code Quality
-
-- ✓ JSDoc Comments
-- ✓ Error Handling
-- ✓ Input Validation
-- ✓ Graceful Degradation
-- ✓ No Global Pollution
-
-## Browser Features
-
-### Supported
-
-- ✓ Modern ES6+ JavaScript
-- ✓ Canvas API
-- ✓ localStorage
-- ✓ File Download
-- ✓ CSS Grid/Flexbox
-- ✓ Touch Events
-- ✓ Pointer Events
-
-### CDN Libraries
-
-- ✓ Fabric.js 5.3.0
-- ✓ Turf.js 6.x
-- ✓ jsPDF 2.5.1
-- ✓ html2canvas 1.4.1
-
-## Quality Metrics
-
-### Performance
-
-- First Load: < 2s
-- Render 50 items: < 100ms
-- Zoom/Pan: 60fps
-- Export PNG: < 3s
-- Export PDF: < 5s
-
-### Compatibility
-
-- Chrome 90+ ✓
-- Firefox 88+ ✓
-- Safari 14+ ✓
-- Edge 90+ ✓
-- Mobile Safari ✓
-- Chrome Mobile ✓
-
----
-
-**Version:** 1.0.0  
-**Status:** Production Ready  
-**Last Updated:** November 2025
+What the Garage Layout Planner ("Storage Caves" build) actually does today.
+This replaces the previous version of this doc, which described a much
+earlier "Phase 1 MVP" (Nov 2025, 64 features, 1.0.0) that no longer matches
+the shipped product — the app has grown well beyond that since, and this
+doc had not been kept in sync.
+
+**Last verified against source:** June 2026.
+
+## Floor Plans
+
+7 pre-defined floor plans, modeled on real storage-unit dimensions rather
+than generic garage sizes (`js/core/Config.js → FLOOR_PLANS`):
+
+| Plan | Size | Area | Door |
+|---|---|---|---|
+| Units A | 22' × 55' | 1,210 sq ft | 14' × 14' |
+| Units B | 15' × 55' | 825 sq ft | 13' × 14' |
+| Units C | 15' × 55' | 825 sq ft | 13' × 14' |
+| Units D | 15' × 50' | 750 sq ft | 13' × 14' |
+| Units E | 14' × 35' | 490 sq ft | 12' × 12' |
+| Units F | 18' × 50' | 900 sq ft | 14' × 14' |
+| Units H | 15' × 50' | 750 sq ft | 13' × 14' |
+
+## Item Catalog
+
+**108 items across 10 categories** (`js/data/items.js`), each with a
+real-world footprint in feet and a top-down canvas image:
+
+- Vehicles — 20 items (cars, trucks, motorcycles, trailers, a semi cabin, a food truck)
+- Recreational — 13 items (boats, RVs, ATVs, golf carts, snowmobiles)
+- Workshop & Tools — 7 items (air compressor, CNC machine, welding machine, scissor lift, etc.)
+- Garage Equipment — 12 items (car lift, jacks, cabinets, pegboard, garage door)
+- Furniture & Living — 16 items (sofas, tables, chairs, appliances)
+- Fitness & Sports — 10 items (treadmill, dumbbell rack, punching bag, climbing gear)
+- Storage & Organization — 16 items (shelving, tool chests, bike racks, boxes)
+- Entertainment — 5 items (pool table, foosball, arcade game, gas grill, hot dog cart)
+- Mezzanine Options — 5 sizes (no image — rendered as a flat tiled overlay)
+- 2D Shapes — 4 generic shapes (square, circle, rectangle, triangle) for custom drawing
+
+Search and filtering: a search box and a category-filter dropdown live
+directly in the Items panel (not shared with Floor Plans/Saved). Typing or
+filtering hides whole category headers when nothing in them matches,
+instead of leaving empty unclickable headers visible.
+
+**Image quality note:** as of this writing, 94 of 108 item images are
+correctly cropped/oriented/sized; 14 still need replacement source art
+because their renders don't represent a usable top-down silhouette in any
+orientation. See `docs/IMAGE-PIPELINE.md` for the exact list, the standard
+new images must follow, and the script (`tools/asset-pipeline/trim_resize_canvas_images.py`)
+that crops/resizes/rotates new art automatically.
+
+## Item Manipulation
+
+- Click to add an item from the palette; drag to reposition
+- Single-click and Shift+click multi-select; drag a selection box
+- Selecting an item on canvas highlights its matching card in the Items
+  panel (brand red outline) so it's clear which catalog item is selected
+- Rotate (90° button, `R` key, or free rotate via the corner handle)
+- Duplicate (`Ctrl+D`), copy/paste (`Ctrl+C`/`Ctrl+V`), delete (`Delete`/`Backspace`)
+- Z-order control (bring to front / send to back)
+- Lock/unlock individual items
+- Align selected items (left/right/top/bottom edges, horizontal/vertical center)
+- Snap-to-grid (1 ft increments) and floor-plan boundary detection
+- Entry-zone warning overlay (configurable position/border/label), with
+  real-time detection of items blocking it
+
+## Keyboard Shortcuts
+
+Arrow keys (nudge 2px, Shift for 10px) · `Delete`/`Backspace` · `R` (rotate)
+· `Ctrl+D` (duplicate) · `Ctrl+C`/`Ctrl+V` (copy/paste) · `Ctrl+Z`/`Ctrl+Y`
+(undo/redo) · `Ctrl+A` (select all) · `Esc` (deselect)
+
+## Measurement & Visual Tools
+
+- Magnifying glass (2.5x zoom, adjustable, follows cursor)
+- Click-two-points measurement tool with a persistent distance line
+- Grid toggle and ruler overlay
+- Unit toggle (feet/meters)
+- Real-time area calculation (total vs. occupied space, occupancy %)
+- Canvas zoom (10%–200%, mouse wheel or slider) and pan
+- Show/hide all item labels
+
+## Text & Annotation
+
+A full typography tool (`js/managers/TextManager.js` +
+`js/ui/TextPropertiesPanel.js`), not just a basic label: font family, size,
+weight, style, underline/strikethrough, line height, letter spacing, and
+color, with a draggable floating properties panel. Labels stay upright
+regardless of item rotation.
+
+## Undo/Redo
+
+50-level history stack with state snapshots (`HistoryManager`), `Ctrl+Z`/`Ctrl+Y`.
+
+## Save / Load / Export
+
+- Save/load named layouts to `localStorage`, with auto-save every 30 seconds
+- Export layout as JSON, PNG (1x/2x/4x/8x), or a formatted PDF report
+  (item list table, project metadata, 300 DPI)
+- Import a previously exported JSON layout
+
+## Client & Lead Management (CRM)
+
+A full lead-management panel (`js/features/ClientCMS.js`), separate from
+the planning tool itself — this is a sales tool for Storage Caves, not a
+generic Envato template:
+
+- Add/edit/delete leads with contact info, unit preference, notes, and a
+  follow-up date (date picker)
+- Assign a lead to one or more saved layouts, and jump back to a lead's
+  layout from their record
+- Search/filter the lead list
+- Import/export leads as CSV or JSON
+- Optional bidirectional Google Sheets sync (`js/managers/GoogleSheetsSync.js`):
+  manual sync or auto-sync every 2 minutes, pointed at a configured Apps
+  Script web app URL. Disabled by default (`Config.FEATURES.enableGoogleSheetsSync`).
+
+## Mobile Experience
+
+Below 768px, a dedicated mobile UI takes over (`js/ui/mobile/MobileUIManager.js`)
+— not just responsive CSS on the desktop layout. It has its own bottom tab
+bar, a floating action button for canvas tools, bottom-sheet panels for
+Floor Plans/Items/Saved, and touch-optimized gestures.
+
+## Internal Tooling (not part of the customer-facing app)
+
+Two developer-only tools live in `tools/`, never loaded by `index.html`:
+
+- `tools/item-builder/` — a small page for pulling 3D renders via the
+  PixelSquid API and generating the palette/canvas image pair plus an
+  `items.js` snippet for a new catalog item.
+- `tools/pixelsquid-backend/` — an Express server that proxies PixelSquid
+  API requests (auth keys live in a local `.env`, not committed) for the
+  item-builder page above.
+- `tools/asset-pipeline/trim_resize_canvas_images.py` — the image
+  crop/resize/rotate script referenced above; safe to re-run any time.
+
+## Technical Architecture
+
+- Centralized `State` with an observer pattern; `EventBus` for decoupled
+  module communication
+- Manager classes: `CanvasManager`, `FloorPlanManager`, `ItemManager`,
+  `SelectionManager`, `ExportManager`, `HistoryManager`, `TextManager`,
+  `GoogleSheetsSync` — plus `MobileUIManager` and `ClientCMS` for the
+  mobile UI and CRM panel respectively (see `docs/ARCHITECTURE.md`)
+- No build step: pure HTML5/CSS3/ES6, Fabric.js 5.3.0 for canvas rendering,
+  Turf.js for geometry, jsPDF + html2canvas for exports
+- Cache-busted asset loading: every script/stylesheet `<link>`/`<script>`
+  tag carries a `?v=` query string, and item images use
+  `Config.ASSET_VERSION` via `Helpers.withCacheBust()` — bump these after
+  editing the relevant file so browsers (and dev servers like Live Server)
+  don't keep serving a stale cached copy
+- `index.html` is served with `Cache-Control: no-cache` meta tags so the
+  document itself doesn't get stuck in a browser's HTTP cache either
+
+## Known Issues / Housekeeping
+
+- **Version number is inconsistent.** The page `<title>` says "1.8",
+  `package.json` says "1.4.0". Pick one and reconcile — neither has been
+  treated as the source of truth.
+- **14 item images need new source art** (see Item Catalog above).
+- `js/data/items-backup.js` is now redundant (its content was copied into
+  the live `js/data/items.js` and reorganized into the 10 categories
+  above) — safe to delete once you've confirmed you don't need the old
+  5-category version for reference.
+
+## Browser Support
+
+Chrome 90+, Firefox 88+, Safari 14+, Edge 90+, and modern mobile browsers
+(touch events, pointer events, Canvas API, CSS Grid/Flexbox, localStorage).
+No IE11 support — the app uses ES6+ freely.
