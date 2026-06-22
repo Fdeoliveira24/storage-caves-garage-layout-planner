@@ -1,3 +1,5 @@
+/* global Config, FloorPlanComposition */
+
 /**
  * State Management - Single source of truth
  * Implements observer pattern for state changes
@@ -38,12 +40,13 @@ class State {
         clientName: '',
         created: null,
         modified: null,
-        version: '1.3.0',
+        version: String(Config?.LAYOUT_SCHEMA_VERSION || 3),
       },
       layout: {
         floorPlanPosition: null,
         floorPlanBounds: null,
         floorPlanLocked: false,
+        unitPositions: {},
       },
     };
 
@@ -118,6 +121,7 @@ class State {
       floorPlan: null,
       items: [],
       texts: [],
+      measurements: [],
       selection: null,
       history: [],
       settings: settings,
@@ -134,12 +138,13 @@ class State {
         clientName: '',
         created: new Date().toISOString(),
         modified: new Date().toISOString(),
-        version: '1.3.0',
+        version: String(Config?.LAYOUT_SCHEMA_VERSION || 3),
       },
       layout: {
         floorPlanPosition: null,
         floorPlanBounds: null,
         floorPlanLocked: false,
+        unitPositions: {},
       },
     };
 
@@ -169,17 +174,26 @@ class State {
 
     // [State] Loading state
 
+    const normalizedFloorPlan =
+      typeof FloorPlanComposition !== 'undefined'
+        ? FloorPlanComposition.normalizeFloorPlan(savedState.floorPlan)
+        : savedState.floorPlan || null;
+    const normalizedSettings = {
+      ...this.state.settings,
+      ...(savedState.settings || {}),
+    };
+    if ((normalizedFloorPlan?.units?.length || 0) > 1) {
+      normalizedSettings.entryZonePosition = 'bottom';
+    }
+
     // Merge saved state, preserving structure
     this.state = {
       ...this.state,
-      floorPlan: savedState.floorPlan || null,
+      floorPlan: normalizedFloorPlan,
       items: Array.isArray(savedState.items) ? savedState.items : [],
       texts: Array.isArray(savedState.texts) ? savedState.texts : [],
       measurements: Array.isArray(savedState.measurements) ? savedState.measurements : [],
-      settings: {
-        ...this.state.settings,
-        ...(savedState.settings || {}),
-      },
+      settings: normalizedSettings,
       layout: {
         ...this.state.layout,
         ...(savedState.layout || {}),

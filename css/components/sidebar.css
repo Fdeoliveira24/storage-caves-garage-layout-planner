@@ -208,6 +208,26 @@
   transform: translateY(0);
 }
 
+.sidebar-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.sidebar-section-header h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sidebar-section-header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
 /* Empty State */
 .empty-state {
   padding: 40px 20px;
@@ -235,6 +255,181 @@
   padding: 16px;
 }
 
+.floorplan-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.floorplan-combo-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgb(var(--color-primary-rgb) / 35%);
+  border-radius: var(--radius-md);
+  background: rgb(var(--color-primary-rgb) / 5%);
+}
+
+.floorplan-combo-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.floorplan-combo-heading > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.floorplan-combo-hint {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.floorplan-combo-units {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.floorplan-combo-unit {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg-panel);
+}
+
+.floorplan-combo-index {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.floorplan-combo-unit-name {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floorplan-combo-actions {
+  display: flex;
+  gap: 3px;
+}
+
+.floorplan-combo-actions button {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-panel);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.floorplan-combo-disclaimer {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Floating "Selected units" panel, docked to the canvas's right edge.
+   Content comes before the toggle in DOM order (see index.html) so the
+   toggle -- the last flex child -- stays pinned flush against the edge at
+   all times, and only the content's width animates open/closed.
+   align-items: flex-start (NOT stretch, the default) is load-bearing here
+   -- stretch was making the toggle match the content card's full height,
+   which is what turned it into a huge solid bar instead of a compact tab. */
+.floorplan-combo-panel {
+  position: absolute;
+  top: 16px;
+  right: 0;
+  z-index: 15;
+  display: flex;
+  align-items: flex-start;
+  max-height: calc(100% - 32px);
+}
+
+.floorplan-combo-panel.hidden {
+  display: none;
+}
+
+.floorplan-combo-panel-content {
+  width: 0;
+  overflow: hidden;
+  transition: width var(--transition-base);
+}
+
+.floorplan-combo-panel.is-open .floorplan-combo-panel-content {
+  width: 250px;
+}
+
+.floorplan-combo-panel-content > .floorplan-combo-summary {
+  width: 250px;
+  max-height: 100%;
+  padding: 12px;
+  overflow-y: auto;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Compact, fixed-size tab handle -- intentionally small (not stretched),
+   matching the same solid-red treatment used for primary buttons (Add,
+   New Layout) elsewhere in the app for visual consistency. Just the
+   chevron -- no icon/badge, the panel itself already shows the count. */
+.floorplan-combo-toggle {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-fast);
+}
+
+.floorplan-combo-toggle:hover {
+  background: var(--color-primary-hover);
+}
+
+.floorplan-combo-toggle svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.floorplan-combo-panel.is-open .floorplan-combo-toggle svg {
+  transform: rotate(180deg);
+}
+
 .floorplan-item {
   padding: 14px;
   background: var(--color-bg-panel);
@@ -244,6 +439,43 @@
   transition: all var(--transition-fast);
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.floorplan-item-copy {
+  min-width: 0;
+}
+
+.floorplan-add {
+  display: inline-flex;
+  min-width: 58px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.floorplan-combo-actions button:disabled,
+.floorplan-add:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.floorplan-add-plus {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .floorplan-item:hover {
@@ -340,26 +572,6 @@
   border-width: 2px;
   background: rgb(var(--color-primary-rgb) / 6%);
   box-shadow: 0 0 0 2px rgb(var(--color-primary-rgb) / 15%);
-}
-
-.sidebar-section-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.sidebar-section-header h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.sidebar-section-header p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
 }
 
 .palette-item-icon {
@@ -491,6 +703,65 @@
 .palette-shape-preview--square::before {
   width: 58px;
   height: 58px;
+}
+
+.palette-shape-preview--oval::before {
+  width: 72px;
+  height: 46px;
+  border-radius: 999px;
+}
+
+.palette-shape-preview--diamond::before {
+  width: 58px;
+  height: 58px;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.palette-shape-preview--pentagon::before {
+  width: 60px;
+  height: 58px;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+
+.palette-shape-preview--hexagon::before {
+  width: 64px;
+  height: 56px;
+  border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.palette-shape-preview--octagon::before {
+  width: 60px;
+  height: 60px;
+  border-radius: 0;
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+}
+
+.palette-shape-preview--star::before {
+  width: 60px;
+  height: 60px;
+  border-radius: 0;
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+}
+
+.palette-shape-preview--l-shape::before {
+  width: 58px;
+  height: 58px;
+  border-radius: 0;
+  clip-path: polygon(0% 0%, 50% 0%, 50% 50%, 100% 50%, 100% 100%, 0% 100%);
 }
 
 .palette-item:hover .palette-shape-preview::before {

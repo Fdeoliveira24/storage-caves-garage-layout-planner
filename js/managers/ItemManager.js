@@ -44,6 +44,7 @@ class ItemManager {
       }
 
       itemData.canvasObject = canvasGroup;
+      itemData.unitInstanceId = canvasGroup.customData?.unitInstanceId || null;
 
       const items = this.state.get('items') || [];
       items.push(itemData);

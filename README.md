@@ -12,6 +12,7 @@ short summary) and `docs/ARCHITECTURE.md` for the manager/module breakdown.
 ### Core Functionality
 
 - **7 Pre-Defined Floor Plans** - modeled on real storage-unit sizes (Units A–H, 490–1,210 sq ft)
+- **Multi-Unit Combos** - combine or duplicate up to ten independently movable units, with edge snapping and per-unit boundaries
 - **108 Realistic Items across 10 Categories** - Vehicles, Recreational, Workshop & Tools, Garage Equipment, Furniture & Living, Fitness & Sports, Storage & Organization, Entertainment, Mezzanine Options, 2D Shapes
 - **Search & Category Filter** - scoped to the Items panel, with a category-filter dropdown
 - **Drag & Drop Interface** - Intuitive item placement
@@ -57,14 +58,18 @@ short summary) and `docs/ARCHITECTURE.md` for the manager/module breakdown.
 
 ### Keyboard Shortcuts
 
-- **Arrow Keys** - Nudge items (2px, Shift = 10px)
-- **Delete/Backspace** - Remove selected items
-- **R** - Rotate 90°
-- **Ctrl+D** - Duplicate
-- **Ctrl+C/V** - Copy/Paste
-- **Ctrl+Z/Y** - Undo/Redo
-- **Ctrl+A** - Select all
-- **Esc** - Deselect
+- **?** - Open the complete keyboard shortcuts and canvas gestures reference
+- **Ctrl/⌘+S** - Save layout
+- **Ctrl/⌘+Z / Ctrl/⌘+Shift+Z** - Undo/Redo (`Ctrl/⌘+Y` also redoes)
+- **Ctrl/⌘+D, C, V, A** - Duplicate, copy, paste, and select all items
+- **Delete/Backspace** - Remove selected items or garage units
+- **R** - Rotate 90°; **Arrow Keys** - nudge 2px (Shift = 10px)
+- **T / M** - Toggle text and measurement tools
+- **G / Shift+G / Shift+R** - Grid, snap-to-grid, and rulers
+- **+ / − / 0** - Zoom in, zoom out, and fit the floor plan
+- **/** - Open Items and focus search; **[ / ]** - send back / bring front
+- **Space + drag** - Pan; **Esc** - cancel the active tool or clear selection
+- **Ctrl/⌘+B / I / U** - Bold, italic, and underline selected text
 
 ## Installation
 
@@ -93,7 +98,7 @@ Then open `http://localhost:5000` in your browser.
 
 ### Getting Started
 
-1. **Select a Floor Plan** - Click a floor plan from the left sidebar
+1. **Build a Floor Plan** - Add one to ten units, drag them freely, and move nearby edges together to snap them flush
 2. **Add Items** - Switch to "Items" tab and click items to add them
 3. **Arrange Layout** - Drag items, rotate, resize as needed
 4. **Save** - Click the save button to store your layout

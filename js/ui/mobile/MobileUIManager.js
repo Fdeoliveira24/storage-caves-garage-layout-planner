@@ -343,9 +343,14 @@ class MobileUIManager {
 
     // Listen to manager events
     this.eventBus.on('floorplan:changed', () => {
-      this.onFloorPlanSelected();
+      this.renderFloorPlans();
       this.updateFloorPlanControls();
     });
+    this.eventBus.on('floorplan:cleared', () => {
+      this.renderFloorPlans();
+      this.updateFloorPlanControls();
+    });
+    this.eventBus.on('floorplan:moved', () => this.renderFloorPlans());
     this.eventBus.on('item:added', () => this.onItemAdded());
   }
 
@@ -675,25 +680,69 @@ class MobileUIManager {
 
     // Get floor plans from manager (NOT window.FLOOR_PLANS)
     const floorPlans = this.floorPlanManager?.getAllFloorPlans() || [];
-    const currentPlan = this.state.get('floorPlan');
+    const currentPlan = this.floorPlanManager?.getCurrentFloorPlan?.();
+    const units = currentPlan?.units || [];
+    const counts = units.reduce((map, unit) => {
+      map[unit.templateId] = (map[unit.templateId] || 0) + 1;
+      return map;
+    }, {});
+    const maxUnits = window.Config?.MAX_FLOOR_PLAN_UNITS || 4;
+    const atLimit = units.length >= maxUnits;
 
     container.innerHTML = `
       <div class="mobile-view-header">
         <h2>Floor Plans</h2>
-        <p>Select a garage layout</p>
+        <p>Add up to ${maxUnits} adjacent garage units</p>
       </div>
+      ${
+        units.length
+          ? `
+            <section class="mobile-floor-plan-combo">
+              <div class="mobile-combo-heading">
+                <strong>Selected units</strong>
+                <span>${units.length}/${window.Config?.MAX_FLOOR_PLAN_UNITS || 4}</span>
+              </div>
+              <div class="mobile-combo-hint">Drag units on the canvas. Edges snap together when close.</div>
+              <div class="mobile-combo-units">
+                ${units
+                  .map(
+                    (unit, index) => `
+                      <div class="mobile-combo-unit" data-instance-id="${unit.instanceId}">
+                        <span>${index + 1}. ${unit.shortName}</span>
+                        <div>
+                          <button type="button" data-combo-action="remove" aria-label="Remove ${unit.shortName}">×</button>
+                        </div>
+                      </div>
+                    `,
+                  )
+                  .join('')}
+              </div>
+              ${
+                units.length > 1
+                  ? '<p>Unit combinations are for planning purposes. Please confirm adjacent-unit availability with Storage Caves.</p>'
+                  : ''
+              }
+              <button type="button" class="mobile-view-layout-btn">View Layout</button>
+            </section>
+          `
+          : ''
+      }
       <div class="mobile-floor-plan-list">
         ${floorPlans
           .map(
             (plan) => `
-          <button class="mobile-floor-plan-card ${currentPlan?.id === plan.id ? 'mobile-card-selected' : ''}" 
-                  data-floor-plan-id="${plan.id}">
-            <h3>${plan.name}</h3>
-            <div class="mobile-card-meta">
-              <span>Door: ${plan.doorWidth}' × ${plan.doorHeight}'</span>
-              <span>${plan.area} sq ft</span>
+          <div class="mobile-floor-plan-card ${counts[plan.id] ? 'mobile-card-selected' : ''}">
+            <div>
+              <h3>${plan.name}</h3>
+              <div class="mobile-card-meta">
+                <span>Door: ${plan.doorWidth}' × ${plan.doorHeight}'</span>
+                <span>${plan.area} sq ft</span>
+              </div>
             </div>
-          </button>
+            <button type="button" class="mobile-add-floor-plan" data-floor-plan-id="${plan.id}" ${atLimit ? 'disabled' : ''}>
+              <span class="floorplan-add-plus" aria-hidden="true">+</span> Add
+            </button>
+          </div>
         `,
           )
           .join('')}
@@ -701,11 +750,27 @@ class MobileUIManager {
     `;
 
     // Setup floor plan click handlers
-    container.querySelectorAll('.mobile-floor-plan-card').forEach((card) => {
-      card.addEventListener('click', () => {
-        const planId = card.dataset.floorPlanId;
+    container.querySelectorAll('.mobile-add-floor-plan').forEach((button) => {
+      button.addEventListener('click', () => {
+        const planId = button.dataset.floorPlanId;
         this.selectFloorPlan(planId);
       });
+    });
+
+    container.querySelectorAll('.mobile-combo-unit').forEach((row) => {
+      row.querySelectorAll('[data-combo-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const instanceId = row.dataset.instanceId;
+          if (button.dataset.comboAction === 'remove') {
+            this.floorPlanManager.removeFloorPlan(instanceId);
+          }
+        });
+      });
+    });
+
+    container.querySelector('.mobile-view-layout-btn')?.addEventListener('click', () => {
+      this.closeTopTabs();
+      this.switchTab('canvas');
     });
   }
 
@@ -814,6 +879,7 @@ class MobileUIManager {
     const showEntryZoneBorder =
       settings.showEntryZoneBorder !== undefined ? settings.showEntryZoneBorder : true;
     const entryZonePosition = settings.entryZonePosition || 'bottom';
+    const multiUnit = (this.floorPlanManager?.getUnits?.().length || 0) > 1;
 
     container.innerHTML = `
       <div class="mobile-view-header">
@@ -864,6 +930,10 @@ class MobileUIManager {
           </svg>
           <span>Share via Email</span>
         </button>
+        <button class="mobile-more-item" data-action="shortcut-help">
+          ${Icons.render('help')}
+          <span>Keyboard &amp; gestures</span>
+        </button>
       </div>
       <div class="mobile-view-options">
         <h3>View Options</h3>
@@ -884,10 +954,10 @@ class MobileUIManager {
         <div class="mobile-view-options-group">
           <h4>Entry Zone Position</h4>
           <div class="mobile-view-options-positions">
-            <button class="mobile-position-btn ${entryZonePosition === 'bottom' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="bottom">Bottom</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'left' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="left">Left</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'right' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="right">Right</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'top' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="top">Top</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'bottom' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="bottom" ${multiUnit ? 'disabled' : ''}>Bottom</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'left' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="left" ${multiUnit ? 'disabled' : ''}>Left</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'right' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="right" ${multiUnit ? 'disabled' : ''}>Right</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'top' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="top" ${multiUnit ? 'disabled' : ''}>Top</button>
           </div>
         </div>
       </div>
@@ -1011,7 +1081,13 @@ class MobileUIManager {
    */
   selectFloorPlan(planId) {
     if (this.floorPlanManager) {
-      this.floorPlanManager.setFloorPlan(planId);
+      const units = this.floorPlanManager.getUnits?.() || [];
+      const wasNonBottom =
+        units.length === 1 && this.state.get('settings.entryZonePosition') !== 'bottom';
+      const added = this.floorPlanManager.addFloorPlan(planId);
+      if (added && wasNonBottom) {
+        window.Modal?.showInfo('Multi-unit combinations use bottom entry zones.');
+      }
     }
   }
 
@@ -1062,7 +1138,7 @@ class MobileUIManager {
         break;
       case 'delete':
         // Mirror desktop delete behavior
-        this.selectionManager?.deleteSelected?.();
+        this.app?.deleteCurrentSelection?.();
         break;
       case 'bring-front':
         if (this.selectionManager) {
@@ -1245,6 +1321,11 @@ class MobileUIManager {
       return;
     }
 
+    if (action === 'shortcut-help') {
+      await this.app?.showKeyboardShortcuts?.();
+      return;
+    }
+
     const actions = {
       'export-png': '#btn-export-png',
       'export-pdf': '#btn-export-pdf',
@@ -1317,6 +1398,10 @@ class MobileUIManager {
    * Handle Entry Zone position change
    */
   handleEntryPositionChange(position) {
+    if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) {
+      window.Modal?.showInfo('Multi-unit combinations use bottom entry zones.');
+      return;
+    }
     const settings = this.state.get('settings') || {};
     settings.entryZonePosition = position;
     this.state.set('settings', settings);

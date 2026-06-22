@@ -13,6 +13,7 @@ window.app; // Main application instance
 window.Config; // Configuration constants
 window.State; // State class (not instance)
 window.EventBus; // EventBus class (not instance)
+window.ShortcutRegistry; // Shortcut matching and display catalog
 ```
 
 ## App Instance
@@ -30,6 +31,17 @@ app.itemManager; // Item operations
 app.selectionManager; // Selection operations
 app.exportManager; // Export operations
 app.historyManager; // Undo/redo operations
+```
+
+### Shortcut methods
+
+```javascript
+app.showKeyboardShortcuts(); // Open the keyboard + gestures reference
+app.deleteCurrentSelection(); // Delete selected items or garage units
+app.focusItemsSearch(); // Open the desktop Items tab and focus search
+
+ShortcutRegistry.getAction(keyboardEvent); // Resolve an action ID or null
+ShortcutRegistry.getDisplayGroups(platform); // Platform-aware modal groups
 ```
 
 ### Methods
@@ -99,14 +111,25 @@ canvasManager.resizeCanvas();
 // Set active floor plan
 floorPlanManager.setFloorPlan('fp-24x30');
 
+// Build a multi-unit combination (maximum Config.MAX_FLOOR_PLAN_UNITS, currently 10). Units remain independently movable.
+floorPlanManager.addFloorPlan('fp-unit-a');
+floorPlanManager.addFloorPlan('fp-unit-b');
+
+// Change the default order or remove one specific unit instance
+const units = floorPlanManager.getUnits();
+floorPlanManager.reorderFloorPlan(units[1].instanceId, 0);
+floorPlanManager.removeFloorPlan(units[0].instanceId);
+floorPlanManager.removeFloorPlans([units[0].instanceId, units[1].instanceId]);
+
 // Get current floor plan
-const floorPlan = floorPlanManager.getCurrentFloorPlan();
+const floorPlan = floorPlanManager.getCurrentFloorPlan(); // normalized unit-combo
 
 // Get all floor plans
 const allFloorPlans = floorPlanManager.getAllFloorPlans();
 
 // Get area calculations
 const totalArea = floorPlanManager.getArea(); // sq ft
+const span = floorPlanManager.getSpan(); // current arrangement width/height in ft
 const occupiedArea = floorPlanManager.getOccupiedArea(); // sq ft
 const occupancy = floorPlanManager.getOccupancyPercentage(); // %
 

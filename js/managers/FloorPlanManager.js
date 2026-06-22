@@ -1,8 +1,8 @@
-/* global Config, Validation */
+/* global Config, Validation, FloorPlanComposition, Helpers */
 
 /**
  * Floor Plan Manager
- * Handles floor plan CRUD operations and validation
+ * Owns the normalized one-to-Config.MAX_FLOOR_PLAN_UNITS-unit floor plan composition.
  */
 class FloorPlanManager {
   constructor(state, eventBus, canvasManager) {
@@ -11,104 +11,212 @@ class FloorPlanManager {
     this.canvasManager = canvasManager;
   }
 
-  /**
-   * Set active floor plan
-   */
+  /** Replace the active composition with one unit (legacy-compatible API). */
   setFloorPlan(floorPlanId) {
     const floorPlan = this._getFloorPlanById(floorPlanId);
-
     if (!floorPlan) {
       console.error('Floor plan not found:', floorPlanId);
       return false;
     }
 
-    // Validate
     const validation = Validation.validateFloorPlan(floorPlan);
     if (!validation.valid) {
       console.error('Invalid floor plan:', validation.errors);
       return false;
     }
 
-    // [FloorPlanManager] Setting floor plan: id
+    const nextPlan = FloorPlanComposition.composeUnits([
+      FloorPlanComposition.createUnit(floorPlan),
+    ]);
+    return this._applyFloorPlan(nextPlan, { resetPosition: true, reason: 'replace' });
+  }
 
-    // Reset layout metadata (recenter + lock by default)
+  /** Add a unit to the right side of the current composition. */
+  addFloorPlan(floorPlanId) {
+    const template = this._getFloorPlanById(floorPlanId);
+    if (!template) return false;
+
+    const current = this.getCurrentFloorPlan();
+    const count = current?.units?.length || 0;
+    if (count >= Config.MAX_FLOOR_PLAN_UNITS) return false;
+
+    const nextPlan = FloorPlanComposition.addUnit(current, floorPlanId);
+    return this._applyFloorPlan(nextPlan, {
+      resetPosition: !current,
+      reason: 'add',
+    });
+  }
+
+  /**
+   * Remove one unit instance. Removing the last remaining unit clears the
+   * whole floor plan (and its items) back to an empty canvas, the same as
+   * the "New Layout" action -- there's no reason to special-case "1 unit
+   * left" as un-removable when the user explicitly asked to remove it.
+   */
+  removeFloorPlan(instanceId) {
+    return this.removeFloorPlans([instanceId]);
+  }
+
+  /** Remove multiple unit instances in one redraw/history operation. */
+  removeFloorPlans(instanceIds = []) {
+    const current = this.getCurrentFloorPlan();
+    if (!current) return false;
+    const requestedIds = new Set(Array.isArray(instanceIds) ? instanceIds : [instanceIds]);
+    const removedInstanceIds = current.units
+      .filter((unit) => requestedIds.has(unit.instanceId))
+      .map((unit) => unit.instanceId);
+    if (!removedInstanceIds.length) return false;
+
+    if (removedInstanceIds.length >= current.units.length) {
+      this.clearFloorPlan();
+      return true;
+    }
+
+    const removed = new Set(removedInstanceIds);
+    const nextPlan = FloorPlanComposition.composeUnits(
+      current.units.filter((unit) => !removed.has(unit.instanceId)),
+    );
+    return this._applyFloorPlan(nextPlan, {
+      removedInstanceIds,
+      reason: removedInstanceIds.length > 1 ? 'remove-multiple' : 'remove',
+    });
+  }
+
+  /** Move one unit to a new zero-based position. */
+  reorderFloorPlan(instanceId, targetIndex) {
+    const current = this.getCurrentFloorPlan();
+    if (!current) return false;
+    const nextPlan = FloorPlanComposition.reorderUnit(current, instanceId, targetIndex);
+    if (
+      !nextPlan ||
+      nextPlan.units.every((unit, index) => unit.instanceId === current.units[index]?.instanceId)
+    ) {
+      return false;
+    }
+    return this._applyFloorPlan(nextPlan, { reason: 'reorder' });
+  }
+
+  /** Replace the active composition from an ordered list of template IDs. */
+  setFloorPlans(floorPlanIds = []) {
+    const units = floorPlanIds
+      .slice(0, Config.MAX_FLOOR_PLAN_UNITS)
+      .map((id) => this._getFloorPlanById(id))
+      .filter(Boolean)
+      .map((template) => FloorPlanComposition.createUnit(template));
+    if (!units.length) return false;
+    return this._applyFloorPlan(FloorPlanComposition.composeUnits(units), {
+      resetPosition: true,
+      reason: 'replace',
+    });
+  }
+
+  /** Restore an already-normalized or legacy saved floor plan. */
+  restoreFloorPlan(savedFloorPlan, options = {}) {
+    const normalized = FloorPlanComposition.normalizeFloorPlan(savedFloorPlan);
+    if (!normalized) return false;
+    return this._applyFloorPlan(normalized, {
+      resetPosition: options.resetPosition === true,
+      reason: options.reason || 'restore',
+    });
+  }
+
+  _applyFloorPlan(nextPlan, options = {}) {
+    if (!nextPlan) return false;
+
+    const oldBounds = this.canvasManager.getUnitBoundsMap?.() || {};
+    this.canvasManager.captureItemUnitAssignments?.(oldBounds);
+
     const currentLayout = this.state.get('layout') || {};
+    const settings = { ...(this.state.get('settings') || {}) };
+    if (nextPlan.units.length > 1) settings.entryZonePosition = 'bottom';
+
     this.state.setState({
-      floorPlan,
+      floorPlan: nextPlan,
+      settings,
       layout: {
         ...currentLayout,
-        floorPlanPosition: null,
+        floorPlanPosition: options.resetPosition ? null : currentLayout.floorPlanPosition,
         floorPlanBounds: null,
-        floorPlanLocked: false,
+        floorPlanLocked: options.resetPosition ? false : currentLayout.floorPlanLocked,
+        unitPositions: options.resetPosition ? {} : currentLayout.unitPositions || {},
       },
     });
 
-    // Reset viewport before drawing new floor plan
-    this.canvasManager.resetViewport();
+    if (options.resetPosition) {
+      this.canvasManager.floorPlanPosition = null;
+      this.canvasManager.floorPlanLocked = false;
+      this.canvasManager.resetViewport();
+    }
 
-    // Draw on canvas
-    this.canvasManager.drawFloorPlan(floorPlan);
+    this.canvasManager.drawFloorPlan(nextPlan, { suppressStateEvent: true });
+    const newBounds = this.canvasManager.getUnitBoundsMap?.() || {};
+    this.canvasManager.reflowItemsForUnitChanges?.(
+      oldBounds,
+      newBounds,
+      options.removedInstanceIds || [],
+    );
 
-    // Emit event
-    this.eventBus.emit('floorplan:changed', floorPlan);
+    this.state.setState({
+      items: this.state.get('items') || [],
+      layout: {
+        ...(this.state.get('layout') || {}),
+        floorPlanPosition: this.canvasManager.getFloorPlanPosition?.() || null,
+        floorPlanBounds: this.canvasManager.getFloorPlanBounds?.() || null,
+        unitPositions: this.canvasManager.getUnitPositions?.() || {},
+      },
+    });
 
+    this.eventBus.emit('floorplan:changed', nextPlan);
     return true;
   }
 
-  /**
-   * Get current floor plan
-   */
   getCurrentFloorPlan() {
-    return this.state.get('floorPlan');
+    return FloorPlanComposition.normalizeFloorPlan(this.state.get('floorPlan'));
   }
 
-  /**
-   * Get all floor plan templates
-   */
+  getUnits() {
+    return this.getCurrentFloorPlan()?.units || [];
+  }
+
+  getUnitBounds(instanceId) {
+    return this.canvasManager.getUnitBounds?.(instanceId) || null;
+  }
+
   getAllFloorPlans() {
     return Config.FLOOR_PLANS || [];
   }
 
-  /**
-   * Get floor plan by ID from Config
-   * @private
-   */
   _getFloorPlanById(id) {
-    const floorPlans = Config.FLOOR_PLANS || [];
-    return floorPlans.find((fp) => fp.id === id);
+    return (Config.FLOOR_PLANS || []).find((floorPlan) => floorPlan.id === id);
   }
 
-  /**
-   * Get floor plan area in square feet
-   */
   getArea() {
-    const floorPlan = this.getCurrentFloorPlan();
-    if (!floorPlan) return 0;
-    return floorPlan.widthFt * floorPlan.heightFt;
+    return this.getCurrentFloorPlan()?.area || 0;
   }
 
-  /**
-   * Get occupied area (sum of all items)
-   */
+  getSpan() {
+    const bounds = this.canvasManager.getFloorPlanBounds?.();
+    if (!bounds) return { widthFt: 0, heightFt: 0 };
+    return {
+      widthFt: Helpers.pxToFeet(bounds.width),
+      heightFt: Helpers.pxToFeet(bounds.height),
+    };
+  }
+
   getOccupiedArea() {
     const items = this.state.get('items') || [];
     return items.reduce((total, item) => {
+      if (!item.unitInstanceId) return total;
       return total + item.lengthFt * item.widthFt;
     }, 0);
   }
 
-  /**
-   * Get percentage of occupied space
-   */
   getOccupancyPercentage() {
     const total = this.getArea();
     const occupied = this.getOccupiedArea();
     return total > 0 ? (occupied / total) * 100 : 0;
   }
 
-  /**
-   * Clear floor plan
-   */
   clearFloorPlan() {
     const currentLayout = this.state.get('layout') || {};
     this.state.setState({
@@ -119,14 +227,15 @@ class FloorPlanManager {
         floorPlanPosition: null,
         floorPlanBounds: null,
         floorPlanLocked: false,
+        unitPositions: {},
       },
     });
     this.canvasManager.clear();
+    this.canvasManager.showEmptyState?.();
     this.eventBus.emit('floorplan:cleared');
   }
 }
 
-// Make available globally
 if (typeof window !== 'undefined') {
   window.FloorPlanManager = FloorPlanManager;
 }

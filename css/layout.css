@@ -64,6 +64,11 @@ body {
   margin: 0;
 }
 
+.shortcut-help-button {
+  flex: 0 0 40px;
+  border-radius: 999px;
+}
+
 .hamburger-menu {
   display: inline-flex;
   align-items: center;

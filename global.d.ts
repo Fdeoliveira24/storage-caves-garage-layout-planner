@@ -26,6 +26,7 @@ interface Window {
   // Data modules
   Icons: any;
   Items: any;
+  ShortcutRegistry: any;
 
   // Feature modules
   Magnifier: any;
@@ -46,6 +47,7 @@ interface Window {
   // Utility modules
   Bounds: any;
   Geometry: any;
+  FloorPlanComposition: any;
   Helpers: any;
   Storage: any;
   StorageUtil: any;

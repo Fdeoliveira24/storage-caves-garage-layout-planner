@@ -308,11 +308,19 @@ class Modal {
 
       // Preserve scroll position and lock body
       const scrollY = window.scrollY;
+      const previouslyFocused =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
       document.body.style.top = `-${scrollY}px`;
       document.body.classList.add('modal-open');
 
       const modal = document.createElement('div');
       modal.className = 'modal';
+      if (options.className) {
+        String(options.className)
+          .split(/\s+/)
+          .filter(Boolean)
+          .forEach((className) => modal.classList.add(className));
+      }
       modal.setAttribute('role', 'dialog');
       modal.setAttribute('aria-modal', 'true');
       modal.setAttribute('aria-labelledby', 'modal-title');
@@ -359,6 +367,9 @@ class Modal {
 
         overlay.remove();
         Modal._currentModal = null;
+        if (previouslyFocused?.isConnected && typeof previouslyFocused.focus === 'function') {
+          previouslyFocused.focus();
+        }
         resolve(true);
       };
 
@@ -394,6 +405,7 @@ class Modal {
         keyHandler,
         trapFocus,
         scrollY,
+        previouslyFocused,
       };
 
       // Add close button listener only if footer exists
@@ -408,12 +420,20 @@ class Modal {
 
       document.addEventListener('keydown', keyHandler);
       document.addEventListener('keydown', trapFocus);
+
+      const initialFocus = options.initialFocus
+        ? modal.querySelector(options.initialFocus)
+        : closeButton;
+      if (initialFocus && typeof initialFocus.focus === 'function') {
+        requestAnimationFrame(() => initialFocus.focus());
+      }
     });
   }
 
   static close() {
     if (Modal._currentModal) {
-      const { overlay, resolve, keyHandler, trapFocus, scrollY } = Modal._currentModal;
+      const { overlay, resolve, keyHandler, trapFocus, scrollY, previouslyFocused } =
+        Modal._currentModal;
 
       // Clean up all event listeners
       if (keyHandler) {
@@ -432,6 +452,9 @@ class Modal {
 
       overlay.remove();
       Modal._currentModal = null;
+      if (previouslyFocused?.isConnected && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus();
+      }
       resolve(true);
     }
   }

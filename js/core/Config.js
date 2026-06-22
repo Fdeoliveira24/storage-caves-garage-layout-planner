@@ -3,6 +3,12 @@
  * Central configuration for the Garage Layout Planner
  */
 const Config = {
+  LAYOUT_SCHEMA_VERSION: 3,
+  MAX_FLOOR_PLAN_UNITS: 10,
+  // Screen-space catch zone for unit-to-unit edge snapping. CanvasManager
+  // converts this to logical canvas coordinates at the current zoom.
+  FLOOR_PLAN_SNAP_THRESHOLD: 16,
+  FLOOR_PLAN_INITIAL_GAP: 20,
   USE_IMAGES: true,
   // Scaling
   PX_PER_FOOT: 10,
@@ -17,6 +23,7 @@ const Config = {
   FLOOR_PLANS: [
     {
       id: 'fp-unit-a',
+      shortName: 'Unit A',
       widthFt: 22,
       heightFt: 55,
       name: "Units A - 22'×55'",
@@ -27,6 +34,7 @@ const Config = {
     },
     {
       id: 'fp-unit-b',
+      shortName: 'Unit B',
       widthFt: 15,
       heightFt: 55,
       name: "Units B - 15'×55'",
@@ -37,6 +45,7 @@ const Config = {
     },
     {
       id: 'fp-unit-c',
+      shortName: 'Unit C',
       widthFt: 15,
       heightFt: 55,
       name: "Units C - 15'×55'",
@@ -47,6 +56,7 @@ const Config = {
     },
     {
       id: 'fp-unit-d',
+      shortName: 'Unit D',
       widthFt: 15,
       heightFt: 50,
       name: "Units D - 15'×50'",
@@ -57,6 +67,7 @@ const Config = {
     },
     {
       id: 'fp-unit-e',
+      shortName: 'Unit E',
       widthFt: 14,
       heightFt: 35,
       name: "Units E - 14'×35'",
@@ -67,6 +78,7 @@ const Config = {
     },
     {
       id: 'fp-unit-f',
+      shortName: 'Unit F',
       widthFt: 18,
       heightFt: 50,
       name: "Units F - 18'×50'",
@@ -77,6 +89,7 @@ const Config = {
     },
     {
       id: 'fp-unit-h',
+      shortName: 'Unit H',
       widthFt: 15,
       heightFt: 50,
       name: "Units H - 15'×50'",

@@ -13,15 +13,33 @@ doc had not been kept in sync.
 7 pre-defined floor plans, modeled on real storage-unit dimensions rather
 than generic garage sizes (`js/core/Config.js → FLOOR_PLANS`):
 
-| Plan | Size | Area | Door |
-|---|---|---|---|
+| Plan    | Size      | Area        | Door      |
+| ------- | --------- | ----------- | --------- |
 | Units A | 22' × 55' | 1,210 sq ft | 14' × 14' |
-| Units B | 15' × 55' | 825 sq ft | 13' × 14' |
-| Units C | 15' × 55' | 825 sq ft | 13' × 14' |
-| Units D | 15' × 50' | 750 sq ft | 13' × 14' |
-| Units E | 14' × 35' | 490 sq ft | 12' × 12' |
-| Units F | 18' × 50' | 900 sq ft | 14' × 14' |
-| Units H | 15' × 50' | 750 sq ft | 13' × 14' |
+| Units B | 15' × 55' | 825 sq ft   | 13' × 14' |
+| Units C | 15' × 55' | 825 sq ft   | 13' × 14' |
+| Units D | 15' × 50' | 750 sq ft   | 13' × 14' |
+| Units E | 14' × 35' | 490 sq ft   | 12' × 12' |
+| Units F | 18' × 50' | 900 sq ft   | 14' × 14' |
+| Units H | 15' × 50' | 750 sq ft   | 13' × 14' |
+
+Visitors can combine one to ten units (`Config.MAX_FLOOR_PLAN_UNITS`) in any arrangement, including
+duplicates. New units start with a small gap and remain independent canvas
+objects: visitors can drag them freely, while nearby horizontal or vertical
+edges snap flush and align to a neighboring unit. Items assigned to a unit
+move with it, and the arrangement is restored when the layout is saved or
+reloaded.
+
+Each unit keeps its own closed divider, grid, ruler, entry zone, and
+containment boundary, so an item must fit wholly inside one unit rather than
+straddling a shared wall. Total area is the sum of the selected unit areas,
+while the displayed span reflects the current canvas arrangement.
+
+The Floor Plans panel includes add and remove controls on desktop and mobile.
+On desktop, Shift-click selects multiple garage units on the canvas and
+Delete/Backspace removes the selected units together.
+Multi-unit layouts always use bottom entry zones and display a reminder to
+confirm real-world adjacent-unit availability with Storage Caves.
 
 ## Item Catalog
 
@@ -68,9 +86,22 @@ that crops/resizes/rotates new art automatically.
 
 ## Keyboard Shortcuts
 
-Arrow keys (nudge 2px, Shift for 10px) · `Delete`/`Backspace` · `R` (rotate)
-· `Ctrl+D` (duplicate) · `Ctrl+C`/`Ctrl+V` (copy/paste) · `Ctrl+Z`/`Ctrl+Y`
-(undo/redo) · `Ctrl+A` (select all) · `Esc` (deselect)
+The header Help button or `?` opens a responsive reference generated from
+`js/data/shortcuts.js`, the same registry used to match key events. It includes
+all keyboard commands, context restrictions, platform-appropriate Ctrl/⌘
+labels, dialog navigation, and canvas gestures.
+
+- Edit: `Ctrl/⌘+S`, `Ctrl/⌘+Z`, `Ctrl/⌘+Shift+Z`, `Ctrl/⌘+Y`,
+  `Ctrl/⌘+D`, `Ctrl/⌘+C`, `Ctrl/⌘+V`, `Ctrl/⌘+A`, Delete/Backspace,
+  and `[`/`]` layer ordering
+- Selection: `R`, arrow-key nudging (2px; Shift = 10px), and `Esc`
+- Tools/View: `T`, `M`, `G`, `Shift+G`, `Shift+R`, `+`, `−`, `0`, `/`,
+  `?`, and hold-Space canvas pan
+- Selected text: `Ctrl/⌘+B`, `Ctrl/⌘+I`, and `Ctrl/⌘+U`
+- Dialogs: Enter confirms, Escape closes/cancels, and Tab/Shift+Tab cycles focus
+
+App shortcuts pause while an input, select, button, editable field, modal, or
+the Client Management panel has keyboard focus.
 
 ## Measurement & Visual Tools
 

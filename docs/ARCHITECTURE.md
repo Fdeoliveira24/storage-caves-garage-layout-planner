@@ -63,6 +63,8 @@ The Garage Layout Planner is built with a modular, scalable architecture using p
 - `MobileUIManager` (`js/ui/mobile/`) — an entirely separate UI Layer that
   takes over below 768px, with its own rendering for Floor Plans/Items/Saved
   rather than reusing the desktop Sidebar
+- `ShortcutRegistry` (`js/data/shortcuts.js`) — the shared source for keyboard
+  event matching and the platform-aware keyboard/gesture reference modal
 
 ## Core Modules
 
@@ -92,8 +94,18 @@ set(path, value); // Set specific property
 
 ```javascript
 {
-  floorPlan: { id, widthFt, heightFt, ... },
-  items: [{ id, label, x, y, angle, ... }],
+  floorPlan: {
+    kind: 'unit-combo',
+    id,
+    widthFt,
+    heightFt,
+    area,
+    units: [{ instanceId, templateId, widthFt, heightFt, offsetXFt, offsetYFt }]
+  },
+  layout: {
+    items: [{ id, label, x, y, angle, floorPlanUnitId, ... }],
+    unitPositions: { [instanceId]: { left, top } }
+  },
   selection: [...],
   history: [...],
   settings: { unit, showGrid, snapToGrid, ... },
@@ -115,7 +127,7 @@ set(path, value); // Set specific property
 **Key Events:**
 
 - `item:added`, `item:removed`, `item:selected`, `item:moved`
-- `floorplan:changed`, `floorplan:custom:start`
+- `floorplan:changed`, `floorplan:moved`, `floorplan:custom:start`
 - `export:json`, `export:png`, `export:pdf`
 - `history:undo`, `history:redo`, `history:changed`
 - `canvas:zoomed`, `canvas:object:moving`
@@ -154,7 +166,7 @@ eventBus.off('item:added', callback);
 
 - Initialize Fabric.js canvas
 - Handle zoom/pan
-- Draw floor plans
+- Draw independently movable floor-plan units and snap nearby edges
 - Add/remove items from canvas
 - Grid rendering
 - Export canvas as image
@@ -182,8 +194,14 @@ toDataURL(options); // Export as image
 
 ```javascript
 setFloorPlan(id); // Set active floor plan
+addFloorPlan(id); // Add an independently movable unit (max Config.MAX_FLOOR_PLAN_UNITS, currently 10)
+removeFloorPlan(instanceId); // Remove one unit instance
+removeFloorPlans(instanceIds); // Remove multiple selected instances atomically
+reorderFloorPlan(instanceId, targetIndex); // Change initial/default unit order
+getUnits(); // Get normalized unit instances
 getAllFloorPlans(); // Get all templates
 getArea(); // Get total area
+getSpan(); // Get the current arrangement's bounding span
 getOccupiedArea(); // Get occupied area
 getOccupancyPercentage(); // Calculate occupancy
 ```

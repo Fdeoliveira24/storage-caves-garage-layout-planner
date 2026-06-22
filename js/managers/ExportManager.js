@@ -1,4 +1,4 @@
-/* global Helpers, Modal */
+/* global Helpers, Modal, Config, FloorPlanComposition */
 
 /**
  * Export Manager
@@ -19,7 +19,8 @@ class ExportManager {
     const state = this.state.getState();
 
     const exportData = {
-      version: '1.3.0',
+      version: '3.0',
+      schemaVersion: Config.LAYOUT_SCHEMA_VERSION,
       exported: new Date().toISOString(),
       metadata: state.metadata,
       floorPlan: state.floorPlan,
@@ -35,6 +36,7 @@ class ExportManager {
         locked: item.locked,
         category: item.category,
         color: item.color,
+        unitInstanceId: item.unitInstanceId || null,
       })),
       texts: (state.texts || []).map((text) => ({
         id: text.id,
@@ -53,6 +55,7 @@ class ExportManager {
         textAlign: text.textAlign,
       })),
       settings: state.settings,
+      layout: state.layout,
     };
 
     const json = JSON.stringify(exportData, null, 2);
@@ -146,7 +149,10 @@ class ExportManager {
       // Auto-select format based on floor plan physical size
       const floorPlan = this.state.get('floorPlan');
       if (floorPlan && floorPlan.widthFt && floorPlan.heightFt) {
-        const maxDim = Math.max(floorPlan.widthFt, floorPlan.heightFt);
+        const bounds = this.canvasManager.getFloorPlanBounds?.();
+        const maxDim = bounds
+          ? Math.max(Helpers.pxToFeet(bounds.width), Helpers.pxToFeet(bounds.height))
+          : Math.max(floorPlan.widthFt, floorPlan.heightFt);
         pdfOptions.format = maxDim >= 40 ? 'tabloid' : maxDim >= 30 ? 'legal' : 'letter';
       } else {
         pdfOptions.format = 'letter';
@@ -271,9 +277,18 @@ class ExportManager {
         `${currentFloorPlan.widthFt}' × ${currentFloorPlan.heightFt}'`;
       planLines.push(`Floor Plan: ${planName}`);
 
+      if (Array.isArray(currentFloorPlan.units) && currentFloorPlan.units.length > 1) {
+        planLines.push(
+          `Units: ${currentFloorPlan.units.map((unit) => unit.shortName || unit.name).join(', ')}`,
+        );
+      }
+
       const sizeParts = [];
-      if (currentFloorPlan.widthFt && currentFloorPlan.heightFt) {
-        sizeParts.push(`Dimensions: ${currentFloorPlan.widthFt}' × ${currentFloorPlan.heightFt}'`);
+      const floorBounds = this.canvasManager.getFloorPlanBounds?.();
+      if (floorBounds) {
+        sizeParts.push(
+          `Span: ${Helpers.formatNumber(Helpers.pxToFeet(floorBounds.width), 1)}' × ${Helpers.formatNumber(Helpers.pxToFeet(floorBounds.height), 1)}'`,
+        );
       }
       if (currentFloorPlan.area) {
         sizeParts.push(`Area: ${currentFloorPlan.area} sq ft`);
@@ -403,7 +418,11 @@ class ExportManager {
           const importData = JSON.parse(e.target.result);
 
           // Validate the imported data structure
-          if (!importData.version || !importData.floorPlan || !importData.items) {
+          if (
+            (!importData.version && !importData.schemaVersion) ||
+            !importData.floorPlan ||
+            !importData.items
+          ) {
             Modal.showError('Invalid layout file format');
             reject(new Error('Invalid JSON structure'));
             return;
@@ -411,8 +430,11 @@ class ExportManager {
 
           // Load the floor plan first
           if (importData.floorPlan) {
-            this.state.set('floorPlan', importData.floorPlan);
-            this.eventBus.emit('floorplan:loaded', importData.floorPlan);
+            const normalizedFloorPlan = FloorPlanComposition.normalizeFloorPlan(
+              importData.floorPlan,
+            );
+            this.state.set('floorPlan', normalizedFloorPlan);
+            this.eventBus.emit('floorplan:loaded', normalizedFloorPlan);
           }
 
           // Load settings if available
@@ -420,6 +442,10 @@ class ExportManager {
             Object.keys(importData.settings).forEach((key) => {
               this.state.set(`settings.${key}`, importData.settings[key]);
             });
+          }
+          const importedPlan = this.state.get('floorPlan');
+          if ((importedPlan?.units?.length || 0) > 1) {
+            this.state.set('settings.entryZonePosition', 'bottom');
           }
 
           // Load metadata if available
@@ -472,9 +498,12 @@ class ExportManager {
     const floorPlan = this.state.get('floorPlan');
     if (!floorPlan) return 0;
 
-    const totalArea = floorPlan.widthFt * floorPlan.heightFt;
+    const totalArea = floorPlan.area || floorPlan.widthFt * floorPlan.heightFt;
     const items = this.state.get('items') || [];
-    const occupiedArea = items.reduce((sum, item) => sum + item.lengthFt * item.widthFt, 0);
+    const occupiedArea = items.reduce(
+      (sum, item) => sum + (item.unitInstanceId ? item.lengthFt * item.widthFt : 0),
+      0,
+    );
 
     return (occupiedArea / totalArea) * 100;
   }

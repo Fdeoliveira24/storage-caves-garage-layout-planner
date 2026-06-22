@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel, ShortcutRegistry */
 
 /**
  * Main Application Controller
@@ -278,7 +278,6 @@ class App {
     // Floor plan loaded (for import)
     this.eventBus.on('floorplan:loaded', (floorPlan) => {
       this.canvasManager.drawFloorPlan(floorPlan);
-      this.canvasManager.redrawFloorPlan();
       this.updateInfoPanel();
       this.updateFloatingToolbarVisibility();
     });
@@ -292,13 +291,17 @@ class App {
 
     // Floor plan events
     this.eventBus.on('floorplan:changed', () => {
+      this.renderFloorPlanList();
       this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
       this.updateFloatingToolbarVisibility();
+      this.syncViewDropdownUI();
     });
 
     this.eventBus.on('floorplan:cleared', () => {
+      this.renderFloorPlanList();
+      this.saveHistorySnapshot();
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
       this.updateFloatingToolbarVisibility();
@@ -311,6 +314,10 @@ class App {
       if (payload?.bounds) {
         this.state.set('layout.floorPlanBounds', payload.bounds);
       }
+      if (payload?.unitPositions) {
+        this.state.set('layout.unitPositions', payload.unitPositions);
+      }
+      this.renderFloorPlanList();
       this.updateInfoPanel();
       this.debouncedCheckEntryZone();
       this.saveHistorySnapshot();
@@ -489,117 +496,129 @@ class App {
    * Setup keyboard shortcuts
    */
   setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-      // Ignore if typing in input/textarea/content-editable areas
-      if (
-        e.target.tagName === 'INPUT' ||
-        e.target.tagName === 'TEXTAREA' ||
-        e.target.isContentEditable
-      ) {
-        return;
+    document.addEventListener('keydown', (event) => this.handleKeyboardShortcut(event));
+
+    document.addEventListener('keyup', (event) => {
+      if (event.code === 'Space' && this.isSpacePanning) {
+        this.isSpacePanning = false;
+        this.canvasManager?.disablePanMode?.();
       }
+    });
 
-      const ctrl = e.ctrlKey || e.metaKey;
-      const hasSelection = (this.selectionManager?.getSelection?.() || []).length > 0;
-
-      // Delete/Backspace - delete selection
-      if ((e.key === 'Delete' || e.key === 'Backspace') && hasSelection) {
-        e.preventDefault();
-        this.selectionManager.deleteSelected();
+    // Safety net: if the window/tab loses focus while Space is held (e.g.
+    // alt-tab), no keyup ever fires and pan mode would otherwise get stuck
+    // on permanently.
+    window.addEventListener('blur', () => {
+      if (this.isSpacePanning) {
+        this.isSpacePanning = false;
+        this.canvasManager?.disablePanMode?.();
       }
+    });
+  }
 
-      if (e.key === 'Escape') {
-        const canvas = this.canvasManager?.getCanvas?.();
-        const active = canvas?.getActiveObject?.();
-        if (active && (active.type === 'i-text' || active.type === 'textbox')) {
-          if (active.isEditing && typeof active.exitEditing === 'function') {
-            active.exitEditing();
+  _isShortcutSuppressed(event) {
+    const target = event.target;
+    const isElement = typeof Element !== 'undefined' && target instanceof Element;
+    if (
+      isElement &&
+      target.closest(
+        'input, textarea, select, button, a, [contenteditable="true"], [role="button"]',
+      )
+    ) {
+      return true;
+    }
+    return !!document.querySelector('.modal-overlay, .client-cms-panel.open');
+  }
+
+  handleKeyboardShortcut(event) {
+    if (this._isShortcutSuppressed(event)) return false;
+    const action = ShortcutRegistry?.getAction?.(event);
+    if (!action) return false;
+
+    const selection = this.selectionManager?.getSelection?.() || [];
+    const hasSelection = selection.length > 0;
+    const canvas = this.canvasManager?.getCanvas?.();
+    const activeObject = canvas?.getActiveObject?.();
+    const isText =
+      activeObject && (activeObject.type === 'i-text' || activeObject.type === 'textbox');
+    const selectedUnitIds = this.canvasManager?.getSelectedFloorPlanUnitIds?.() || [];
+    const consume = () => event.preventDefault();
+
+    switch (action) {
+      case 'help':
+        consume();
+        this.showKeyboardShortcuts();
+        return true;
+      case 'save':
+        consume();
+        if (document.body.classList.contains('mobile-layout')) {
+          this.mobileUIManager?.saveMobileLayout?.();
+        } else {
+          this.saveLayout();
+        }
+        return true;
+      case 'undo':
+        consume();
+        this.historyManager.undo();
+        return true;
+      case 'redo':
+      case 'redo-shift':
+        consume();
+        this.historyManager.redo();
+        return true;
+      case 'duplicate':
+        if (!hasSelection) return false;
+        consume();
+        this.selectionManager.duplicateSelected();
+        return true;
+      case 'copy':
+        if (!hasSelection) return false;
+        consume();
+        this.selectionManager.copySelected();
+        return true;
+      case 'paste':
+        consume();
+        this.selectionManager.pasteSelected();
+        return true;
+      case 'select-all':
+        consume();
+        this.selectionManager.selectAll();
+        return true;
+      case 'delete':
+        if (!hasSelection && !selectedUnitIds.length) return false;
+        consume();
+        this.deleteCurrentSelection();
+        return true;
+      case 'send-back':
+        if (!hasSelection) return false;
+        consume();
+        this.selectionManager.sendToBack();
+        return true;
+      case 'bring-front':
+        if (!hasSelection) return false;
+        consume();
+        this.selectionManager.bringToFront();
+        return true;
+      case 'rotate':
+        if (!hasSelection) return false;
+        consume();
+        this.selectionManager.rotateSelected(90);
+        return true;
+      case 'escape':
+        if (isText) {
+          if (activeObject.isEditing && typeof activeObject.exitEditing === 'function') {
+            activeObject.exitEditing();
           }
           this.textManager?.deactivate();
-          canvas.requestRenderAll();
-          e.preventDefault();
-          return;
+          canvas?.requestRenderAll?.();
+          consume();
+          return true;
         }
-
         if (this.textManager?.active) {
           this.textManager.deactivate();
+          consume();
+          return true;
         }
-      }
-
-      if (!e.defaultPrevented && (e.key === 't' || e.key === 'T')) {
-        e.preventDefault();
-        this.textManager.toggle();
-        return;
-      }
-
-      // Ctrl/⌘ + Z / Shift+Z - Undo / Redo
-      if (ctrl && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          this.historyManager.redo();
-        } else {
-          this.historyManager.undo();
-        }
-        return;
-      }
-
-      // Ctrl/⌘ + Y - Redo
-      if (ctrl && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        this.historyManager.redo();
-      }
-
-      // Ctrl/⌘ + D - Duplicate (selection required)
-      if (ctrl && e.key.toLowerCase() === 'd' && hasSelection) {
-        e.preventDefault();
-        this.selectionManager.duplicateSelected();
-      }
-
-      // Ctrl/⌘ + A - Select All
-      if (ctrl && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        this.selectionManager.selectAll();
-      }
-
-      // Text formatting shortcuts (active text only)
-      const activeObj = this.canvasManager?.getCanvas?.()?.getActiveObject?.();
-      const isText = activeObj && (activeObj.type === 'i-text' || activeObj.type === 'textbox');
-
-      if (isText && ctrl) {
-        const key = e.key.toLowerCase();
-        if (key === 'b') {
-          e.preventDefault();
-          const nextWeight = activeObj.fontWeight === 'bold' ? 'normal' : 'bold';
-          this.textManager.updateTextProperty('fontWeight', nextWeight);
-          return;
-        }
-        if (key === 'i') {
-          e.preventDefault();
-          const nextStyle = activeObj.fontStyle === 'italic' ? 'normal' : 'italic';
-          this.textManager.updateTextProperty('fontStyle', nextStyle);
-          return;
-        }
-        if (key === 'u') {
-          e.preventDefault();
-          this.textManager.updateTextProperty('underline', !activeObj.underline);
-          return;
-        }
-      }
-
-      // Ctrl/⌘ + C - Copy (selection required)
-      if (ctrl && e.key.toLowerCase() === 'c' && hasSelection) {
-        e.preventDefault();
-        this.selectionManager.copySelected();
-      }
-
-      // Ctrl/⌘ + V - Paste
-      if (ctrl && e.key.toLowerCase() === 'v') {
-        e.preventDefault();
-        this.selectionManager.pasteSelected();
-      }
-
-      // Esc - cancel measurement first, otherwise clear selection
-      if (e.key === 'Escape') {
         if (this.measurementTool?.isMeasuring || this.measurementInProgress) {
           if (this.measurementInProgress) {
             this.measurementTool.cancelActiveMeasurement();
@@ -607,77 +626,200 @@ class App {
           } else {
             this.measurementTool.disableMeasurementMode();
           }
-          e.preventDefault();
-          return;
+          consume();
+          return true;
         }
-
-        if (hasSelection) {
+        if (hasSelection || selectedUnitIds.length) {
           this.selectionManager.deselectAll();
-          e.preventDefault();
+          consume();
+          return true;
         }
-        return;
-      }
-
-      // Measurement toggle (M) - no modifiers
-      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'm') {
-        e.preventDefault();
+        return false;
+      case 'text-tool':
+        consume();
+        this.textManager.toggle();
+        return true;
+      case 'measure':
+        consume();
         this.toggleMeasurementMode();
-        return;
+        return true;
+      case 'toggle-grid': {
+        consume();
+        const showGrid = this.state.get('settings.showGrid') !== false;
+        this.state.set('settings.showGrid', !showGrid);
+        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
+        this.syncViewDropdownUI();
+        return true;
       }
-
-      // Grid / Snap toggles (G / Shift+G) - no modifiers
-      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'g') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          const snapEnabled = this.state.get('settings.snapToGrid') === true;
-          this.state.set('settings.snapToGrid', !snapEnabled);
-          this.syncViewDropdownUI();
-        } else {
-          const showGrid = this.state.get('settings.showGrid') !== false;
-          this.state.set('settings.showGrid', !showGrid);
-          this.canvasManager.redrawFloorPlan({ preserveViewport: true });
-          this.syncViewDropdownUI();
-        }
-        return;
+      case 'snap-grid': {
+        consume();
+        const snapEnabled = this.state.get('settings.snapToGrid') === true;
+        this.state.set('settings.snapToGrid', !snapEnabled);
+        this.syncViewDropdownUI();
+        return true;
       }
-
-      // Shift+R - toggle rulers (no modifiers)
-      if (!ctrl && !e.altKey && e.key.toLowerCase() === 'r' && e.shiftKey) {
-        e.preventDefault();
+      case 'toggle-rulers': {
+        consume();
         const showRuler = this.state.get('settings.showRuler') !== false;
         this.state.set('settings.showRuler', !showRuler);
         this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
-        return;
+        return true;
       }
-
-      // R - Rotate selection 90°
-      if (!e.shiftKey && (e.key === 'r' || e.key === 'R')) {
-        e.preventDefault();
-        if (hasSelection) {
-          this.selectionManager.rotateSelected(90);
+      case 'zoom-in':
+        consume();
+        this.canvasManager.zoomIn();
+        return true;
+      case 'zoom-out':
+        consume();
+        this.canvasManager.zoomOut();
+        return true;
+      case 'fit-view':
+        if (!this.state.get('floorPlan')) return false;
+        consume();
+        this.canvasManager.resetZoom();
+        return true;
+      case 'focus-search':
+        if (!this.focusItemsSearch()) return false;
+        consume();
+        return true;
+      case 'pan':
+        if (event.repeat || this.isSpacePanning) return false;
+        consume();
+        this.isSpacePanning = true;
+        this.canvasManager.enablePanMode();
+        return true;
+      case 'bold':
+        if (!isText) return false;
+        consume();
+        this.textManager.updateTextProperty(
+          'fontWeight',
+          activeObject.fontWeight === 'bold' ? 'normal' : 'bold',
+        );
+        return true;
+      case 'italic':
+        if (!isText) return false;
+        consume();
+        this.textManager.updateTextProperty(
+          'fontStyle',
+          activeObject.fontStyle === 'italic' ? 'normal' : 'italic',
+        );
+        return true;
+      case 'underline':
+        if (!isText) return false;
+        consume();
+        this.textManager.updateTextProperty('underline', !activeObject.underline);
+        return true;
+      default:
+        if (action.startsWith('nudge-') && hasSelection) {
+          consume();
+          const large = action.startsWith('nudge-large-');
+          const distance = large ? Config.NUDGE_DISTANCE_LARGE : Config.NUDGE_DISTANCE;
+          const direction = action.replace(large ? 'nudge-large-' : 'nudge-', '');
+          const offsets = {
+            left: [-distance, 0],
+            right: [distance, 0],
+            up: [0, -distance],
+            down: [0, distance],
+          };
+          this.selectionManager.moveSelected(...offsets[direction]);
+          return true;
         }
-      }
+        return false;
+    }
+  }
 
-      // Arrow keys - Nudge
-      const nudge = e.shiftKey ? Config.NUDGE_DISTANCE_LARGE : Config.NUDGE_DISTANCE;
+  deleteCurrentSelection() {
+    const selection = this.selectionManager?.getSelection?.() || [];
+    const selectedUnitIds = this.canvasManager?.getSelectedFloorPlanUnitIds?.() || [];
+    if (selectedUnitIds.length && !selection.length) {
+      const canvas = this.canvasManager?.getCanvas?.();
+      canvas?.discardActiveObject?.();
+      canvas?.requestRenderAll?.();
+      return this.floorPlanManager.removeFloorPlans(selectedUnitIds);
+    }
+    if (selection.length) {
+      this.selectionManager.deleteSelected();
+      return true;
+    }
+    return false;
+  }
 
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        this.selectionManager.moveSelected(-nudge, 0);
-      }
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        this.selectionManager.moveSelected(nudge, 0);
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        this.selectionManager.moveSelected(0, -nudge);
-      }
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        this.selectionManager.moveSelected(0, nudge);
-      }
+  focusItemsSearch() {
+    if (document.body.classList.contains('mobile-layout')) return false;
+    if (this.sidebarCollapsed) this.toggleSidebar();
+    document.querySelector('.sidebar-tab[data-tab="items"]')?.click();
+    const searchInput = document.getElementById('items-search');
+    if (!searchInput) return false;
+    searchInput.focus();
+    searchInput.select();
+    return true;
+  }
+
+  showKeyboardShortcuts() {
+    const content = document.createElement('div');
+    content.className = 'shortcut-reference';
+
+    const intro = document.createElement('div');
+    intro.className = 'shortcut-reference__intro';
+    intro.innerHTML = `
+      <p>Work faster across the canvas. Shortcuts pause while you type or use a dialog.</p>
+      <span class="shortcut-reference__platform">${ShortcutRegistry.isMacPlatform() ? 'macOS keys shown' : 'Windows / Linux keys shown'}</span>
+    `;
+    content.appendChild(intro);
+
+    const groups = document.createElement('div');
+    groups.className = 'shortcut-reference__groups';
+    ShortcutRegistry.getDisplayGroups().forEach((group) => {
+      const section = document.createElement('section');
+      section.className = 'shortcut-group';
+      const heading = document.createElement('h4');
+      heading.className = 'shortcut-group__title';
+      heading.textContent = group.category;
+      section.appendChild(heading);
+
+      group.entries.forEach((entry) => {
+        const row = document.createElement('div');
+        row.className = 'shortcut-row';
+        const copy = document.createElement('div');
+        copy.className = 'shortcut-row__copy';
+        const label = document.createElement('span');
+        label.className = 'shortcut-row__label';
+        label.textContent = entry.description;
+        const context = document.createElement('span');
+        context.className = 'shortcut-row__context';
+        context.textContent = entry.context;
+        copy.append(label, context);
+
+        const keys = document.createElement('div');
+        keys.className = 'shortcut-row__keys';
+        entry.keySets.forEach((keySet, index) => {
+          if (index > 0) {
+            const or = document.createElement('span');
+            or.className = 'shortcut-row__or';
+            or.textContent = 'or';
+            keys.appendChild(or);
+          }
+          const chord = document.createElement('span');
+          chord.className = 'shortcut-key-chord';
+          keySet.forEach((key) => {
+            const keyEl = document.createElement('kbd');
+            keyEl.textContent = key;
+            chord.appendChild(keyEl);
+          });
+          keys.appendChild(chord);
+        });
+
+        row.append(copy, keys);
+        section.appendChild(row);
+      });
+      groups.appendChild(section);
+    });
+    content.appendChild(groups);
+
+    return Modal.show('Keyboard shortcuts & canvas gestures', content, {
+      className: 'shortcuts-modal',
+      initialFocus: '[data-action="close"]',
     });
   }
 
@@ -777,6 +919,7 @@ class App {
     this.setupToolbarHandlers();
     this.setupTabSwitching();
     this.setupSidebarToggle();
+    this.setupComboPanelToggle();
     this.setupDropdowns();
     this.syncViewDropdownUI();
     this.setMeasurementModeActive(this.measurementModeActive);
@@ -792,48 +935,30 @@ class App {
    * obvious which catalog item is currently selected.
    */
   setupCanvasItemHighlight() {
-    // Temporary diagnostic logging -- if the highlight still doesn't show
-    // after a true cache clear, open devtools console and look for these
-    // "[ItemHighlight]" lines to see exactly where it's breaking (no event
-    // received at all vs. event received but no matching card found).
-    const DEBUG = true;
-    const log = (...args) => DEBUG && console.log('[ItemHighlight]', ...args);
-
     const highlightForSelection = (selected) => {
-      log('selection event fired with', selected);
-
       document.querySelectorAll('.palette-item.is-selected-on-canvas').forEach((el) => {
         el.classList.remove('is-selected-on-canvas');
       });
 
-      if (!selected || !selected.length) {
-        log('no selection -- cleared all highlights');
-        return;
-      }
+      if (!selected || !selected.length) return;
 
       // NOTE: customData.id is a unique PER-INSTANCE id (see
       // ItemManager.addItem -> Helpers.generateId('item')), not the catalog
       // item type. The catalog type (matching .palette-item[data-id]) is
-      // preserved separately as customData.itemId. Using .id here was the
-      // bug that made this never match anything.
+      // preserved separately as customData.itemId.
       const ids = new Set(selected.map((obj) => obj?.customData?.itemId).filter(Boolean));
-      log('extracted item type ids from selection:', [...ids]);
 
-      let firstMatch = null;
       ids.forEach((id) => {
-        const matches = document.querySelectorAll(`.palette-item[data-id="${id}"]`);
-        log(`looking for .palette-item[data-id="${id}"] -- found ${matches.length}`);
-        matches.forEach((el) => {
+        document.querySelectorAll(`.palette-item[data-id="${id}"]`).forEach((el) => {
           el.classList.add('is-selected-on-canvas');
-          if (!firstMatch) firstMatch = el;
         });
       });
 
-      // Bring the matching card into view if it's scrolled out of sight.
-      firstMatch?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+      // Intentionally no auto-scroll here: the card highlights, but the
+      // sidebar doesn't jump to it -- avoids yanking the user's scroll
+      // position around while they're working on the canvas. They can
+      // scroll to the highlighted card themselves if they want to see it.
     };
-
-    log('setupCanvasItemHighlight() registered -- if you never see this line, the new code did not load (cache).');
 
     this.eventBus.on('canvas:selection:created', (selected) => highlightForSelection(selected));
     this.eventBus.on('canvas:selection:updated', (selected) => highlightForSelection(selected));
@@ -1044,6 +1169,7 @@ class App {
     const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
     const entryZoneLeftBtn = document.getElementById('btn-entry-zone-left');
     const entryZoneRightBtn = document.getElementById('btn-entry-zone-right');
+    const multiUnit = (this.floorPlanManager?.getUnits?.().length || 0) > 1;
 
     // Hide all position buttons first
     if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'none';
@@ -1051,8 +1177,14 @@ class App {
     if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'none';
     if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'none';
 
-    // Show only the buttons for OTHER positions
-    if (entryZonePosition === 'top') {
+    // Multi-unit layouts have one physical front edge and always use bottom entry zones.
+    if (multiUnit) {
+      [entryZoneTopBtn, entryZoneBottomBtn, entryZoneLeftBtn, entryZoneRightBtn].forEach(
+        (button) => {
+          if (button) button.setAttribute('disabled', 'disabled');
+        },
+      );
+    } else if (entryZonePosition === 'top') {
       if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
       if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
       if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
@@ -1068,6 +1200,14 @@ class App {
       if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
       if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
       if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
+    }
+
+    if (!multiUnit) {
+      [entryZoneTopBtn, entryZoneBottomBtn, entryZoneLeftBtn, entryZoneRightBtn].forEach(
+        (button) => {
+          if (button) button.removeAttribute('disabled');
+        },
+      );
     }
 
     // Update entry label toggle text
@@ -1215,35 +1355,144 @@ class App {
   }
 
   /**
-   * Render floor plan list
+   * Render floor plan template list (Floor Plans tab in the sidebar)
    */
   renderFloorPlanList() {
     const container = document.getElementById('floorplan-list');
     if (!container) return;
 
     const floorPlans = this.floorPlanManager.getAllFloorPlans();
-    const currentId = this.state.get('floorPlan')?.id;
+    const currentPlan = this.floorPlanManager.getCurrentFloorPlan();
+    const units = currentPlan?.units || [];
+    const counts = units.reduce((map, unit) => {
+      map[unit.templateId] = (map[unit.templateId] || 0) + 1;
+      return map;
+    }, {});
+    const atLimit = units.length >= Config.MAX_FLOOR_PLAN_UNITS;
 
-    container.innerHTML = floorPlans
-      .map(
-        (fp) => `
-      <div class="floorplan-item ${currentId === fp.id ? 'selected' : ''}" data-id="${fp.id}">
-        <div class="floorplan-name">${fp.name}</div>
-        <div class="floorplan-info">${fp.description}</div>
-        <div class="floorplan-area">${fp.area} sq ft</div>
+    container.innerHTML = `
+      <div class="floorplan-template-list">
+        ${floorPlans
+          .map(
+            (fp) => `
+              <div class="floorplan-item ${counts[fp.id] ? 'selected' : ''}" data-id="${fp.id}">
+                <div class="floorplan-item-copy">
+                  <div class="floorplan-name">${fp.name}</div>
+                  <div class="floorplan-info">${fp.description}</div>
+                  <div class="floorplan-area">${fp.area} sq ft</div>
+                </div>
+                <button type="button" class="floorplan-add" data-add-floor-plan="${fp.id}" ${atLimit ? 'disabled' : ''}>
+                  <span class="floorplan-add-plus" aria-hidden="true">+</span> Add
+                </button>
+              </div>
+            `,
+          )
+          .join('')}
       </div>
-    `,
-      )
-      .join('');
+    `;
 
-    // Add click handlers
-    container.querySelectorAll('.floorplan-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        const id = item.dataset.id;
-        this.floorPlanManager.setFloorPlan(id);
-        // Refresh floor plan list to update selected state
-        this.renderFloorPlanList();
+    container.querySelectorAll('[data-add-floor-plan]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const wasNonBottom =
+          units.length === 1 && this.state.get('settings.entryZonePosition') !== 'bottom';
+        const added = this.floorPlanManager.addFloorPlan(button.dataset.addFloorPlan);
+        if (added && wasNonBottom) {
+          Modal.showInfo('Multi-unit combinations use bottom entry zones.');
+        }
       });
+    });
+
+    this.renderFloorPlanComboPanel(units);
+  }
+
+  /**
+   * Render the "Selected units" panel docked to the canvas edge.
+   *
+   * This used to live inline at the top of the Floor Plans sidebar list,
+   * pushing the actual template cards further down every time a unit was
+   * added, and duplicated the span/area the info bar already shows. It's
+   * now a separate floating panel so it stays out of the way (toggleable,
+   * not tied to which sidebar tab is active) and no longer repeats the
+   * total/span figures.
+   */
+  renderFloorPlanComboPanel(units) {
+    const panel = document.getElementById('floorplan-combo-panel');
+    const content = document.getElementById('floorplan-combo-panel-content');
+    if (!panel || !content) return;
+
+    if (!units.length) {
+      content.innerHTML = '';
+      panel.classList.add('hidden');
+      panel.classList.remove('is-open');
+      return;
+    }
+
+    panel.classList.remove('hidden');
+
+    // Default to open the first time a combo appears; afterward respect
+    // whatever the user last chose via the toggle handle.
+    if (this.comboPanelOpen === undefined) this.comboPanelOpen = true;
+    panel.classList.toggle('is-open', this.comboPanelOpen);
+
+    const toggleBtn = document.getElementById('btn-toggle-combo-panel');
+    toggleBtn?.setAttribute('aria-expanded', String(this.comboPanelOpen));
+
+    content.innerHTML = `
+      <section class="floorplan-combo-summary" aria-label="Selected adjacent units">
+        <div class="floorplan-combo-heading">
+          <div>
+            <strong>Selected units</strong>
+            <span>${units.length}/${Config.MAX_FLOOR_PLAN_UNITS}</span>
+          </div>
+          <div class="floorplan-combo-hint">Drag units freely; edges snap when close. Shift-click units to select multiple, then press Delete.</div>
+        </div>
+        <div class="floorplan-combo-units">
+          ${units
+            .map(
+              (unit, index) => `
+                <div class="floorplan-combo-unit" data-instance-id="${unit.instanceId}">
+                  <span class="floorplan-combo-index">${index + 1}</span>
+                  <span class="floorplan-combo-unit-name">${unit.shortName}</span>
+                  <div class="floorplan-combo-actions">
+                    <button type="button" data-combo-action="remove" aria-label="Remove ${unit.shortName}">×</button>
+                  </div>
+                </div>
+              `,
+            )
+            .join('')}
+        </div>
+        ${
+          units.length > 1
+            ? '<p class="floorplan-combo-disclaimer">Unit combinations are for planning purposes. Please confirm adjacent-unit availability with Storage Caves.</p>'
+            : ''
+        }
+      </section>
+    `;
+
+    content.querySelectorAll('.floorplan-combo-unit').forEach((row) => {
+      row.querySelectorAll('[data-combo-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const instanceId = row.dataset.instanceId;
+          const action = button.dataset.comboAction;
+          if (action === 'remove') this.floorPlanManager.removeFloorPlan(instanceId);
+        });
+      });
+    });
+  }
+
+  /**
+   * Wire the slide-panel toggle handle (separate from the sidebar's own
+   * hamburger toggle).
+   */
+  setupComboPanelToggle() {
+    const toggleBtn = document.getElementById('btn-toggle-combo-panel');
+    const panel = document.getElementById('floorplan-combo-panel');
+    if (!toggleBtn || !panel) return;
+
+    toggleBtn.addEventListener('click', () => {
+      this.comboPanelOpen = !panel.classList.contains('is-open');
+      panel.classList.toggle('is-open', this.comboPanelOpen);
+      toggleBtn.setAttribute('aria-expanded', String(this.comboPanelOpen));
     });
   }
 
@@ -1462,7 +1711,7 @@ class App {
     // Delete
     const deleteBtn = document.getElementById('btn-delete');
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => this.selectionManager.deleteSelected());
+      deleteBtn.addEventListener('click', () => this.deleteCurrentSelection());
     }
 
     // Duplicate
@@ -1577,6 +1826,11 @@ class App {
       saveBtn.addEventListener('click', () => this.saveLayout());
     }
 
+    const shortcutsBtn = document.getElementById('btn-shortcuts');
+    if (shortcutsBtn) {
+      shortcutsBtn.addEventListener('click', () => this.showKeyboardShortcuts());
+    }
+
     // Zoom controls
     const zoomSlider = document.getElementById('zoom-slider');
     const zoomSliderValue = document.getElementById('zoom-slider-value');
@@ -1613,6 +1867,7 @@ class App {
 
     if (entryZoneTopBtn) {
       entryZoneTopBtn.addEventListener('click', () => {
+        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
         this.state.set('settings.entryZonePosition', 'top');
         this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
@@ -1622,6 +1877,7 @@ class App {
 
     if (entryZoneBottomBtn) {
       entryZoneBottomBtn.addEventListener('click', () => {
+        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
         this.state.set('settings.entryZonePosition', 'bottom');
         this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
@@ -1631,6 +1887,7 @@ class App {
 
     if (entryZoneLeftBtn) {
       entryZoneLeftBtn.addEventListener('click', () => {
+        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
         this.state.set('settings.entryZonePosition', 'left');
         this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
@@ -1640,6 +1897,7 @@ class App {
 
     if (entryZoneRightBtn) {
       entryZoneRightBtn.addEventListener('click', () => {
+        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
         this.state.set('settings.entryZonePosition', 'right');
         this.canvasManager.redrawFloorPlan({ preserveViewport: true });
         this.syncViewDropdownUI();
@@ -1712,10 +1970,12 @@ class App {
         ? this.selectionManager.getSelection()
         : []) || [];
     const selectionCount = selection.length;
+    const selectedUnitIds = this.canvasManager?.getSelectedFloorPlanUnitIds?.() || [];
+    const selectedUnitCount = selectedUnitIds.length;
 
     const editBtn = document.getElementById('btn-edit');
     if (editBtn) {
-      if (selectionCount === 0) {
+      if (selectionCount === 0 && selectedUnitCount === 0) {
         editBtn.setAttribute('disabled', 'disabled');
         editBtn.setAttribute('aria-disabled', 'true');
       } else {
@@ -1730,7 +1990,13 @@ class App {
       const floorPlanName =
         floorPlan.name || floorPlan.label || floorPlan.id || floorPlan.slug || 'Floor Plan';
       const floorDetails = [];
-      if (floorPlan.widthFt && floorPlan.heightFt) {
+      if ((floorPlan.units?.length || 0) > 1) {
+        const span = this.floorPlanManager.getSpan();
+        floorDetails.push(`${floorPlan.units.length} units`);
+        floorDetails.push(
+          `${Helpers.formatNumber(span.widthFt, 1)}' × ${Helpers.formatNumber(span.heightFt, 1)}' span`,
+        );
+      } else if (floorPlan.widthFt && floorPlan.heightFt) {
         floorDetails.push(`${floorPlan.widthFt}' × ${floorPlan.heightFt}'`);
       }
       if (floorPlan.area) {
@@ -1755,7 +2021,14 @@ class App {
       segments.push('<div class="info-bar__placeholder">Select a floor plan to begin</div>');
     }
 
-    if (selectionCount === 0) {
+    if (selectedUnitCount > 0) {
+      segments.push(`
+        <div class="info-bar__segment">
+          <span class="info-bar__label">Selected:</span>
+          <span class="info-bar__value">${selectedUnitCount} garage ${selectedUnitCount === 1 ? 'unit' : 'units'}</span>
+        </div>
+      `);
+    } else if (selectionCount === 0) {
       segments.push(`
         <div class="info-bar__segment">
           <span class="info-bar__label">Selection:</span>
@@ -1939,8 +2212,8 @@ class App {
       }
 
       const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
-      const layoutState = this.state.get('layout') || {};
-      const floorPlanBounds = this._getValidFloorPlanBounds(layoutState.floorPlanBounds);
+      const units = floorPlan.units || [];
+      const unitBounds = this.canvasManager.getUnitBoundsMap?.() || {};
 
       // Check if any item is in the entry zone
       const hasViolation = items.some((item) => {
@@ -1951,11 +2224,16 @@ class App {
         ) {
           return false;
         }
+        const instanceId =
+          item.canvasObject.customData?.unitInstanceId || item.unitInstanceId || null;
+        const unit = units.find((candidate) => candidate.instanceId === instanceId);
+        const bounds = instanceId ? unitBounds[instanceId] : null;
+        if (!unit || !bounds) return false;
         return Bounds.isInEntryZone(
           item.canvasObject,
-          floorPlan,
-          entryZonePosition,
-          floorPlanBounds,
+          unit,
+          units.length > 1 ? 'bottom' : entryZonePosition,
+          bounds,
         );
       });
 
@@ -2315,6 +2593,7 @@ class App {
           item.canvasObject = canvasGroup;
         }
       });
+      this.canvasManager.refreshItemFloorPlanStates();
 
       const texts = this.state.get('texts') || [];
       if (this.textManager) {
@@ -2377,13 +2656,16 @@ class App {
 
       // Prepare autosave data with metadata
       const autosaveData = {
-        version: '2.1', // Center-based coordinate system
+        version: '3.0',
+        schemaVersion: Config.LAYOUT_SCHEMA_VERSION,
         timestamp: new Date().toISOString(),
         state: {
           floorPlan: state.floorPlan,
           items: state.items,
           texts: state.texts,
+          measurements: state.measurements,
           settings: state.settings,
+          layout: state.layout,
           metadata: state.metadata,
         },
         // NOTE: Viewport (zoom/pan) is intentionally NOT saved
@@ -2416,13 +2698,14 @@ class App {
       }
 
       // Validate version
-      const APP_VERSION = '2.1';
-      if (savedData.version !== APP_VERSION) {
+      const isCurrentSchema = savedData.schemaVersion === Config.LAYOUT_SCHEMA_VERSION;
+      const isLegacySchema = savedData.version === '2.1';
+      if (!isCurrentSchema && !isLegacySchema) {
         console.log(
           '[App] Incompatible autosave version:',
           savedData.version,
           'expected:',
-          APP_VERSION,
+          Config.LAYOUT_SCHEMA_VERSION,
         );
         StorageUtil.remove(Config.STORAGE_KEYS.autosave);
         return false;
@@ -2472,8 +2755,11 @@ class App {
       // Load state
       this.state.loadState(savedState);
 
-      // Set floor plan (this internally calls centerAndFit)
-      this.floorPlanManager.setFloorPlan(savedState.floorPlan.id);
+      // Restore normalized single- or multi-unit floor plan.
+      this.floorPlanManager.restoreFloorPlan(savedState.floorPlan, {
+        resetPosition: false,
+        reason: 'autosave',
+      });
 
       // Restore items
       const items = savedState.items || [];
@@ -2490,6 +2776,7 @@ class App {
           item.canvasObject = canvasGroup;
         }
       });
+      this.canvasManager.refreshItemFloorPlanStates();
 
       if (this.textManager) {
         this.textManager.restoreTextsFromState(savedState.texts);
@@ -2530,6 +2817,7 @@ class App {
       item.x = x;
       item.y = y;
       item.angle = angle;
+      item.unitInstanceId = item.canvasObject?.customData?.unitInstanceId || null;
       this.state.setState({ items });
     }
   }
@@ -2667,12 +2955,20 @@ class App {
     }
 
     // Calculate area
-    const areaSqFt = floorPlan.widthFt * floorPlan.heightFt;
-
-    // Format door dimensions - check both key formats
-    const doorWidth = floorPlan.doorWidth ?? floorPlan.doorWidthFt;
-    const doorHeight = floorPlan.doorHeight ?? floorPlan.doorHeightFt;
-    const doorInfo = doorWidth && doorHeight ? `${doorWidth}' × ${doorHeight}'` : 'N/A';
+    const areaSqFt = floorPlan.area || floorPlan.widthFt * floorPlan.heightFt;
+    const units = floorPlan.units || [];
+    const span = this.floorPlanManager.getSpan();
+    const unitInfo = units.length
+      ? units
+          .map((unit, index) => {
+            const door =
+              unit.doorWidth && unit.doorHeight
+                ? `${unit.doorWidth}' × ${unit.doorHeight}'`
+                : 'N/A';
+            return `${index + 1}. ${unit.shortName || unit.name} — ${unit.widthFt}' × ${unit.heightFt}' — Door: ${door}`;
+          })
+          .join('\n')
+      : `1. ${floorPlan.name}`;
 
     // Create email content
     const subject = encodeURIComponent(`Storage Caves Garage Layout: ${projectName}`);
@@ -2680,7 +2976,9 @@ class App {
     const layoutInfo = `
 Location: ${metadata.location || 'Buford, GA'}
 Floor Plan: ${floorPlan.name}
-Door: ${doorInfo}
+Units (${units.length || 1}):
+${unitInfo}
+Overall Span: ${Helpers.formatNumber(span.widthFt, 1)}' × ${Helpers.formatNumber(span.heightFt, 1)}'
 Area: ${areaSqFt} sq ft
 Items: ${items.length}
 

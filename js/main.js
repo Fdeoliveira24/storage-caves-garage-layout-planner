@@ -1,7 +1,7 @@
 /* global App */
 
 (function () {
-  const REQUIRED_GLOBALS = ['fabric', 'Config', 'EventBus', 'State', 'App'];
+  const REQUIRED_GLOBALS = ['fabric', 'Config', 'EventBus', 'State', 'ShortcutRegistry', 'App'];
   let hasBootstrapped = false;
 
   const setupFabricDefaults = (() => {
