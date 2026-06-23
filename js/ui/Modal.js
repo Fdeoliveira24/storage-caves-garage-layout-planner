@@ -1,3 +1,5 @@
+/* global Icons */
+
 /**
  * Modal and Toast UI System
  */
@@ -328,7 +330,22 @@ class Modal {
       // Create modal structure
       const header = document.createElement('div');
       header.className = 'modal-header';
-      header.innerHTML = `<h3 class="modal-title" id="modal-title">${title}</h3>`;
+      const titleGroup = document.createElement('div');
+      titleGroup.className = 'modal-title-group';
+      if (options.titleIcon) {
+        const titleIcon = document.createElement('span');
+        titleIcon.className = 'modal-title-icon';
+        titleIcon.setAttribute('aria-hidden', 'true');
+        titleIcon.innerHTML =
+          typeof Icons !== 'undefined' && Icons.render ? Icons.render(options.titleIcon) : '';
+        titleGroup.appendChild(titleIcon);
+      }
+      const titleEl = document.createElement('h3');
+      titleEl.className = 'modal-title';
+      titleEl.id = 'modal-title';
+      titleEl.textContent = title;
+      titleGroup.appendChild(titleEl);
+      header.appendChild(titleGroup);
 
       const body = document.createElement('div');
       body.className = 'modal-body';

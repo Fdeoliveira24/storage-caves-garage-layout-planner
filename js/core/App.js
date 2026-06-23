@@ -769,12 +769,7 @@ class App {
     const introText = document.createElement('p');
     introText.textContent =
       'Work faster across the canvas. Shortcuts pause while you type or use a dialog.';
-    const platform = document.createElement('span');
-    platform.className = 'shortcut-reference__platform';
-    platform.textContent = ShortcutRegistry.isMacPlatform()
-      ? 'macOS keys shown'
-      : 'Windows / Linux keys shown';
-    introCopy.append(introText, platform);
+    introCopy.appendChild(introText);
 
     const searchWrapper = document.createElement('div');
     searchWrapper.className = 'shortcut-reference__search-wrapper client-cms__search-wrapper';
@@ -912,6 +907,7 @@ class App {
 
     return Modal.show('Keyboard shortcuts & canvas gestures', content, {
       className: 'shortcuts-modal',
+      titleIcon: 'keyboard',
       initialFocus: '[data-action="close"]',
     });
   }
