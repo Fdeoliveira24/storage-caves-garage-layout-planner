@@ -220,6 +220,7 @@ const ShortcutRegistry = (() => {
       category: 'View',
       description: 'Fit floor plan to canvas',
       context: 'Floor plan required',
+      aliases: ['zoom to fit', 'zoom fit'],
       keys: { default: [['0']] },
       match: { key: '0', mod: false, shift: false, alt: false },
     },

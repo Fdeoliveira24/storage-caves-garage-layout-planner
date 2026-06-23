@@ -189,71 +189,93 @@ body.modal-open {
 
 /* Keyboard shortcuts reference */
 .shortcuts-modal {
-  width: min(900px, 94vw);
-  max-width: 900px;
-  border-top: 4px solid var(--color-primary);
+  width: min(880px, 94vw);
+  max-width: 880px;
   overflow: hidden auto;
 }
 
 .shortcuts-modal .modal-header {
-  padding: 22px 28px 10px;
+  padding: 20px 24px 8px;
 }
 
 .shortcuts-modal .modal-title {
-  font-size: 22px;
+  font-size: 20px;
   letter-spacing: -0.02em;
 }
 
 .shortcuts-modal .modal-body {
-  padding: 10px 28px 22px;
+  padding: 8px 24px 16px;
 }
 
 .shortcuts-modal .modal-footer {
   position: sticky;
   bottom: 0;
-  padding: 12px 28px 18px;
+  padding: 10px 24px 16px;
   background: linear-gradient(to bottom, rgb(255 255 255 / 82%), #fff 32%);
 }
 
 .shortcut-reference__intro {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 18px;
-  margin-bottom: 18px;
+  gap: 12px 18px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
   border-bottom: 1px solid var(--color-border);
+}
+
+.shortcut-reference__intro-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 }
 
 .shortcut-reference__intro p {
   color: var(--color-text-secondary);
+  line-height: 1.4;
 }
 
 .shortcut-reference__platform {
+  width: fit-content;
   flex: 0 0 auto;
-  padding: 5px 9px;
+  padding: 4px 8px;
   color: var(--color-primary);
   background: rgb(211 47 47 / 8%);
   border: 1px solid rgb(211 47 47 / 20%);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+.shortcut-reference__search-wrapper {
+  width: 100%;
+}
+
 .shortcut-reference__groups {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 34px;
+  column-count: 2;
+  column-gap: 28px;
+}
+
+.shortcut-reference__groups[hidden],
+.shortcut-reference__empty[hidden] {
+  display: none;
 }
 
 .shortcut-group {
+  break-inside: avoid;
+  margin-bottom: 18px;
   min-width: 0;
 }
 
+.shortcut-group:last-child {
+  margin-bottom: 0;
+}
+
 .shortcut-group__title {
-  margin: 0 0 8px;
+  margin: 0 0 5px;
   color: var(--color-primary);
   font-size: 12px;
   font-weight: 800;
@@ -265,9 +287,9 @@ body.modal-open {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  padding: 8px 0;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 0;
   border-bottom: 1px solid var(--color-border-light, #eef0f2);
 }
 
@@ -295,7 +317,8 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 5px;
+  flex-wrap: wrap;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -309,9 +332,9 @@ body.modal-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  min-height: 27px;
-  padding: 3px 7px;
+  min-width: 27px;
+  min-height: 25px;
+  padding: 3px 6px;
   color: var(--color-text-primary);
   background: linear-gradient(180deg, #fff 0%, #f3f4f6 100%);
   border: 1px solid #d7dbe0;
@@ -331,6 +354,15 @@ body.modal-open {
   font-style: italic;
 }
 
+.shortcuts-modal .shortcut-reference__empty {
+  padding: 42px 20px;
+}
+
+.shortcut-reference__empty .cms-empty-title,
+.shortcut-reference__empty .cms-empty-subtitle {
+  margin: 0;
+}
+
 @media (width <= 700px) {
   .shortcuts-modal {
     width: min(94vw, 560px);
@@ -338,7 +370,7 @@ body.modal-open {
   }
 
   .shortcuts-modal .modal-header {
-    padding: 18px 18px 8px;
+    padding: 18px 18px 6px;
   }
 
   .shortcuts-modal .modal-title {
@@ -346,7 +378,7 @@ body.modal-open {
   }
 
   .shortcuts-modal .modal-body {
-    padding: 8px 18px 18px;
+    padding: 8px 18px 14px;
   }
 
   .shortcuts-modal .modal-footer {
@@ -354,14 +386,13 @@ body.modal-open {
   }
 
   .shortcut-reference__intro {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .shortcut-reference__groups {
-    grid-template-columns: 1fr;
-    gap: 22px;
+    column-count: 1;
+    column-gap: 0;
   }
 
   .shortcut-row {
@@ -371,6 +402,17 @@ body.modal-open {
   .shortcut-key-chord kbd {
     min-width: 26px;
     padding-inline: 6px;
+  }
+}
+
+@media (width <= 480px) {
+  .shortcut-row {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .shortcut-row__keys {
+    justify-content: flex-start;
   }
 }
 

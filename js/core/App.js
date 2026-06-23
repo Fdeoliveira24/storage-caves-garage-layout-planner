@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel, ShortcutRegistry */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel, ShortcutRegistry, Icons */
 
 /**
  * Main Application Controller
@@ -757,65 +757,158 @@ class App {
   }
 
   showKeyboardShortcuts() {
+    const displayGroups = ShortcutRegistry.getDisplayGroups();
+    const sourceEntries = new Map(ShortcutRegistry.entries.map((entry) => [entry.id, entry]));
     const content = document.createElement('div');
     content.className = 'shortcut-reference';
 
     const intro = document.createElement('div');
     intro.className = 'shortcut-reference__intro';
-    intro.innerHTML = `
-      <p>Work faster across the canvas. Shortcuts pause while you type or use a dialog.</p>
-      <span class="shortcut-reference__platform">${ShortcutRegistry.isMacPlatform() ? 'macOS keys shown' : 'Windows / Linux keys shown'}</span>
-    `;
+    const introCopy = document.createElement('div');
+    introCopy.className = 'shortcut-reference__intro-copy';
+    const introText = document.createElement('p');
+    introText.textContent =
+      'Work faster across the canvas. Shortcuts pause while you type or use a dialog.';
+    const platform = document.createElement('span');
+    platform.className = 'shortcut-reference__platform';
+    platform.textContent = ShortcutRegistry.isMacPlatform()
+      ? 'macOS keys shown'
+      : 'Windows / Linux keys shown';
+    introCopy.append(introText, platform);
+
+    const searchWrapper = document.createElement('div');
+    searchWrapper.className = 'shortcut-reference__search-wrapper client-cms__search-wrapper';
+    const searchIcon = document.createElement('span');
+    searchIcon.className = 'client-cms__search-icon';
+    searchIcon.setAttribute('aria-hidden', 'true');
+    searchIcon.innerHTML = Icons.render('search');
+    const searchInput = document.createElement('input');
+    searchInput.id = 'shortcut-search';
+    searchInput.className = 'client-cms__search shortcut-reference__search-input';
+    searchInput.type = 'search';
+    searchInput.placeholder = 'Search shortcuts';
+    searchInput.setAttribute('aria-label', 'Search keyboard shortcuts and canvas gestures');
+    searchInput.setAttribute('autocomplete', 'off');
+    searchWrapper.append(searchIcon, searchInput);
+
+    intro.append(introCopy, searchWrapper);
     content.appendChild(intro);
 
     const groups = document.createElement('div');
     groups.className = 'shortcut-reference__groups';
-    ShortcutRegistry.getDisplayGroups().forEach((group) => {
-      const section = document.createElement('section');
-      section.className = 'shortcut-group';
-      const heading = document.createElement('h4');
-      heading.className = 'shortcut-group__title';
-      heading.textContent = group.category;
-      section.appendChild(heading);
 
-      group.entries.forEach((entry) => {
-        const row = document.createElement('div');
-        row.className = 'shortcut-row';
-        const copy = document.createElement('div');
-        copy.className = 'shortcut-row__copy';
-        const label = document.createElement('span');
-        label.className = 'shortcut-row__label';
-        label.textContent = entry.description;
-        const context = document.createElement('span');
-        context.className = 'shortcut-row__context';
-        context.textContent = entry.context;
-        copy.append(label, context);
+    const emptyState = document.createElement('div');
+    emptyState.className = 'shortcut-reference__empty cms-empty-state';
+    emptyState.hidden = true;
+    const emptyTitle = document.createElement('p');
+    emptyTitle.className = 'cms-empty-title';
+    emptyTitle.textContent = 'No shortcuts found';
+    const emptyDescription = document.createElement('p');
+    emptyDescription.className = 'cms-empty-subtitle';
+    emptyDescription.textContent = 'Try a different search term.';
+    emptyState.append(emptyTitle, emptyDescription);
 
-        const keys = document.createElement('div');
-        keys.className = 'shortcut-row__keys';
-        entry.keySets.forEach((keySet, index) => {
-          if (index > 0) {
-            const or = document.createElement('span');
-            or.className = 'shortcut-row__or';
-            or.textContent = 'or';
-            keys.appendChild(or);
-          }
-          const chord = document.createElement('span');
-          chord.className = 'shortcut-key-chord';
-          keySet.forEach((key) => {
-            const keyEl = document.createElement('kbd');
-            keyEl.textContent = key;
-            chord.appendChild(keyEl);
+    const getKeySearchText = (entry) => {
+      const source = sourceEntries.get(entry.id);
+      const keySets = [
+        ...(entry.keySets || []),
+        ...(source?.keys?.default || []),
+        ...(source?.keys?.mac || []),
+      ];
+      const labels = keySets.flat().filter(Boolean);
+      const chords = keySets.map((keySet) => keySet.filter(Boolean));
+      return [
+        ...labels,
+        ...chords.map((keySet) => keySet.join(' ')),
+        ...chords.map((keySet) => keySet.join(' + ')),
+        ...chords.map((keySet) => keySet.join('')),
+      ]
+        .join(' ')
+        .replace(/⌘/g, 'cmd command')
+        .replace(/−/g, '- minus');
+    };
+
+    const getEntrySearchText = (group, entry) =>
+      [
+        group.category,
+        entry.description,
+        entry.context,
+        entry.id,
+        entry.type,
+        sourceEntries.get(entry.id)?.aliases?.join(' '),
+        getKeySearchText(entry),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+    const renderGroups = (query = '') => {
+      const normalizedQuery = query.trim().toLowerCase();
+      groups.replaceChildren();
+      let visibleEntries = 0;
+
+      displayGroups.forEach((group) => {
+        const entries = normalizedQuery
+          ? group.entries.filter((entry) =>
+              getEntrySearchText(group, entry).includes(normalizedQuery),
+            )
+          : group.entries;
+        if (!entries.length) return;
+
+        const section = document.createElement('section');
+        section.className = 'shortcut-group';
+        const heading = document.createElement('h4');
+        heading.className = 'shortcut-group__title';
+        heading.textContent = group.category;
+        section.appendChild(heading);
+
+        entries.forEach((entry) => {
+          visibleEntries += 1;
+          const row = document.createElement('div');
+          row.className = 'shortcut-row';
+          const copy = document.createElement('div');
+          copy.className = 'shortcut-row__copy';
+          const label = document.createElement('span');
+          label.className = 'shortcut-row__label';
+          label.textContent = entry.description;
+          const context = document.createElement('span');
+          context.className = 'shortcut-row__context';
+          context.textContent = entry.context;
+          copy.append(label, context);
+
+          const keys = document.createElement('div');
+          keys.className = 'shortcut-row__keys';
+          entry.keySets.forEach((keySet, index) => {
+            if (index > 0) {
+              const or = document.createElement('span');
+              or.className = 'shortcut-row__or';
+              or.textContent = 'or';
+              keys.appendChild(or);
+            }
+            const chord = document.createElement('span');
+            chord.className = 'shortcut-key-chord';
+            keySet.forEach((key) => {
+              const keyEl = document.createElement('kbd');
+              keyEl.textContent = key;
+              chord.appendChild(keyEl);
+            });
+            keys.appendChild(chord);
           });
-          keys.appendChild(chord);
-        });
 
-        row.append(copy, keys);
-        section.appendChild(row);
+          row.append(copy, keys);
+          section.appendChild(row);
+        });
+        groups.appendChild(section);
       });
-      groups.appendChild(section);
-    });
+      emptyState.hidden = visibleEntries > 0;
+      groups.hidden = visibleEntries === 0;
+    };
+
+    renderGroups();
+    searchInput.addEventListener('input', () => renderGroups(searchInput.value));
+
     content.appendChild(groups);
+    content.appendChild(emptyState);
 
     return Modal.show('Keyboard shortcuts & canvas gestures', content, {
       className: 'shortcuts-modal',
