@@ -878,8 +878,7 @@ class MobileUIManager {
       settings.showEntryZoneLabel !== undefined ? settings.showEntryZoneLabel : true;
     const showEntryZoneBorder =
       settings.showEntryZoneBorder !== undefined ? settings.showEntryZoneBorder : true;
-    const entryZonePosition = settings.entryZonePosition || 'bottom';
-    const multiUnit = (this.floorPlanManager?.getUnits?.().length || 0) > 1;
+    const entryZonePosition = this.app?.getActiveEntryZonePosition?.() || null;
 
     container.innerHTML = `
       <div class="mobile-view-header">
@@ -954,10 +953,10 @@ class MobileUIManager {
         <div class="mobile-view-options-group">
           <h4>Entry Zone Position</h4>
           <div class="mobile-view-options-positions">
-            <button class="mobile-position-btn ${entryZonePosition === 'bottom' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="bottom" ${multiUnit ? 'disabled' : ''}>Bottom</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'left' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="left" ${multiUnit ? 'disabled' : ''}>Left</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'right' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="right" ${multiUnit ? 'disabled' : ''}>Right</button>
-            <button class="mobile-position-btn ${entryZonePosition === 'top' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="top" ${multiUnit ? 'disabled' : ''}>Top</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'bottom' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="bottom">Bottom</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'left' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="left">Left</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'right' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="right">Right</button>
+            <button class="mobile-position-btn ${entryZonePosition === 'top' ? 'mobile-position-active' : ''}" data-action="set-entry-position" data-position="top">Top</button>
           </div>
         </div>
       </div>
@@ -1081,13 +1080,7 @@ class MobileUIManager {
    */
   selectFloorPlan(planId) {
     if (this.floorPlanManager) {
-      const units = this.floorPlanManager.getUnits?.() || [];
-      const wasNonBottom =
-        units.length === 1 && this.state.get('settings.entryZonePosition') !== 'bottom';
-      const added = this.floorPlanManager.addFloorPlan(planId);
-      if (added && wasNonBottom) {
-        window.Modal?.showInfo('Multi-unit combinations use bottom entry zones.');
-      }
+      this.floorPlanManager.addFloorPlan(planId);
     }
   }
 
@@ -1398,10 +1391,12 @@ class MobileUIManager {
    * Handle Entry Zone position change
    */
   handleEntryPositionChange(position) {
-    if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) {
-      window.Modal?.showInfo('Multi-unit combinations use bottom entry zones.');
+    if (this.app?.setEntryZonePosition) {
+      this.app.setEntryZonePosition(position);
+      this.switchTab('canvas');
       return;
     }
+
     const settings = this.state.get('settings') || {};
     settings.entryZonePosition = position;
     this.state.set('settings', settings);

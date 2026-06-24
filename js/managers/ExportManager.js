@@ -443,11 +443,6 @@ class ExportManager {
               this.state.set(`settings.${key}`, importData.settings[key]);
             });
           }
-          const importedPlan = this.state.get('floorPlan');
-          if ((importedPlan?.units?.length || 0) > 1) {
-            this.state.set('settings.entryZonePosition', 'bottom');
-          }
-
           // Load metadata if available
           if (importData.metadata) {
             Object.keys(importData.metadata).forEach((key) => {

@@ -27,6 +27,10 @@ const FloorPlanComposition = (() => {
     return String(name).split(' - ')[0];
   }
 
+  function normalizeEntryZonePosition(position) {
+    return ['top', 'bottom', 'left', 'right'].includes(position) ? position : null;
+  }
+
   function createUnit(plan, instanceId) {
     if (!plan) return null;
     const templateId = plan.templateId || plan.id;
@@ -55,6 +59,7 @@ const FloorPlanComposition = (() => {
       doorHeight: Number(source.doorHeight ?? source.doorHeightFt) || null,
       offsetXFt: Number(source.offsetXFt) || 0,
       offsetYFt: Number(source.offsetYFt) || 0,
+      entryZonePosition: normalizeEntryZonePosition(source.entryZonePosition) || undefined,
     };
   }
 
@@ -153,6 +158,7 @@ const FloorPlanComposition = (() => {
     generateInstanceId,
     getShortName,
     getTemplate,
+    normalizeEntryZonePosition,
     normalizeFloorPlan,
     removeUnit,
     reorderUnit,

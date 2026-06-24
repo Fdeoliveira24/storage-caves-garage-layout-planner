@@ -182,9 +182,6 @@ class State {
       ...this.state.settings,
       ...(savedState.settings || {}),
     };
-    if ((normalizedFloorPlan?.units?.length || 0) > 1) {
-      normalizedSettings.entryZonePosition = 'bottom';
-    }
 
     // Merge saved state, preserving structure
     this.state = {

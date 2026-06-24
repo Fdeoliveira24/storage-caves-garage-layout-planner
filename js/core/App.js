@@ -1,4 +1,4 @@
-/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel, ShortcutRegistry, Icons */
+/* global State, EventBus, CanvasManager, FloorPlanManager, ItemManager, SelectionManager, ExportManager, HistoryManager, Modal, Config, Items, Helpers, StorageUtil, Bounds, ClientCMS, GoogleSheetsSync, TextManager, TextPropertiesPanel, ShortcutRegistry, Icons, FloorPlanComposition */
 
 /**
  * Main Application Controller
@@ -305,6 +305,7 @@ class App {
       this.updateInfoPanel();
       this.checkEntryZoneViolations();
       this.updateFloatingToolbarVisibility();
+      this.syncViewDropdownUI();
     });
 
     this.eventBus.on('floorplan:moved', (payload) => {
@@ -319,6 +320,7 @@ class App {
       }
       this.renderFloorPlanList();
       this.updateInfoPanel();
+      this.refreshFloorPlanSelectionUI();
       this.debouncedCheckEntryZone();
       this.saveHistorySnapshot();
     });
@@ -332,18 +334,22 @@ class App {
     // Selection events
     this.eventBus.on('canvas:selection:created', () => {
       this.updateInfoPanel();
+      this.refreshFloorPlanSelectionUI();
     });
 
     this.eventBus.on('canvas:selection:updated', () => {
       this.updateInfoPanel();
+      this.refreshFloorPlanSelectionUI();
     });
 
     this.eventBus.on('canvas:selection:cleared', () => {
       this.updateInfoPanel();
+      this.refreshFloorPlanSelectionUI();
     });
 
     this.eventBus.on('canvas:selection:changed', () => {
       this.updateInfoPanel();
+      this.refreshFloorPlanSelectionUI();
     });
 
     const syncTextToolButton = (isActive) => {
@@ -1227,6 +1233,89 @@ class App {
     });
   }
 
+  normalizeEntryZonePosition(position) {
+    return (
+      FloorPlanComposition.normalizeEntryZonePosition(position) ||
+      FloorPlanComposition.normalizeEntryZonePosition(this.state?.get?.('settings.entryZonePosition')) ||
+      'bottom'
+    );
+  }
+
+  getEntryZoneTargetUnitIds() {
+    const units = this.floorPlanManager?.getUnits?.() || [];
+    if (!units.length) return [];
+
+    const unitIds = new Set(units.map((unit) => unit.instanceId));
+    const selectedIds = (this.canvasManager?.getSelectedFloorPlanUnitIds?.() || []).filter((id) =>
+      unitIds.has(id),
+    );
+
+    return selectedIds.length ? selectedIds : [...unitIds];
+  }
+
+  getUnitEntryZonePosition(unit) {
+    return (
+      FloorPlanComposition.normalizeEntryZonePosition(unit?.entryZonePosition) ||
+      FloorPlanComposition.normalizeEntryZonePosition(this.state.get('settings.entryZonePosition')) ||
+      'bottom'
+    );
+  }
+
+  getActiveEntryZonePosition() {
+    const units = this.floorPlanManager?.getUnits?.() || [];
+    if (!units.length) return this.normalizeEntryZonePosition();
+
+    const targetIds = new Set(this.getEntryZoneTargetUnitIds());
+    const targetUnits = units.filter((unit) => targetIds.has(unit.instanceId));
+    if (!targetUnits.length) return this.normalizeEntryZonePosition();
+
+    const positions = new Set(targetUnits.map((unit) => this.getUnitEntryZonePosition(unit)));
+    return positions.size === 1 ? [...positions][0] : null;
+  }
+
+  setEntryZonePosition(position) {
+    const normalizedPosition = FloorPlanComposition.normalizeEntryZonePosition(position);
+    if (!normalizedPosition) return false;
+
+    const units = this.floorPlanManager?.getUnits?.() || [];
+    const selectedIds = this.canvasManager?.getSelectedFloorPlanUnitIds?.() || [];
+    const targetIds = this.getEntryZoneTargetUnitIds();
+    const appliesToAllUnits = !selectedIds.length;
+    const currentDefault = this.normalizeEntryZonePosition();
+    let defaultChanged = false;
+
+    if (appliesToAllUnits && currentDefault !== normalizedPosition) {
+      this.state.set('settings.entryZonePosition', normalizedPosition);
+      defaultChanged = true;
+    }
+
+    let updatedPlan = false;
+    if (units.length && targetIds.length) {
+      updatedPlan =
+        this.floorPlanManager?.setUnitEntryZonePosition?.(targetIds, normalizedPosition, {
+          preserveViewport: true,
+        }) === true;
+    }
+
+    if (updatedPlan && selectedIds.length) {
+      this.canvasManager?.selectFloorPlanUnits?.(selectedIds);
+    } else if (!updatedPlan && defaultChanged) {
+      this.canvasManager?.redrawFloorPlan?.({ preserveViewport: true });
+      this.saveHistorySnapshot();
+    } else if (!units.length && defaultChanged) {
+      this.saveHistorySnapshot();
+    }
+
+    this.refreshFloorPlanSelectionUI();
+    this.checkEntryZoneViolations();
+    return updatedPlan || defaultChanged;
+  }
+
+  refreshFloorPlanSelectionUI() {
+    this.syncViewDropdownUI();
+    this.renderFloorPlanComboPanel(this.floorPlanManager?.getUnits?.() || []);
+  }
+
   /**
    * Sync View dropdown UI with current settings
    */
@@ -1252,52 +1341,33 @@ class App {
 
     this.mobileUIManager?.setRulerGridActive?.(!!showGrid);
 
-    // Update entry zone position buttons visibility
-    const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
+    // Update entry zone position buttons
+    const entryZonePosition = this.getActiveEntryZonePosition();
     const entryZoneTopBtn = document.getElementById('btn-entry-zone-top');
     const entryZoneBottomBtn = document.getElementById('btn-entry-zone-bottom');
     const entryZoneLeftBtn = document.getElementById('btn-entry-zone-left');
     const entryZoneRightBtn = document.getElementById('btn-entry-zone-right');
-    const multiUnit = (this.floorPlanManager?.getUnits?.().length || 0) > 1;
+    const hasFloorPlan = (this.floorPlanManager?.getUnits?.().length || 0) > 0;
+    const entryZoneButtons = [
+      { button: entryZoneTopBtn, position: 'top' },
+      { button: entryZoneBottomBtn, position: 'bottom' },
+      { button: entryZoneLeftBtn, position: 'left' },
+      { button: entryZoneRightBtn, position: 'right' },
+    ];
 
-    // Hide all position buttons first
-    if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'none';
-    if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'none';
-    if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'none';
-    if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'none';
-
-    // Multi-unit layouts have one physical front edge and always use bottom entry zones.
-    if (multiUnit) {
-      [entryZoneTopBtn, entryZoneBottomBtn, entryZoneLeftBtn, entryZoneRightBtn].forEach(
-        (button) => {
-          if (button) button.setAttribute('disabled', 'disabled');
-        },
-      );
-    } else if (entryZonePosition === 'top') {
-      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
-      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
-      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
-    } else if (entryZonePosition === 'bottom') {
-      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
-      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
-      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
-    } else if (entryZonePosition === 'left') {
-      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
-      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
-      if (entryZoneRightBtn) entryZoneRightBtn.style.display = 'block';
-    } else if (entryZonePosition === 'right') {
-      if (entryZoneTopBtn) entryZoneTopBtn.style.display = 'block';
-      if (entryZoneBottomBtn) entryZoneBottomBtn.style.display = 'block';
-      if (entryZoneLeftBtn) entryZoneLeftBtn.style.display = 'block';
-    }
-
-    if (!multiUnit) {
-      [entryZoneTopBtn, entryZoneBottomBtn, entryZoneLeftBtn, entryZoneRightBtn].forEach(
-        (button) => {
-          if (button) button.removeAttribute('disabled');
-        },
-      );
-    }
+    entryZoneButtons.forEach(({ button, position }) => {
+      if (!button) return;
+      button.style.display = '';
+      button.classList.toggle('active', entryZonePosition === position);
+      button.setAttribute('aria-pressed', String(entryZonePosition === position));
+      if (hasFloorPlan) {
+        button.removeAttribute('disabled');
+        button.removeAttribute('aria-disabled');
+      } else {
+        button.setAttribute('disabled', 'disabled');
+        button.setAttribute('aria-disabled', 'true');
+      }
+    });
 
     // Update entry label toggle text
     const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
@@ -1319,7 +1389,7 @@ class App {
     const showItemLabels = this.state.get('settings.showItemLabels') !== false;
     const labelsToggleText = document.getElementById('labels-toggle-text');
     if (labelsToggleText) {
-      labelsToggleText.textContent = showItemLabels ? 'Hide Labels' : 'Show Labels';
+      labelsToggleText.textContent = showItemLabels ? 'Hide Item Labels' : 'Show Item Labels';
     }
 
     const lockToggleText = document.getElementById('floorplan-lock-text');
@@ -1408,8 +1478,37 @@ class App {
       document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
         if (menu !== exception) {
           menu.classList.remove('show');
+          this.resetDropdownPlacement(menu);
         }
       });
+    };
+
+    const positionDropdownMenu = (trigger, menu) => {
+      this.resetDropdownPlacement(menu);
+
+      const gap = 6;
+      const viewportPadding = 8;
+      const triggerRect = trigger.getBoundingClientRect();
+      const desiredHeight = menu.scrollHeight || menu.getBoundingClientRect().height;
+      const spaceAbove = Math.max(0, triggerRect.top - viewportPadding - gap);
+      const spaceBelow = Math.max(0, window.innerHeight - triggerRect.bottom - viewportPadding - gap);
+      const shouldOpenBelow = desiredHeight <= spaceBelow || spaceBelow >= spaceAbove;
+      const availableSpace = shouldOpenBelow ? spaceBelow : spaceAbove;
+
+      menu.classList.add(shouldOpenBelow ? 'dropdown-menu--below' : 'dropdown-menu--above');
+      menu.style.setProperty(
+        '--dropdown-max-height',
+        `${Math.max(140, Math.floor(availableSpace))}px`,
+      );
+
+      const menuRect = menu.getBoundingClientRect();
+      if (menuRect.right > window.innerWidth - viewportPadding) {
+        menu.style.left = 'auto';
+        menu.style.right = '0';
+      } else if (menuRect.left < viewportPadding) {
+        menu.style.left = '0';
+        menu.style.right = 'auto';
+      }
     };
 
     dropdownTriggers.forEach((trigger) => {
@@ -1436,11 +1535,27 @@ class App {
         closeAll(shouldOpen ? menu : null);
         if (shouldOpen) {
           menu.classList.add('show');
+          positionDropdownMenu(trigger, menu);
         }
       });
     });
 
     document.addEventListener('click', () => closeAll(null));
+
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+        const trigger = menu.closest('.dropdown')?.querySelector('.btn, button');
+        if (trigger) positionDropdownMenu(trigger, menu);
+      });
+    });
+  }
+
+  resetDropdownPlacement(menu) {
+    if (!menu) return;
+    menu.classList.remove('dropdown-menu--above', 'dropdown-menu--below');
+    menu.style.removeProperty('--dropdown-max-height');
+    menu.style.removeProperty('left');
+    menu.style.removeProperty('right');
   }
 
   /**
@@ -1482,12 +1597,7 @@ class App {
 
     container.querySelectorAll('[data-add-floor-plan]').forEach((button) => {
       button.addEventListener('click', () => {
-        const wasNonBottom =
-          units.length === 1 && this.state.get('settings.entryZonePosition') !== 'bottom';
-        const added = this.floorPlanManager.addFloorPlan(button.dataset.addFloorPlan);
-        if (added && wasNonBottom) {
-          Modal.showInfo('Multi-unit combinations use bottom entry zones.');
-        }
+        this.floorPlanManager.addFloorPlan(button.dataset.addFloorPlan);
       });
     });
 
@@ -1526,6 +1636,8 @@ class App {
     const toggleBtn = document.getElementById('btn-toggle-combo-panel');
     toggleBtn?.setAttribute('aria-expanded', String(this.comboPanelOpen));
 
+    const activeUnitIds = new Set(this.canvasManager?.getSelectedFloorPlanUnitIds?.() || []);
+
     content.innerHTML = `
       <section class="floorplan-combo-summary" aria-label="Selected adjacent units">
         <div class="floorplan-combo-heading">
@@ -1539,7 +1651,7 @@ class App {
           ${units
             .map(
               (unit, index) => `
-                <div class="floorplan-combo-unit" data-instance-id="${unit.instanceId}">
+                <div class="floorplan-combo-unit ${activeUnitIds.has(unit.instanceId) ? 'is-active' : ''}" data-instance-id="${unit.instanceId}">
                   <span class="floorplan-combo-index">${index + 1}</span>
                   <span class="floorplan-combo-unit-name">${unit.shortName}</span>
                   <div class="floorplan-combo-actions">
@@ -1559,8 +1671,16 @@ class App {
     `;
 
     content.querySelectorAll('.floorplan-combo-unit').forEach((row) => {
+      row.addEventListener('click', () => {
+        const instanceId = row.dataset.instanceId;
+        if (!instanceId) return;
+        this.canvasManager?.selectFloorPlanUnits?.([instanceId]);
+        this.refreshFloorPlanSelectionUI();
+      });
+
       row.querySelectorAll('[data-combo-action]').forEach((button) => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (event) => {
+          event.stopPropagation();
           const instanceId = row.dataset.instanceId;
           const action = button.dataset.comboAction;
           if (action === 'remove') this.floorPlanManager.removeFloorPlan(instanceId);
@@ -1955,43 +2075,19 @@ class App {
     const entryZoneRightBtn = document.getElementById('btn-entry-zone-right');
 
     if (entryZoneTopBtn) {
-      entryZoneTopBtn.addEventListener('click', () => {
-        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
-        this.state.set('settings.entryZonePosition', 'top');
-        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
-        this.syncViewDropdownUI();
-        this.saveHistorySnapshot();
-      });
+      entryZoneTopBtn.addEventListener('click', () => this.setEntryZonePosition('top'));
     }
 
     if (entryZoneBottomBtn) {
-      entryZoneBottomBtn.addEventListener('click', () => {
-        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
-        this.state.set('settings.entryZonePosition', 'bottom');
-        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
-        this.syncViewDropdownUI();
-        this.saveHistorySnapshot();
-      });
+      entryZoneBottomBtn.addEventListener('click', () => this.setEntryZonePosition('bottom'));
     }
 
     if (entryZoneLeftBtn) {
-      entryZoneLeftBtn.addEventListener('click', () => {
-        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
-        this.state.set('settings.entryZonePosition', 'left');
-        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
-        this.syncViewDropdownUI();
-        this.saveHistorySnapshot();
-      });
+      entryZoneLeftBtn.addEventListener('click', () => this.setEntryZonePosition('left'));
     }
 
     if (entryZoneRightBtn) {
-      entryZoneRightBtn.addEventListener('click', () => {
-        if ((this.floorPlanManager?.getUnits?.().length || 0) > 1) return;
-        this.state.set('settings.entryZonePosition', 'right');
-        this.canvasManager.redrawFloorPlan({ preserveViewport: true });
-        this.syncViewDropdownUI();
-        this.saveHistorySnapshot();
-      });
+      entryZoneRightBtn.addEventListener('click', () => this.setEntryZonePosition('right'));
     }
 
     const toggleEntryLabelBtn = document.getElementById('btn-toggle-entry-label');
@@ -2021,10 +2117,8 @@ class App {
       toggleLabelsBtn.addEventListener('click', () => {
         const showLabels = this.state.get('settings.showItemLabels') !== false;
         this.state.set('settings.showItemLabels', !showLabels);
-        document.getElementById('labels-toggle-text').textContent = showLabels
-          ? 'Show Labels'
-          : 'Hide Labels';
         this.canvasManager.toggleItemLabels(!showLabels);
+        this.syncViewDropdownUI();
         this.saveHistorySnapshot();
       });
     }
@@ -2300,7 +2394,6 @@ class App {
         return false;
       }
 
-      const entryZonePosition = this.state.get('settings.entryZonePosition') || 'bottom';
       const units = floorPlan.units || [];
       const unitBounds = this.canvasManager.getUnitBoundsMap?.() || {};
 
@@ -2318,10 +2411,11 @@ class App {
         const unit = units.find((candidate) => candidate.instanceId === instanceId);
         const bounds = instanceId ? unitBounds[instanceId] : null;
         if (!unit || !bounds) return false;
+        const entryZonePosition = this.getUnitEntryZonePosition(unit);
         return Bounds.isInEntryZone(
           item.canvasObject,
           unit,
-          units.length > 1 ? 'bottom' : entryZonePosition,
+          entryZonePosition,
           bounds,
         );
       });
@@ -2499,7 +2593,7 @@ class App {
     const entryLabelVisible = currentSettings.showEntryZoneLabel !== false;
     const entryBorderVisible = currentSettings.showEntryZoneBorder !== false;
     const itemLabelsVisible = currentSettings.showItemLabels !== false;
-    const entryPosition = currentSettings.entryZonePosition || 'bottom';
+    const entryPosition = this.getActiveEntryZonePosition();
 
     viewSection.innerHTML = `
       <div style="margin-bottom: 8px; color: #71717A; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
@@ -2508,7 +2602,7 @@ class App {
       <div style="display: flex; flex-direction: column; gap: 4px;">
         <button class="dropdown-item" data-action="toggle-item-labels">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8,9H16V11H8V9M4,3H20A2,2 0 0,1 22,5V19A2,2 0 0,1 20,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3Z" /></svg>
-          ${itemLabelsVisible ? 'Hide' : 'Show'} Labels
+          ${itemLabelsVisible ? 'Hide' : 'Show'} Item Labels
         </button>
         <button class="dropdown-item" data-action="toggle-entry-label">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.62,12L12,5.67L14.37,12M11,3L5.5,17H7.75L8.87,14H15.12L16.25,17H18.5L13,3H11Z"/></svg>
@@ -2581,30 +2675,22 @@ class App {
     };
 
     container.querySelector('[data-action="entry-bottom"]').onclick = () => {
-      this.state.set('settings.entryZonePosition', 'bottom');
-      this.canvasManager.redrawFloorPlan();
-      this.saveHistorySnapshot();
+      this.setEntryZonePosition('bottom');
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-left"]').onclick = () => {
-      this.state.set('settings.entryZonePosition', 'left');
-      this.canvasManager.redrawFloorPlan();
-      this.saveHistorySnapshot();
+      this.setEntryZonePosition('left');
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-right"]').onclick = () => {
-      this.state.set('settings.entryZonePosition', 'right');
-      this.canvasManager.redrawFloorPlan();
-      this.saveHistorySnapshot();
+      this.setEntryZonePosition('right');
       Modal.close();
     };
 
     container.querySelector('[data-action="entry-top"]').onclick = () => {
-      this.state.set('settings.entryZonePosition', 'top');
-      this.canvasManager.redrawFloorPlan();
-      this.saveHistorySnapshot();
+      this.setEntryZonePosition('top');
       Modal.close();
     };
 

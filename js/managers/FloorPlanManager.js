@@ -96,6 +96,34 @@ class FloorPlanManager {
     return this._applyFloorPlan(nextPlan, { reason: 'reorder' });
   }
 
+  /** Update the entry-zone edge for one or more unit instances. */
+  setUnitEntryZonePosition(instanceIds = [], position, options = {}) {
+    const normalizedPosition = FloorPlanComposition.normalizeEntryZonePosition(position);
+    const current = this.getCurrentFloorPlan();
+    if (!current || !normalizedPosition) return false;
+
+    const requestedIds = new Set(Array.isArray(instanceIds) ? instanceIds : [instanceIds]);
+    if (!requestedIds.size) return false;
+
+    let changed = false;
+    const units = current.units.map((unit) => {
+      if (!requestedIds.has(unit.instanceId)) return unit;
+      if (unit.entryZonePosition === normalizedPosition) return unit;
+      changed = true;
+      return {
+        ...unit,
+        entryZonePosition: normalizedPosition,
+      };
+    });
+
+    if (!changed) return false;
+
+    return this._applyFloorPlan(FloorPlanComposition.composeUnits(units), {
+      preserveViewport: options.preserveViewport !== false,
+      reason: 'entry-zone-position',
+    });
+  }
+
   /** Replace the active composition from an ordered list of template IDs. */
   setFloorPlans(floorPlanIds = []) {
     const units = floorPlanIds
@@ -127,12 +155,9 @@ class FloorPlanManager {
     this.canvasManager.captureItemUnitAssignments?.(oldBounds);
 
     const currentLayout = this.state.get('layout') || {};
-    const settings = { ...(this.state.get('settings') || {}) };
-    if (nextPlan.units.length > 1) settings.entryZonePosition = 'bottom';
 
     this.state.setState({
       floorPlan: nextPlan,
-      settings,
       layout: {
         ...currentLayout,
         floorPlanPosition: options.resetPosition ? null : currentLayout.floorPlanPosition,
@@ -148,7 +173,10 @@ class FloorPlanManager {
       this.canvasManager.resetViewport();
     }
 
-    this.canvasManager.drawFloorPlan(nextPlan, { suppressStateEvent: true });
+    this.canvasManager.drawFloorPlan(nextPlan, {
+      preserveViewport: options.preserveViewport === true,
+      suppressStateEvent: true,
+    });
     const newBounds = this.canvasManager.getUnitBoundsMap?.() || {};
     this.canvasManager.reflowItemsForUnitChanges?.(
       oldBounds,

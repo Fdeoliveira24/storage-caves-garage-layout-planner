@@ -498,6 +498,7 @@ class CanvasManager {
         top: item.canvasObject.top + deltaY,
       });
       item.canvasObject.setCoords();
+      this._syncItemLabel(item.canvasObject);
       item.x = item.canvasObject.left;
       item.y = item.canvasObject.top;
     });
@@ -730,6 +731,47 @@ class CanvasManager {
           .filter(Boolean),
       ),
     ];
+  }
+
+  selectFloorPlanUnits(instanceIds = []) {
+    if (!this.canvas) return false;
+    const ids = [...new Set(Array.isArray(instanceIds) ? instanceIds : [instanceIds])].filter(
+      Boolean,
+    );
+    const groups = ids.map((id) => this.floorPlanUnitGroups.get(id)).filter(Boolean);
+    if (!groups.length) return false;
+
+    if (groups.length === 1) {
+      this.canvas.setActiveObject(groups[0]);
+    } else if (typeof fabric !== 'undefined' && fabric.ActiveSelection) {
+      this.canvas.setActiveObject(new fabric.ActiveSelection(groups, { canvas: this.canvas }));
+    }
+
+    this._syncFloorPlanUnitSelectionHighlights();
+    this.canvas.requestRenderAll?.();
+    return true;
+  }
+
+  _syncFloorPlanUnitSelectionHighlights() {
+    if (!this.floorPlanUnitGroups?.size) return;
+
+    this.floorPlanUnitGroups.forEach((group) => {
+      group.set?.({
+        borderColor: 'rgba(102, 102, 255, 0.55)',
+      });
+
+      if (group.floorPlanRect?.set) {
+        group.floorPlanRect.set({
+          fill: Config.COLORS.floorPlan,
+          stroke: Config.COLORS.floorPlanStroke,
+          strokeWidth: 2,
+        });
+      }
+
+      group.dirty = true;
+    });
+
+    this.canvas?.requestRenderAll?.();
   }
 
   /**
@@ -1073,6 +1115,7 @@ class CanvasManager {
 
       this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
+      this._moveLabelsWithTarget(e.target);
       this._updateItemSmartGuides(e.target);
       this.eventBus.emit('canvas:object:moving', e.target);
     });
@@ -1093,6 +1136,8 @@ class CanvasManager {
 
       this._enforceItemBounds(e.target);
       this._updateItemFloorPlanState(e.target);
+      this._syncLabelsForTarget(e.target);
+      this._resetLabelTracking(e.target);
       this._hideSmartGuides();
       this.eventBus.emit('canvas:object:modified', e.target);
     });
@@ -1108,10 +1153,13 @@ class CanvasManager {
       }
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
+        this._syncFloorPlanUnitSelectionHighlights();
         this.eventBus.emit('canvas:selection:cleared');
         this.eventBus.emit('canvas:selection:changed', null);
         return;
       }
+      this._primeLabelTracking(this.canvas.getActiveObject());
+      this._syncFloorPlanUnitSelectionHighlights();
       this.eventBus.emit('canvas:selection:created', normalized);
       this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
     });
@@ -1127,16 +1175,21 @@ class CanvasManager {
       }
       const normalized = this._normalizeSelection();
       if (!normalized.length) {
+        this._syncFloorPlanUnitSelectionHighlights();
         this.eventBus.emit('canvas:selection:cleared');
         this.eventBus.emit('canvas:selection:changed', null);
         return;
       }
+      this._primeLabelTracking(this.canvas.getActiveObject());
+      this._syncFloorPlanUnitSelectionHighlights();
       this.eventBus.emit('canvas:selection:updated', normalized);
       this.eventBus.emit('canvas:selection:changed', this.canvas.getActiveObject() || null);
     });
 
     // Selection cleared
     this.canvas.on('selection:cleared', () => {
+      this._syncAllItemLabels();
+      this._syncFloorPlanUnitSelectionHighlights();
       this.eventBus.emit('canvas:selection:cleared');
       this.eventBus.emit('canvas:selection:changed', null);
     });
@@ -1290,13 +1343,28 @@ class CanvasManager {
             <rect x="30" y="24" width="20" height="16" rx="4" ry="4" />
             <path d="M30 45h20" stroke-linecap="round" stroke-width="3" />
           </svg>
-          <h3>Start Planning Your Space</h3>
+          <h3>Start planning your space</h3>
           <p>Pick a unit size from the left to drop a floor plan on the canvas, then drag in vehicles and gear to see what fits.</p>
+          <button type="button" class="canvas-empty-action" data-canvas-empty-action="floorplans">
+            Choose a floor plan
+          </button>
+          <div class="canvas-empty-tip">
+            <span aria-hidden="true">✣</span>
+            <span>Tip — combine up to ${Config.MAX_FLOOR_PLAN_UNITS || 10} units for multi-bay layouts</span>
+          </div>
         </div>
       `;
 
       this.canvasWrapper.appendChild(el);
       this.emptyStateEl = el;
+      el.querySelector('[data-canvas-empty-action="floorplans"]')?.addEventListener('click', () => {
+        if (window.app?.toggleSidebar) {
+          window.app.toggleSidebar(false);
+        } else {
+          document.querySelector('.app-container')?.classList.remove('sidebar-collapsed');
+        }
+        document.querySelector('.sidebar-tab[data-tab="floorplans"]')?.click();
+      });
     } else {
       this.emptyStateEl.classList.remove('canvas-empty-state--hidden');
     }
@@ -1344,10 +1412,10 @@ class CanvasManager {
       this.floorPlanWidth = width;
       this.floorPlanHeight = height;
 
-      const entryZonePosition =
-        normalizedPlan.units.length > 1
-          ? 'bottom'
-          : this.state.get('settings.entryZonePosition') || 'bottom';
+      const fallbackEntryZonePosition =
+        FloorPlanComposition.normalizeEntryZonePosition(
+          this.state.get('settings.entryZonePosition'),
+        ) || 'bottom';
       const showEntryBorder = this.state.get('settings.showEntryZoneBorder') !== false;
       const showEntryLabel = this.state.get('settings.showEntryZoneLabel') !== false;
       const showGrid = this.state.get('settings.showGrid');
@@ -1356,6 +1424,9 @@ class CanvasManager {
       this.gridLines = [];
       this.rulerMarks = [];
       normalizedPlan.units.forEach((unit, index) => {
+        const entryZonePosition =
+          FloorPlanComposition.normalizeEntryZonePosition(unit.entryZonePosition) ||
+          fallbackEntryZonePosition;
         const unitGroup = this._createFloorPlanUnitGroup(unit, {
           entryZonePosition,
           showEntryBorder,
@@ -1397,6 +1468,7 @@ class CanvasManager {
       }
 
       this.canvas.renderAll();
+      this._syncFloorPlanUnitSelectionHighlights();
     } catch (error) {
       this._handleCanvasError('drawFloorPlan', error);
     }
@@ -1678,6 +1750,8 @@ class CanvasManager {
       this.hideEmptyState();
 
       const group = this._createBaseGroup(itemData, x, y);
+      const label = this._createItemLabel(itemData);
+      group.label = label;
       let resolveImageLoad;
       const imageLoadPromise = new Promise((resolve) => {
         resolveImageLoad = resolve;
@@ -1685,6 +1759,13 @@ class CanvasManager {
       group.imageLoadPromise = imageLoadPromise;
 
       this.canvas.add(group);
+      if (label) {
+        this.canvas.add(label);
+        this._attachItemLabel(group, label);
+        this._syncItemLabel(group);
+        const showLabels = this.state?.get?.('settings.showItemLabels') !== false;
+        label.set({ visible: showLabels, opacity: showLabels ? 1 : 0 });
+      }
 
       // If snap-to-grid is enabled, snap newly added items to the grid immediately.
       try {
@@ -1695,6 +1776,7 @@ class CanvasManager {
         console.warn('[CanvasManager] Snap-to-grid failed while adding item:', err);
       }
 
+      this._syncItemLabel(group);
       this._updateItemFloorPlanState(group);
       this.canvas.renderAll();
 
@@ -1777,7 +1859,7 @@ class CanvasManager {
   }
 
   /**
-   * Create base group with rectangle and label.
+   * Create base group with rectangle/image footprint.
    * All shapes are positioned relative to the group's origin (0,0)
    * so that the group's left/top can safely be treated as center coordinates.
    * @private
@@ -1906,36 +1988,7 @@ class CanvasManager {
       });
     }
 
-    // Create label at center, shrink font to fit item width
-    const maxLabelWidth = width * 0.9;
-    let fontSize = 11;
-    const label = new fabric.Text(itemData.label, {
-      fontSize,
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      fontWeight: isMezzanine ? '600' : 'bold',
-    });
-
-    while (label.width > maxLabelWidth && fontSize > 7) {
-      fontSize -= 0.5;
-      label.set({ fontSize });
-    }
-
-    label.set({
-      left: 0,
-      top: 0,
-      fill: isMezzanine ? '#374151' : '#ffffff',
-      originX: 'center',
-      originY: 'center',
-      shadow: new fabric.Shadow({
-        color: isMezzanine ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
-        blur: isMezzanine ? 0 : 3,
-      }),
-      selectable: false,
-      evented: false,
-    });
-
-    // Group rectangle and label together with CENTER origin
-    const group = new fabric.Group([baseShape, label], {
+    const group = new fabric.Group([baseShape], {
       left: x,
       top: y,
       originX: 'center',
@@ -1978,23 +2031,244 @@ class CanvasManager {
       mtr: true,
     });
 
-    group.label = label;
-
-    const keepLabelUpright = () => {
-      if (!group.label) return;
-      group.label.set('angle', -group.angle);
-      group.label.setCoords();
-    };
-
-    group.on('rotating', keepLabelUpright);
-    group.on('rotated', keepLabelUpright);
-
     this._enforceFootprintSize(group, itemData);
 
     // Store custom data on group
     group.customData = { ...itemData };
 
     return group;
+  }
+
+  /**
+   * Create a compact readable item label that sits above the canvas item.
+   * Kept as a separate Fabric object so it does not alter the item's physical footprint.
+   * @private
+   */
+  _createItemLabel(itemData) {
+    if (!itemData?.label) return null;
+
+    const width = Helpers.feetToPx(itemData.widthFt);
+    const height = Helpers.feetToPx(itemData.lengthFt);
+    const maxLabelWidth = Math.max(88, Math.min(168, Math.max(width, height) * 0.9));
+    let fontSize = 11;
+    const text = new fabric.Text(itemData.label, {
+      fontSize,
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontWeight: '700',
+      fill: '#ffffff',
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+    });
+
+    while (text.width > maxLabelWidth && fontSize > 8) {
+      fontSize -= 0.5;
+      text.set({ fontSize });
+      text.initDimensions?.();
+    }
+
+    const labelPaddingX = 18;
+    const labelPaddingY = 5;
+    const textWidth = Math.ceil(text.width);
+    const labelWidth = textWidth + labelPaddingX * 2;
+    const labelHeight = Math.ceil(text.height + labelPaddingY * 2);
+
+    text.set({
+      left: 0,
+      top: 0,
+      width: textWidth,
+      textAlign: 'center',
+    });
+    text.initDimensions?.();
+
+    const background = new fabric.Rect({
+      left: 0,
+      top: 0,
+      width: labelWidth,
+      height: labelHeight,
+      rx: 5,
+      ry: 5,
+      fill: '#b42518',
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+    });
+
+    const label = new fabric.Group([background, text], {
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+      hasControls: false,
+      hasBorders: false,
+      objectCaching: false,
+      excludeFromExport: false,
+    });
+
+    label.isItemLabel = true;
+    label.customData = {
+      isLabel: true,
+      itemId: itemData.id,
+      catalogItemId: itemData.itemId,
+    };
+
+    return label;
+  }
+
+  /**
+   * Keep a separate label anchored above its item group.
+   * @private
+   */
+  _syncItemLabel(group) {
+    if (!group?.label) return;
+    if (group.group?.type === 'activeSelection') return;
+
+    const bounds =
+      typeof group.getBoundingRect === 'function'
+        ? group.getBoundingRect(true, true)
+        : { left: group.left, top: group.top, width: group.width || 0, height: group.height || 0 };
+    const center = group.getCenterPoint();
+    const labelHeight = group.label.getScaledHeight?.() || 18;
+    group.label.set({
+      left: center.x,
+      top: bounds.top - labelHeight / 2 - 6,
+      angle: 0,
+    });
+    group.label.setCoords();
+    group._labelFollowCenter = { x: center.x, y: center.y };
+    if (typeof group.label.bringToFront === 'function') {
+      group.label.bringToFront();
+    }
+  }
+
+  /**
+   * Keep labels visually attached while an item or ActiveSelection is being dragged.
+   * Drag-time translation avoids the rubber-band effect caused by repeatedly
+   * recalculating bounds while Fabric is still mutating active selection geometry.
+   * @private
+   */
+  _moveLabelsWithTarget(target) {
+    if (!target) return;
+
+    if (target.type === 'activeSelection' && typeof target.getObjects === 'function') {
+      const previous = target._labelFollowPosition || { left: target.left, top: target.top };
+      const deltaX = target.left - previous.left;
+      const deltaY = target.top - previous.top;
+      if (deltaX || deltaY) {
+        target.getObjects().forEach((obj) => this._translateItemLabel(obj, deltaX, deltaY));
+      }
+      target._labelFollowPosition = { left: target.left, top: target.top };
+      return;
+    }
+
+    if (!target.label) return;
+    const center = target.getCenterPoint?.();
+    if (!center) return;
+
+    const previous = target._labelFollowCenter;
+    if (!previous) {
+      this._syncItemLabel(target);
+      return;
+    }
+
+    const deltaX = center.x - previous.x;
+    const deltaY = center.y - previous.y;
+    this._translateItemLabel(target, deltaX, deltaY);
+    target._labelFollowCenter = { x: center.x, y: center.y };
+  }
+
+  /**
+   * Record the current position before Fabric starts moving selected objects.
+   * @private
+   */
+  _primeLabelTracking(target) {
+    if (!target) return;
+    if (target.type === 'activeSelection') {
+      target._labelFollowPosition = { left: target.left, top: target.top };
+      target.getObjects?.().forEach((obj) => {
+        const center = obj.getCenterPoint?.();
+        if (center) obj._labelFollowCenter = { x: center.x, y: center.y };
+      });
+      return;
+    }
+    const center = target.getCenterPoint?.();
+    if (center) target._labelFollowCenter = { x: center.x, y: center.y };
+  }
+
+  /**
+   * Move a separate label by the same delta as its item.
+   * @private
+   */
+  _translateItemLabel(group, deltaX, deltaY) {
+    if (!group?.label || (!deltaX && !deltaY)) return;
+    group.label.set({
+      left: group.label.left + deltaX,
+      top: group.label.top + deltaY,
+      angle: 0,
+    });
+    group.label.setCoords();
+  }
+
+  /**
+   * Sync one item label or every item label in an ActiveSelection.
+   * @private
+   */
+  _syncLabelsForTarget(target) {
+    if (!target) return;
+    if (target.type === 'activeSelection' && typeof target.getObjects === 'function') {
+      // Items inside an ActiveSelection use temporary local coordinates while
+      // the selection remains active. Labels are separate canvas objects, so
+      // re-anchoring here would snap them to those local coordinates. During a
+      // multi-item drag we keep labels attached by the selection delta, then
+      // re-anchor once Fabric clears the selection and item coordinates settle.
+      return;
+    }
+    this._syncItemLabel(target);
+  }
+
+  /**
+   * Clear temporary drag tracking after Fabric settles object coordinates.
+   * @private
+   */
+  _resetLabelTracking(target) {
+    if (!target) return;
+    if (target.type === 'activeSelection') {
+      delete target._labelFollowPosition;
+      target.getObjects?.().forEach((obj) => {
+        delete obj._labelFollowCenter;
+      });
+      return;
+    }
+    delete target._labelFollowCenter;
+  }
+
+  /**
+   * Re-anchor every item label. Used when an ActiveSelection is released.
+   * @private
+   */
+  _syncAllItemLabels() {
+    if (!this.canvas) return;
+    this.canvas.getObjects().forEach((obj) => {
+      if (obj?.label) this._syncItemLabel(obj);
+    });
+  }
+
+  /**
+   * Attach label updates to item transforms.
+   * @private
+   */
+  _attachItemLabel(group, label) {
+    if (!group || !label) return;
+    const sync = () => {
+      if (group.group?.type === 'activeSelection') return;
+      this._syncItemLabel(group);
+    };
+    group.on('moving', sync);
+    group.on('scaling', sync);
+    group.on('rotating', sync);
+    group.on('modified', sync);
   }
 
   /**
@@ -2048,6 +2322,7 @@ class CanvasManager {
       group.insertAt(img, 1);
       group.addWithUpdate();
       this._enforceFootprintSize(group, itemData);
+      this._syncItemLabel(group);
       this.canvas.renderAll();
     } catch (error) {
       this._handleCanvasError('_swapGroupImage', error);
@@ -2058,6 +2333,10 @@ class CanvasManager {
    * Remove item from canvas
    */
   removeItem(item) {
+    if (item?.label) {
+      this.canvas.remove(item.label);
+      item.label = null;
+    }
     this.canvas.remove(item);
   }
 
@@ -2069,6 +2348,7 @@ class CanvasManager {
     objects.forEach((obj) => {
       const isItemObject =
         obj.customData && !obj.customData.isLabel && !SelectionFilters.isFloorPlanObject(obj);
+      const isItemLabel = obj.isItemLabel || obj.customData?.isLabel;
       const isHelperObject =
         obj.measurement ||
         obj.isMeasurementLabel ||
@@ -2076,7 +2356,7 @@ class CanvasManager {
         obj.isGridLine ||
         obj.isRulerMark ||
         obj.isMeasurementHelper;
-      if (isItemObject || isHelperObject) {
+      if (isItemObject || isItemLabel || isHelperObject) {
         this.canvas.remove(obj);
       }
     });

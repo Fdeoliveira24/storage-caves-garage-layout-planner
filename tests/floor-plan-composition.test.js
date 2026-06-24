@@ -108,17 +108,21 @@ describe('FloorPlanComposition', () => {
     });
   });
 
-  it('normalizes legacy state during load and forces bottom entry for combos', () => {
+  it('normalizes legacy state during load without forcing combo entry zones', () => {
     const state = new StateClass();
     const combo = Composition.composeUnits([
-      Composition.createUnit(Composition.getTemplate('fp-unit-a'), 'a-1'),
+      {
+        ...Composition.createUnit(Composition.getTemplate('fp-unit-a'), 'a-1'),
+        entryZonePosition: 'left',
+      },
       Composition.createUnit(Composition.getTemplate('fp-unit-b'), 'b-1'),
     ]);
     state.loadState({ floorPlan: combo, settings: { entryZonePosition: 'left' } });
 
     expect(state.get('floorPlan.kind')).toBe('unit-combo');
     expect(state.get('floorPlan.units')).toHaveLength(2);
-    expect(state.get('settings.entryZonePosition')).toBe('bottom');
+    expect(state.get('floorPlan.units.0.entryZonePosition')).toBe('left');
+    expect(state.get('settings.entryZonePosition')).toBe('left');
   });
 
   it('reorders and removes instances without changing their identities', () => {
@@ -173,17 +177,39 @@ describe('FloorPlanManager composite operations', () => {
     manager = new FloorPlanManagerClass(state, eventBus, canvas);
   });
 
-  it('builds an instant mixed combo and forces the bottom entry edge', () => {
+  it('builds an instant mixed combo without changing the default entry edge', () => {
     state.set('settings.entryZonePosition', 'left');
     expect(manager.addFloorPlan('fp-unit-a')).toBe(true);
     expect(manager.addFloorPlan('fp-unit-e')).toBe(true);
 
     expect(manager.getUnits()).toHaveLength(2);
-    expect(state.get('settings.entryZonePosition')).toBe('bottom');
+    expect(state.get('settings.entryZonePosition')).toBe('left');
     expect(manager.getArea()).toBe(1700);
     expect(eventBus.emit).toHaveBeenLastCalledWith(
       'floorplan:changed',
       expect.objectContaining({ kind: 'unit-combo' }),
+    );
+  });
+
+  it('updates the entry edge for a selected unit without changing the others', () => {
+    state.set('settings.entryZonePosition', 'left');
+    expect(manager.addFloorPlan('fp-unit-a')).toBe(true);
+    expect(manager.addFloorPlan('fp-unit-e')).toBe(true);
+
+    const [firstUnit, secondUnit] = manager.getUnits();
+    expect(manager.setUnitEntryZonePosition(secondUnit.instanceId, 'right')).toBe(true);
+
+    const units = manager.getUnits();
+    expect(units.find((unit) => unit.instanceId === firstUnit.instanceId).entryZonePosition).toBe(
+      undefined,
+    );
+    expect(units.find((unit) => unit.instanceId === secondUnit.instanceId).entryZonePosition).toBe(
+      'right',
+    );
+    expect(state.get('settings.entryZonePosition')).toBe('left');
+    expect(canvas.drawFloorPlan).toHaveBeenLastCalledWith(
+      expect.objectContaining({ kind: 'unit-combo' }),
+      expect.objectContaining({ preserveViewport: true, suppressStateEvent: true }),
     );
   });
 

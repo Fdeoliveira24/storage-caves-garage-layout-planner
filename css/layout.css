@@ -67,6 +67,7 @@ body {
 .shortcut-help-button {
   flex: 0 0 40px;
   border-radius: 999px;
+  width: 40px;
 }
 
 .hamburger-menu {
@@ -305,35 +306,44 @@ body {
 
 .sidebar-tabs {
   display: flex;
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 16px;
-  min-height: 53px;
-  align-items: stretch;
-  background: var(--color-bg-panel);
+  align-items: center;
+  gap: 4px;
+  min-height: 46px;
+  margin: 14px 14px 10px;
+  padding: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-secondary);
 }
 
 .sidebar-tab {
-  padding: 0 16px;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: max-content;
+  min-height: 34px;
+  padding: 0 10px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-secondary);
-  background: none;
+  background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  min-height: 53px;
+  white-space: nowrap;
 }
 
 .sidebar-tab:hover {
   color: var(--color-text);
+  background: rgb(255 255 255 / 55%);
 }
 
 .sidebar-tab.active {
   color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  background: var(--color-bg-panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .app-container.sidebar-collapsed .sidebar {

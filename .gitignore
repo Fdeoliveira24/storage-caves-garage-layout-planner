@@ -4,3 +4,4 @@ node_modules
 .DS_Store
 **/.DS_Store
 **/__pycache__/
+graphify-out/
